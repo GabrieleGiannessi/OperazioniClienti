@@ -132,6 +132,7 @@ create or replace PACKAGE BODY operazioniClienti as
    gui.APRIHEADERTABELLA;
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Importo'); 
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Data'); 
+   gui.AGGIUNGIHEADERTABELLA(elemento => 'Ciao'); 
    gui.CHIUDIHEADERTABELLA; 
 
    for ricarica IN
