@@ -7,6 +7,4 @@ procedure visualizzaRicaricheCliente(IDcliente NUMBER);
 procedure visualizzazioneClienti;
 procedure visualizzazioneConvenzioni;
 
-
-
 end operazioniClienti; 
