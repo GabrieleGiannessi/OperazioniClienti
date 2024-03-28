@@ -7,12 +7,12 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.APRIFORMFILTRO(azione => 'GET'); 
 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
-    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
+    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Data Fine', placeholder => 'Data-fine');  
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
 
     htp.prn('<br>'); 
     gui.CHIUDIFORMFILTRO; */
-
+    gui.apriPagina; 
     gui.APRITABELLA; 
     gui.APRIHEADERTABELLA; 
     gui.AGGIUNGIHEADERTABELLA(elemento => 'Dipendente');
@@ -27,28 +27,14 @@ create or replace PACKAGE BODY operazioniClienti as
     (SELECT FK_Dipendente, Data, Importo, Bonus, FK_CONTABILE FROM BUSTEPAGA) 
     LOOP
         gui.AGGIUNGIRIGATABELLA; 
-        
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.FK_DIPENDENTE); 
-        htp.prn ('</td>');
 
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.Data); 
-        htp.prn ('</td>');
-        
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.Importo); 
-        htp.prn ('</td>');
-        
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.Bonus); 
-        htp.prn ('</td>');
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE); 
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.FK_CONTABILE); 
-        htp.prn ('</td>');
-        
-        gui.ChiudiRigaTabella;
+        gui.CHIUDIRIGATABELLA;
         end LOOP; 
 
     END visualizzaBustePaga; 
@@ -66,8 +52,10 @@ create or replace PACKAGE BODY operazioniClienti as
     htp.prn('<br>'); 
     gui.CHIUDIFORMFILTRO; */
 
+    gui.apriPagina;
     gui.APRITABELLA; 
     gui.APRIHEADERTABELLA; 
+
     gui.AGGIUNGIHEADERTABELLA(elemento => 'Data');
     gui.AGGIUNGIHEADERTABELLA(elemento => 'Importo');
     gui.AGGIUNGIHEADERTABELLA(elemento => 'Bonus');
@@ -80,75 +68,70 @@ create or replace PACKAGE BODY operazioniClienti as
     LOOP
         gui.AGGIUNGIRIGATABELLA; 
         
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.Data); 
-        htp.prn ('</td>');
-        
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.Importo); 
-        htp.prn ('</td>');
-        
-        
-        
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.Bonus); 
-        htp.prn ('</td>');
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data); 
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus); 
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE); 
 
-        htp.prn ('<td>'); 
-        htp.prn (busta_paga.FK_CONTABILE); 
-        htp.prn ('</td>');
-        
         gui.ChiudiRigaTabella;
         end LOOP; 
 
     END visualizzaBustePagaDipendente;
 
-    procedure visualizzaRicarica is
+    procedure visualizzaRicarica (
+        r_Cliente in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null
+    ) 
+    is
     BEGIN
 
-/*
-   gui.APRIFORMFILTRO(azione => 'GET'); 
+   gui.APRIPAGINA;
 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
+   gui.APRIFORMFILTRO('http://131.114.73.203:8080/apex/n_lupi.OperazioniClienti.visualizzaRicarica'); 
+
+   gui.AGGIUNGIINPUTFILTRO(nome => 'r_Cliente', placeholder => 'Cliente');
+   gui.AGGIUNGIINPUTFILTRO(nome => 'r_Importo', placeholder => 'Importo');
+   gui.AGGIUNGIINPUTFILTRO('date',nome => 'r_Data', placeholder => 'Data'); 
+   gui.AGGIUNGIINPUTFILTRO('submit', '', 'Filtra', '');
 
    htp.prn('<br>'); 
-   gui.CHIUDIFORMFILTRO; */
+   gui.CHIUDIFORMFILTRO; 
+
 
    gui.APRITABELLA; 
    gui.APRIHEADERTABELLA;
    gui.AGGIUNGIHEADERTABELLA(elemento => 'IDricarica');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'FK_Cliente'); 
+   gui.AGGIUNGIHEADERTABELLA(elemento => 'Cliente'); 
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Importo'); 
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Data'); 
    gui.CHIUDIHEADERTABELLA; 
 
+   gui.ApriBodyTabella();
+
    for ricarica IN
-   (SELECT IDRicarica, FK_Cliente, Importo, Data FROM RICARICHE) 
+   (SELECT *
+    FROM RICARICHE
+    WHERE (RICARICHE.FK_Cliente = r_Cliente or r_Cliente is null) AND ((trunc(RICARICHE.Data) = to_date(r_Data, 'YYYY-MM-DD')) or r_Data is null)
+    AND (RICARICHE.Importo = to_number(r_Importo) or r_Importo is null)
+    ) 
    LOOP
-    gui.AGGIUNGIRIGATABELLA; 
 
-    htp.prn ('<td>'); 
-    htp.prn (ricarica.IDRicarica); 
-    htp.prn ('</td>');
+        gui.AGGIUNGIRIGATABELLA; 
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.IDRicarica || '');
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.FK_CLIENTE || '');
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.importo || '');
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.data || '');
+        gui.AGGIUNGIPULSANTEINTABELLA('.','.');
 
-    htp.prn ('<td>'); 
-    htp.prn (ricarica.FK_Cliente); 
-    htp.prn ('</td>');
+        gui.ChiudiRigaTabella;
 
-    htp.prn ('<td>'); 
-    htp.prn (ricarica.Importo); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (ricarica.Data); 
-    htp.prn ('</td>');
-
-    gui.ChiudiRigaTabella;
     end LOOP; 
 
-    END visualizzaricarica; 
+    gui.CHIUDITABELLA;
+    gui.CHIUDIBODY;
+
+    END visualizzaricarica;
  
 
     procedure visualizzaRicaricheCliente (IDcliente NUMBER) is
@@ -168,6 +151,7 @@ create or replace PACKAGE BODY operazioniClienti as
    gui.APRIHEADERTABELLA;
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Importo'); 
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Data'); 
+   gui.AGGIUNGIHEADERTABELLA(elemento => 'Ciao'); 
    gui.CHIUDIHEADERTABELLA; 
 
    for ricarica IN
@@ -175,13 +159,8 @@ create or replace PACKAGE BODY operazioniClienti as
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
     
-    htp.prn ('<td>'); 
-    htp.prn (ricarica.Importo); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (ricarica.Data); 
-    htp.prn ('</td>');
+        gui.AGGIUNGIELEMENTOTABELLA(elemento => 'ricarica.Importo');
+        gui.AGGIUNGIELEMENTOTABELLA(elemento => 'ricarica.Data');
 
     gui.ChiudiRigaTabella;
     end LOOP; 
@@ -194,6 +173,7 @@ create or replace PACKAGE BODY operazioniClienti as
     TYPE array_di_stringhe IS VARRAY(10) OF VARCHAR2(100);
     */
     BEGIN
+   gui.apriPagina;     
    gui.APRITABELLA; 
    gui.APRIHEADERTABELLA;
    gui.AGGIUNGIHEADERTABELLA(elemento => 'IDCliente');
@@ -213,56 +193,33 @@ create or replace PACKAGE BODY operazioniClienti as
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
 
-    htp.prn ('<td>'); 
-    htp.prn (clienti.IDCliente); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Nome); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Cognome); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.DataNascita); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Sesso); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Ntelefono); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Email); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Stato); 
-    htp.prn ('</td');
-
-    htp.prn ('<td>'); 
-    htp.prn (clienti.Saldo); 
-    htp.prn ('</td');
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.IDCliente);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.DataNascita);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Stato);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Saldo);
+            gui.AGGIUNGIPULSANTEINTABELLA('null', '.');
 
     gui.ChiudiRigaTabella;
+
     end LOOP;
       
-
 END visualizzazioneClienti; 
 
 procedure visualizzazioneConvenzioni is
 BEGIN
 
+   gui.apriPagina;
+   htp.prn('<br>');
    gui.APRIFORMFILTRO(azione => 'GET'); 
-
+/*
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
+   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');*/
 
    gui.CHIUDIFORMFILTRO; 
 
@@ -286,42 +243,26 @@ BEGIN
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
 
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.IDConvenzione); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.Nome); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.Ente); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.Sconto); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.CodiceAccesso); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.DataInizio); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.DataFine); 
-    htp.prn ('</td>');
-
-    htp.prn ('<td>'); 
-    htp.prn (convenzioni.Cumulabile); 
-    htp.prn ('</td>');
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.IDConvenzione);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Nome);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Ente);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Sconto);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.CodiceAccesso);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataInizio);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataFine);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Cumulabile);
 
     gui.ChiudiRigaTabella;
     end LOOP; 
 
     END visualizzazioneConvenzioni; 
+/*
+procedure inserimentoRicarica IS
+BEGIN
+
+
+
+    END inserimentoRicarica;*/
 
 
 end operazioniClienti; 
