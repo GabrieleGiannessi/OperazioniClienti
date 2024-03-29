@@ -126,6 +126,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.ChiudiRigaTabella;
 
+
     end LOOP; 
 
     gui.CHIUDITABELLA;
@@ -204,6 +205,7 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Saldo);
             gui.AGGIUNGIPULSANTEINTABELLA('null', '.');
 
+
     gui.ChiudiRigaTabella;
 
     end LOOP;
@@ -220,6 +222,7 @@ BEGIN
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');*/
+
 
    gui.CHIUDIFORMFILTRO; 
 
