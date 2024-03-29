@@ -78,41 +78,61 @@ create or replace PACKAGE BODY operazioniClienti as
 
     END visualizzaBustePagaDipendente;
 
-    procedure visualizzaRicarica is
+    procedure visualizzaRicarica (
+        r_Cliente in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null
+    ) 
+    is
     BEGIN
 
-/*
-   gui.APRIFORMFILTRO(azione => 'GET'); 
+   gui.APRIPAGINA;
 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
+   gui.APRIFORMFILTRO('http://131.114.73.203:8080/apex/n_lupi.OperazioniClienti.visualizzaRicarica'); 
+
+   gui.AGGIUNGIINPUTFILTRO(nome => 'r_Cliente', placeholder => 'Cliente');
+   gui.AGGIUNGIINPUTFILTRO(nome => 'r_Importo', placeholder => 'Importo');
+   gui.AGGIUNGIINPUTFILTRO('date',nome => 'r_Data', placeholder => 'Data'); 
+   gui.AGGIUNGIINPUTFILTRO('submit', '', 'Filtra', '');
 
    htp.prn('<br>'); 
-   gui.CHIUDIFORMFILTRO; */
+   gui.CHIUDIFORMFILTRO; 
+
 
    gui.APRITABELLA; 
    gui.APRIHEADERTABELLA;
    gui.AGGIUNGIHEADERTABELLA(elemento => 'IDricarica');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'FK_Cliente'); 
+   gui.AGGIUNGIHEADERTABELLA(elemento => 'Cliente'); 
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Importo'); 
    gui.AGGIUNGIHEADERTABELLA(elemento => 'Data'); 
    gui.CHIUDIHEADERTABELLA; 
 
+   gui.ApriBodyTabella();
+
    for ricarica IN
-   (SELECT IDRicarica, FK_Cliente, Importo, Data FROM RICARICHE) 
+   (SELECT *
+    FROM RICARICHE
+    WHERE (RICARICHE.FK_Cliente = r_Cliente or r_Cliente is null) AND ((trunc(RICARICHE.Data) = to_date(r_Data, 'YYYY-MM-DD')) or r_Data is null)
+    AND (RICARICHE.Importo = to_number(r_Importo) or r_Importo is null)
+    ) 
    LOOP
-    gui.AGGIUNGIRIGATABELLA; 
 
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.IDRicarica);
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.FK_Cliente);
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Importo);
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
+        gui.AGGIUNGIRIGATABELLA; 
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.IDRicarica || '');
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.FK_CLIENTE || '');
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.importo || '');
+        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.data || '');
+        gui.AGGIUNGIPULSANTEINTABELLA('.','.');
 
-    gui.ChiudiRigaTabella;
+        gui.ChiudiRigaTabella;
+
+
     end LOOP; 
 
-    END visualizzaricarica; 
+    gui.CHIUDITABELLA;
+    gui.CHIUDIBODY;
+
+    END visualizzaricarica;
  
 
     procedure visualizzaRicaricheCliente (IDcliente NUMBER) is
@@ -183,8 +203,11 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Stato);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Saldo);
+            gui.AGGIUNGIPULSANTEINTABELLA('null', '.');
+
 
     gui.ChiudiRigaTabella;
+
     end LOOP;
       
 END visualizzazioneClienti; 
@@ -195,10 +218,11 @@ BEGIN
    gui.apriPagina;
    htp.prn('<br>');
    gui.APRIFORMFILTRO(azione => 'GET'); 
-
+/*
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');
+   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');*/
+
 
    gui.CHIUDIFORMFILTRO; 
 
@@ -235,6 +259,13 @@ BEGIN
     end LOOP; 
 
     END visualizzazioneConvenzioni; 
+/*
+procedure inserimentoRicarica IS
+BEGIN
+
+
+
+    END inserimentoRicarica;*/
 
 
 end operazioniClienti; 
