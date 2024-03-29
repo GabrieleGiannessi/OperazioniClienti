@@ -1,6 +1,6 @@
 create or replace PACKAGE BODY operazioniClienti as
 
-     procedure registrazioneCliente IS
+    procedure registrazioneCliente IS
     BEGIN
     gui.APRIPAGINA('Registrazione');
     gui.AGGIUNGIFORM;  
@@ -17,7 +17,6 @@ create or replace PACKAGE BODY operazioniClienti as
         gui.CHIUDIRIGAFORM; 
 
         gui.AGGIUNGIRIGAFORM; 
-
            gui.APRIDIV (classe => 'col-half');
            gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
 
@@ -33,9 +32,9 @@ create or replace PACKAGE BODY operazioniClienti as
                     gui.APRIDIV (classe => 'col-third');
                         gui.AGGIUNGIINPUT (placeholder => 'YYYY', nome => 'Year', classe => ''); 
                     gui.CHIUDIDIV;
-
                 gui.CHIUDIGRUPPOINPUT; 
-            gui.CHIUDIDIV;
+
+            gui.CHIUDIGRUPPOINPUT;
             gui.APRIDIV (classe => 'col-half'); 
                 gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
 
@@ -50,15 +49,12 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (nome => 'Registra', value => 'Registra'); 
+                gui.AGGIUNGIBOTTONESUBMIT (nome => 'Registra', value => 'Registra', ); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
     gui.CHIUDIFORM; 
     END registrazioneCliente; 
-
-
-
 
     procedure visualizzaBustePaga is
     BEGIN
