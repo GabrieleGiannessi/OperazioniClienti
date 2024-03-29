@@ -49,7 +49,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (nome => 'Registra', value => 'Registra', ); 
+                gui.AGGIUNGIBOTTONESUBMIT (nome => 'Registra', value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
@@ -146,10 +146,10 @@ create or replace PACKAGE BODY operazioniClienti as
 
    gui.APRIFORMFILTRO('http://131.114.73.203:8080/apex/n_lupi.OperazioniClienti.visualizzaRicarica'); 
 
-   gui.AGGIUNGIINPUTFILTRO(nome => 'r_Cliente', placeholder => 'Cliente');
-   gui.AGGIUNGIINPUTFILTRO(nome => 'r_Importo', placeholder => 'Importo');
-   gui.AGGIUNGIINPUTFILTRO('date',nome => 'r_Data', placeholder => 'Data'); 
-   gui.AGGIUNGIINPUTFILTRO('submit', '', 'Filtra', '');
+   gui.aggiungiCampoFormFiltro(nome => 'r_Cliente', placeholder => 'Cliente');
+   gui.aggiungiCampoFormFiltro(nome => 'r_Importo', placeholder => 'Importo');
+   gui.aggiungiCampoFormFiltro('date',nome => 'r_Data', placeholder => 'Data'); 
+   gui.aggiungiCampoFormFiltro('submit', '', 'Filtra', '');
 
    htp.prn('<br>'); 
    gui.CHIUDIFORMFILTRO; 
