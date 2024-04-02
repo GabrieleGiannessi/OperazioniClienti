@@ -71,7 +71,7 @@ create or replace PACKAGE BODY operazioniClienti as
     Sesso CHAR(1); 
 
     begin
-        gui.ApriPagina;
+        gui.ApriPagina ('Registrazione');
  
         DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
         Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
@@ -93,6 +93,55 @@ create or replace PACKAGE BODY operazioniClienti as
         --visualizza popup di errore
         gui.AggiungiPopup(False, 'Registrazione fallita!');
     end inserisciDati; 
+
+    procedure modificaCliente IS
+    BEGIN
+    gui.APRIPAGINA(titolo => 'Modifica dati cliente');
+    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+
+        gui.AGGIUNGIRIGAFORM;   
+            gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+            gui.AGGIUNGIGRUPPOINPUT;    
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
+                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Nuova mail');
+            gui.CHIUDIGRUPPOINPUT; 
+
+
+            gui.AGGIUNGIGRUPPOINPUT;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
+                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
+
+            gui.CHIUDIGRUPPOINPUT; 
+
+            gui.AGGIUNGIGRUPPOINPUT; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
+            gui.CHIUDIGRUPPOINPUT;
+        gui.CHIUDIRIGAFORM; 
+
+        gui.AGGIUNGIRIGAFORM;
+            gui.AGGIUNGIGRUPPOINPUT; 
+                gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
+            gui.CHIUDIGRUPPOINPUT; 
+        gui.CHIUDIRIGAFORM; 
+
+    gui.CHIUDIFORM; 
+    END modificaCliente; 
 
     procedure visualizzaBustePaga is
 
@@ -197,8 +246,8 @@ create or replace PACKAGE BODY operazioniClienti as
         gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.FK_CLIENTE );
         gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.importo );
         gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.data );
-        /*gui.AggiungiPulsanteCancellazione; 
-        gui.aggiungiPulsanteModifica (collegamento1 => '#'); */
+        gui.AggiungiPulsanteCancellazione; 
+        gui.aggiungiPulsanteModifica (collegamento1 => '#'); 
 
         gui.ChiudiRigaTabella;
 
@@ -209,21 +258,19 @@ create or replace PACKAGE BODY operazioniClienti as
     END visualizzaricarica;
  
     procedure visualizzaRicaricheCliente (IDcliente NUMBER) is
-
     head gui.stringArray; 
-
     BEGIN
-
     gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente'); 
-/*
-   gui.APRIFORMFILTRO(azione => 'GET'); 
 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
+   gui.APRIFORMFILTRO(); 
+
+   gui.aggiungiCampoFormFiltro(nome => 'r_Cliente', placeholder => 'Cliente');
+   gui.aggiungiCampoFormFiltro(nome => 'r_Importo', placeholder => 'Importo');
+   gui.aggiungiCampoFormFiltro(tipo => 'date',nome => 'r_Data', placeholder => 'Data'); 
+   gui.aggiungiCampoFormFiltro('submit', '', 'Filtra', '');
 
    htp.prn('<br>'); 
-   gui.CHIUDIFORMFILTRO; */
+   gui.CHIUDIFORMFILTRO; 
  
    head := gui.StringArray('Importo', 'Data', '');
    gui.APRITABELLA (elementi => head); 
