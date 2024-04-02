@@ -57,11 +57,14 @@ create or replace PACKAGE BODY operazioniClienti as
     END registrazioneCliente; 
 
     procedure visualizzaBustePaga is
+
     head gui.StringArray; 
+
     BEGIN   
 
+    head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina (titolo => 'visualizza Buste paga'); 
-    gui.APRIFORMFILTRO(); 
+    gui.APRIFORMFILTRO(u_root||'.visualizzaBustePaga'); 
 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Data Fine', placeholder => 'Data-fine');  
@@ -69,7 +72,6 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo;
 
-    head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.APRITABELLA (elementi => head); 
 
     for busta_paga IN
@@ -94,7 +96,6 @@ create or replace PACKAGE BODY operazioniClienti as
 
     BEGIN
 
-    
     gui.APRIFORMFILTRO(); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
@@ -133,19 +134,17 @@ create or replace PACKAGE BODY operazioniClienti as
     head gui.StringArray; 
     BEGIN
 
+   head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
    gui.APRIPAGINA ('visualizza ricariche');
-   gui.APRIFORMFILTRO(u_root || 'visualizzaRicarica'); 
+   gui.APRIFORMFILTRO(u_root || '.visualizzaRicarica'); 
 
    gui.aggiungiCampoFormFiltro(nome => 'r_Cliente', placeholder => 'Cliente');
    gui.aggiungiCampoFormFiltro(nome => 'r_Importo', placeholder => 'Importo');
-   gui.aggiungiCampoFormFiltro('date',nome => 'r_Data', placeholder => 'Data'); 
+   gui.aggiungiCampoFormFiltro(tipo => 'date',nome => 'r_Data', placeholder => 'Data'); 
    gui.aggiungiCampoFormFiltro('submit', '', 'Filtra', '');
    gui.CHIUDIFORMFILTRO; 
    gui.aCapo; 
-   
 
-
-   head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
    gui.APRITABELLA (elementi => head); 
    for ricarica IN
    (SELECT *
@@ -156,12 +155,12 @@ create or replace PACKAGE BODY operazioniClienti as
    LOOP
 
         gui.AGGIUNGIRIGATABELLA; 
-        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.IDRicarica || '');
-        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.FK_CLIENTE || '');
-        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.importo || '');
-        gui.AGGIUNGIELEMENTOTABELLA('' || ricarica.data || '');
-        gui.AggiungiPulsanteCancellazione; 
-        gui.aggiungiPulsanteModifica (collegamento1 => '#'); 
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.IDRicarica );
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.FK_CLIENTE );
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.importo );
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.data );
+        /*gui.AggiungiPulsanteCancellazione; 
+        gui.aggiungiPulsanteModifica (collegamento1 => '#'); */
 
         gui.ChiudiRigaTabella;
 
@@ -196,8 +195,8 @@ create or replace PACKAGE BODY operazioniClienti as
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
     
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => 'ricarica.Importo');
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => 'ricarica.Data');
+        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Importo);
+        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
 
     gui.ChiudiRigaTabella;
     end LOOP; 
@@ -207,12 +206,12 @@ create or replace PACKAGE BODY operazioniClienti as
 
   procedure visualizzazioneClienti IS
 
- -- head gui.StringArray; 
+   head gui.StringArray; 
 
    BEGIN
-   --head := gui.StringArray ('IDCliente', 'Nome', 'Cognome', 'DataNascita', 'Sesso', 'NTelefono', 'Email', 'Stato', 'Saldo'); 
+   head := gui.StringArray ('IDCliente', 'Nome', 'Cognome', 'DataNascita', 'Sesso', 'NTelefono', 'Email', 'Stato', 'Saldo'); 
    gui.apriPagina ('visualizza clienti'); 
-   /*    
+     
    gui.APRITABELLA (elementi => head); 
 
    for clienti IN
@@ -235,28 +234,30 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.ChiudiRigaTabella;
 
     end LOOP;
-    gui.CHIUDITABELLA; */
+    gui.CHIUDITABELLA; 
       
 END visualizzazioneClienti; 
 
 procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
     DataFine VARCHAR2 DEFAULT NULL,
     Ente VARCHAR2 DEFAULT NULL
-    /*cumulabile*/) is   
-    head gui.StringArray;    
+    /*cumulabile*/) is 
+
+    head gui.StringArray; 
+
 BEGIN
 
+   head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
    gui.apriPagina ('visualizza Convenzioni');
-   gui.APRIFORMFILTRO(azione => ''); 
+   gui.APRIFORMFILTRO(azione => u_root||'.visualizzazioneConvenzioni'); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AggiungiCampoFormFiltro('submit', '', 'Filtra', ''); 
+   gui.AggiungiCampoFormFiltro(tipo =>'submit', nome => 'Submit', value => 'Filtra'); 
    gui.CHIUDIFORMFILTRO; 
    gui.aCapo; 
 
-   head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
-   gui.APRITABELLA (elementi => head); 
+   gui.APRITABELLA (head); 
 
    for convenzioni IN
    (SELECT IDConvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile FROM CONVENZIONI) 
