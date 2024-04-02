@@ -2,7 +2,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
     procedure registrazioneCliente IS
     BEGIN
-    gui.APRIPAGINA('Registrazione');
+    gui.APRIPAGINA(titolo => 'Registrazione');
     gui.AGGIUNGIFORM;  
 
         gui.AGGIUNGIRIGAFORM;   
@@ -58,15 +58,14 @@ create or replace PACKAGE BODY operazioniClienti as
 
     procedure visualizzaBustePaga is
     head gui.StringArray; 
-    BEGIN
+    BEGIN   
 
-    gui.apriPagina ('visualizza Buste paga'); 
+    gui.apriPagina (titolo => 'visualizza Buste paga'); 
     gui.APRIFORMFILTRO(); 
 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Data Fine', placeholder => 'Data-fine');  
-    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
-
+    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo;
 
@@ -85,26 +84,25 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
         gui.CHIUDIRIGATABELLA;
-        end LOOP; 
+    end LOOP; 
         gui.ChiudiTabella; 
 
     END visualizzaBustePaga; 
 
     procedure visualizzaBustePagaDipendente (IDDipendente NUMBER) is
     head gui.StringArray; 
+
     BEGIN
 
-    /*
-    gui.APRIFORMFILTRO(azione => 'GET'); 
-
+    
+    gui.APRIFORMFILTRO(); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Submit');
+    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');
 
-    htp.prn('<br>'); 
-    gui.CHIUDIFORMFILTRO; */
+    gui.CHIUDIFORMFILTRO; 
 
-    head := gui.StringArray ('Data', 'Importo', 'Bonus', 'Contabile'); 
+    head := gui.StringArray('Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina ('visualizza buste paga dipendenti');
     gui.APRITABELLA (elementi => head); 
 
@@ -136,7 +134,7 @@ create or replace PACKAGE BODY operazioniClienti as
     BEGIN
 
    gui.APRIPAGINA ('visualizza ricariche');
-   gui.APRIFORMFILTRO('http://131.114.73.203:8080/apex/n_lupi.OperazioniClienti.visualizzaRicarica'); 
+   gui.APRIFORMFILTRO(u_root || 'visualizzaRicarica'); 
 
    gui.aggiungiCampoFormFiltro(nome => 'r_Cliente', placeholder => 'Cliente');
    gui.aggiungiCampoFormFiltro(nome => 'r_Importo', placeholder => 'Importo');
@@ -144,6 +142,7 @@ create or replace PACKAGE BODY operazioniClienti as
    gui.aggiungiCampoFormFiltro('submit', '', 'Filtra', '');
    gui.CHIUDIFORMFILTRO; 
    gui.aCapo; 
+   
 
 
    head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
@@ -169,11 +168,9 @@ create or replace PACKAGE BODY operazioniClienti as
 
     end LOOP; 
 
-    gui.CHIUDITABELLA;
-
+    gui.CHIUDITABELLA;      
     END visualizzaricarica;
  
-
     procedure visualizzaRicaricheCliente (IDcliente NUMBER) is
 
     head gui.stringArray; 
@@ -210,11 +207,12 @@ create or replace PACKAGE BODY operazioniClienti as
 
   procedure visualizzazioneClienti IS
 
-  head gui.StringArray; 
+ -- head gui.StringArray; 
 
    BEGIN
-   head := gui.StringArray ('IDCliente', 'Nome', 'Cognome', 'DataNascita', 'Sesso', 'NTelefono', 'Email', 'Stato', 'Saldo'); 
-   gui.apriPagina ('visualizza clienti');     
+   --head := gui.StringArray ('IDCliente', 'Nome', 'Cognome', 'DataNascita', 'Sesso', 'NTelefono', 'Email', 'Stato', 'Saldo'); 
+   gui.apriPagina ('visualizza clienti'); 
+   /*    
    gui.APRITABELLA (elementi => head); 
 
    for clienti IN
@@ -237,7 +235,7 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.ChiudiRigaTabella;
 
     end LOOP;
-    gui.CHIUDITABELLA; 
+    gui.CHIUDITABELLA; */
       
 END visualizzazioneClienti; 
 
