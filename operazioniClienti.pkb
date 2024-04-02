@@ -64,7 +64,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
     head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina (titolo => 'visualizza Buste paga'); 
-    gui.APRIFORMFILTRO(u_root||'.visualizzaBustePaga'); 
+    gui.APRIFORMFILTRO(/*u_root||'.visualizzaBustePaga'*/);     
 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Data Fine', placeholder => 'Data-fine');  
@@ -136,7 +136,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
    head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
    gui.APRIPAGINA ('visualizza ricariche');
-   gui.APRIFORMFILTRO(u_root || '.visualizzaRicarica'); 
+   gui.APRIFORMFILTRO(/*u_root || '.visualizzaRicarica'*/); 
 
    gui.aggiungiCampoFormFiltro(nome => 'r_Cliente', placeholder => 'Cliente');
    gui.aggiungiCampoFormFiltro(nome => 'r_Importo', placeholder => 'Importo');
@@ -249,7 +249,7 @@ BEGIN
 
    head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
    gui.apriPagina ('visualizza Convenzioni');
-   gui.APRIFORMFILTRO(azione => u_root||'.visualizzazioneConvenzioni'); 
+   gui.APRIFORMFILTRO(/*u_root||'.visualizzazioneConvenzioni'*/); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
