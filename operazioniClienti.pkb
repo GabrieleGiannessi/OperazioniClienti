@@ -1,7 +1,8 @@
 create or replace PACKAGE BODY operazioniClienti as
 
+--registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
-    BEGIN
+    BEGIN   
     gui.APRIPAGINA(titolo => 'Registrazione');
     gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
 
@@ -16,7 +17,7 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.CHIUDIGRUPPOINPUT;
         gui.CHIUDIRIGAFORM; 
 
-        gui.AGGIUNGIRIGAFORM; 
+        gui.AGGIUNGIRIGAFORM;   
            gui.APRIDIV (classe => 'col-half');
            gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
 
@@ -57,6 +58,7 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.CHIUDIFORM; 
     END registrazioneCliente; 
 
+--inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
     procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
     Cognome VARCHAR2 DEFAULT NULL,
     Email VARCHAR2 DEFAULT NULL,
@@ -69,13 +71,29 @@ create or replace PACKAGE BODY operazioniClienti as
 
     DataNascita DATE; 
     Sesso CHAR(1); 
-
+    /*CURSOR controllo IS 
+        SELECT * FROM CLIENTI c WHERE c.Nome = Nome AND c.Cognome = Cognome;  
+    
+    RigaControllo Controllo%ROWTYPE; 
+    ClienteEsistente EXCEPTION; 
+*/
     begin
         gui.ApriPagina ('Registrazione');
- 
         DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
         Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+       -- OPEN controllo; 
+       -- FETCH controllo INTO RigaControllo;  
 
+       /* IF controllo%NOTFOUND 
+            THEN RAISE ClienteEsistente;
+
+        ELSE 
+
+        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
+        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
 
         --Inserimento dei dati nella tabella Clienti : per gli id usiamo la sequenza sequenceIDClienti
         /*
@@ -88,12 +106,16 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
 
+        --END IF; 
+
     EXCEPTION
-    WHEN OTHERS THEN
+    WHEN OTHERS /*ClienteEsistente*/ THEN
         --visualizza popup di errore
-        gui.AggiungiPopup(False, 'Registrazione fallita!');
+        gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
     end inserisciDati; 
 
+
+--modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente IS
     BEGIN
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
@@ -143,6 +165,7 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.CHIUDIFORM; 
     END modificaCliente; 
 
+--visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
     procedure visualizzaBustePaga is
 
     head gui.StringArray; 
@@ -151,7 +174,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
     head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina (titolo => 'visualizza Buste paga'); 
-    gui.APRIFORMFILTRO(/*u_root||'.visualizzaBustePaga'*/);     
+    gui.APRIFORMFILTRO(/*root||'.visualizzaBustePaga'*/);     
 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
     gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Data Fine', placeholder => 'Data-fine');  
@@ -223,7 +246,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
    head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
    gui.APRIPAGINA ('visualizza ricariche');
-   gui.APRIFORMFILTRO(/*u_root || '.visualizzaRicarica'*/); 
+   gui.APRIFORMFILTRO(/*root || '.visualizzaRicarica'*/); 
 
    gui.aggiungiCampoFormFiltro(nome => 'r_Cliente', placeholder => 'Cliente');
    gui.aggiungiCampoFormFiltro(nome => 'r_Importo', placeholder => 'Importo');
@@ -334,7 +357,7 @@ BEGIN
 
    head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
    gui.apriPagina ('visualizza Convenzioni');
-   gui.APRIFORMFILTRO(/*u_root||'.visualizzazioneConvenzioni'*/); 
+   gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  

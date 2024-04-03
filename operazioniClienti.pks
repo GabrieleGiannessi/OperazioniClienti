@@ -1,7 +1,7 @@
     CREATE OR REPLACE PACKAGE operazioniClienti AS
     /*
-        u_user CONSTANT VARCHAR(20) := 'g_giannessi'; 
-        u_root CONSTANT VARCHAR(20) := u_user||'.operazioniClienti';
+        user CONSTANT VARCHAR(20):='g_giannessi'; 
+        root CONSTANT VARCHAR(20):=user||'.operazioniClienti';
     */
     --capire bene come mai l'integrazione delle costanti causa errori nel pkb
 
