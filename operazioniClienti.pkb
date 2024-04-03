@@ -1,197 +1,10 @@
-create or replace package body operazioniclienti as
+create or replace PACKAGE BODY operazioniClienti as
 
-	procedure visualizzaBustePaga (
-		r_Dipendente in varchar2 default null,
-        r_Contabile in varchar2 default null,
-		r_data    in varchar2 default null,
-		r_importo in varchar2 default null,
-        r_bonus in varchar2 default null
-	)
-    is
-	begin
-		gui.apripagina('VisualizzazioneBustePaga');
-        gui.apriformfiltro('http://131.114.73.203:8080/apex/l_bindi.OperazioniClienti.visualizzaBustePaga');
-		gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-        gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-        gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-		htp.prn('<br>');
-		gui.chiudiformfiltro;
-
-		gui.apritabella;
-		gui.apriheadertabella;
-		gui.aggiungiheadertabella(elemento => 'Dipendente');
-		gui.aggiungiheadertabella(elemento => 'Data');
-		gui.aggiungiheadertabella(elemento => 'Importo');
-		gui.aggiungiheadertabella(elemento => 'Bonus');
-		gui.aggiungiheadertabella(elemento => 'Contabile');
-		gui.chiudiheadertabella;
-		for busta_paga in (
-			select *
-			from BUSTEPAGA b
-			where ( b.FK_DIPENDENTE = r_Dipendente or r_Dipendente is null )
-			and ( b.FK_CONTABILE = r_Contabile or r_Contabile is null )
-			and ( ( trunc(b.Data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-			and ( b.Importo = to_number(r_importo) or r_importo is null )
-			and ( b.Bonus = to_number(r_bonus) or r_bonus is null)
-			order by data desc
-		) loop
-			gui.aggiungirigatabella;
-			gui.aggiungielementotabella(elemento => busta_paga.fk_dipendente);
-			gui.aggiungielementotabella(elemento => busta_paga.data);
-			gui.aggiungielementotabella(elemento => busta_paga.importo);
-			gui.aggiungielementotabella(elemento => busta_paga.bonus);
-			gui.aggiungielementotabella(elemento => busta_paga.fk_contabile);
-			gui.aggiungipulsanteintabella('.','.');
-			gui.chiudirigatabella;
-		end loop;
-
-		gui.chiuditabella();
-		gui.chiudibody();
-
-	end visualizzabustepaga;
-
-	procedure visualizzaBustePagaDipendente (
-		r_IdSessione in varchar2 default null,
-		r_data    in varchar2 default null,
-		r_importo in varchar2 default null,
-        r_bonus in varchar2 default null
-	) is
-	begin
-
-		gui.apripagina;
-
-		gui.apriformfiltro('http://131.114.73.203:8080/apex/l_bindi.OperazioniClienti.visualizzaBustePagaDipendente');
-		htp.prn('<input type = "hidden" name = "r_IdSessione" value="'||r_IdSessione||'">');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-        gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-		htp.prn('<br>');
-		gui.chiudiformfiltro;
-
-
-		gui.apritabella;
-		gui.apriheadertabella;
-		gui.aggiungiheadertabella(elemento => 'Data');
-		gui.aggiungiheadertabella(elemento => 'Importo');
-		gui.aggiungiheadertabella(elemento => 'Bonus');
-		gui.chiudiheadertabella;
-		for busta_paga in (
-			select data, importo, bonus
-			from BUSTEPAGA b
-			where (b.FK_DIPENDENTE = SessionHandler.GETIDUSER(r_IdSessione))
-			and ( ( trunc(b.Data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-			and ( b.Importo = to_number(r_importo) or r_importo is null )
-			and ( b.Bonus = to_number(r_bonus) or r_bonus is null)
-			order by data desc
-		) loop
-			gui.aggiungirigatabella;
-			gui.aggiungielementotabella(elemento => busta_paga.data);
-			gui.aggiungielementotabella(elemento => busta_paga.importo);
-			gui.aggiungielementotabella(elemento => busta_paga.bonus);
-			gui.chiudirigatabella;
-		end loop;
-
-		gui.chiuditabella();
-		gui.chiudibody();
-
-	end visualizzabustepagadipendente;
-
-	procedure visualizzaRicarica (
-		r_cliente in varchar2 default null,
-		r_data    in varchar2 default null,
-		r_importo in varchar2 default null
-	) is
-	begin
-		gui.apripagina('VisualizzaRicarica');
-		gui.apriformfiltro('http://131.114.73.203:8080/apex/l_bindi.OperazioniClienti.visualizzaRicarica');
-		gui.aggiungicampoformfiltro(nome => 'r_Cliente', placeholder => 'Cliente');
-		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-		htp.prn('<br>');
-		gui.chiudiformfiltro;
-
-		gui.apritabella;
-		gui.apriheadertabella;
-		gui.aggiungiheadertabella(elemento => 'IDricarica');
-		gui.aggiungiheadertabella(elemento => 'Cliente');
-		gui.aggiungiheadertabella(elemento => 'Importo');
-		gui.aggiungiheadertabella(elemento => 'Data');
-		gui.chiudiheadertabella;
-		gui.apribodytabella();
-        
-		for ricarica in (
-			select *
-            from RICARICHE
-			where ( RICARICHE.FK_cliente = r_cliente or r_cliente is null )
-			and ( ( trunc(RICARICHE.Data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-			and ( RICARICHE.Importo = to_number(r_importo) or r_importo is null )
-		) loop
-			gui.aggiungirigatabella;
-			gui.aggiungielementotabella(elemento => ricarica.idricarica);
-			gui.aggiungielementotabella(elemento => ricarica.fk_cliente);
-			gui.aggiungielementotabella(elemento => ricarica.importo);
-			gui.aggiungielementotabella(elemento => ricarica.data);
-			gui.aggiungipulsanteintabella('.','.');
-			gui.chiudirigatabella;
-		end loop;
-
-		gui.chiuditabella();
-		gui.chiudibody();
-	end visualizzaricarica;
-
-
-	procedure visualizzaRicaricheCliente (
-        r_IdSessione in varchar2 default null,
-		r_data    in varchar2 default null,
-		r_importo in varchar2 default null
-	) is
-	begin
-
-        gui.apripagina('VisualizzaRicaricheCliente');
-		gui.apriformfiltro('http://131.114.73.203:8080/apex/l_bindi.OperazioniClienti.visualizzaRicaricheCliente');
-		htp.prn('<input type = "hidden" name = "r_IdSessione" value="'||r_IdSessione||'">');
-		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-        gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-		htp.prn('<br>');
-		gui.chiudiformfiltro;
-
-		gui.apritabella;
-		gui.apriheadertabella;
-        gui.aggiungiheadertabella(elemento => 'Identificativo');
-		gui.aggiungiheadertabella(elemento => 'Importo');
-		gui.aggiungiheadertabella(elemento => 'Data');
-		gui.chiudiheadertabella;
-        gui.apribodytabella();
-
-		for ricarica in (
-			select IDricarica, Importo, Data
-			from RICARICHE r
-			where (r.FK_cliente = SessionHandler.GETIDUSER(r_IdSessione))
-            and ( ( trunc(r.Data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-			and ( r.Importo = to_number(r_importo) or r_importo is null )
-			order by data desc
-		) loop
-			gui.aggiungirigatabella;
-			gui.aggiungielementotabella(elemento => ricarica.IDricarica);
-			gui.aggiungielementotabella(elemento => ricarica.Importo);
-			gui.aggiungielementotabella(elemento => ricarica.Data);
-			gui.chiudirigatabella;
-		end loop;
-
-        gui.chiuditabella();
-		gui.chiudibody();
-	end visualizzaricarichecliente;
-
+--registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
-    BEGIN
-    gui.APRIPAGINA('Registrazione');
-    gui.AGGIUNGIFORM;  
+    BEGIN   
+    gui.APRIPAGINA(titolo => 'Registrazione');
+    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
@@ -200,11 +13,11 @@ create or replace package body operazioniclienti as
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');        
                 gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');   
                 gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
-                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
         gui.CHIUDIRIGAFORM; 
 
-        gui.AGGIUNGIRIGAFORM; 
+        gui.AGGIUNGIRIGAFORM;   
            gui.APRIDIV (classe => 'col-half');
            gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
 
@@ -223,13 +36,14 @@ create or replace package body operazioniclienti as
                 gui.CHIUDIGRUPPOINPUT; 
 
             gui.CHIUDIGRUPPOINPUT;
+
             gui.APRIDIV (classe => 'col-half'); 
                 gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
 
                     gui.AGGIUNGIGRUPPOINPUT; 
-                        gui.AGGIUNGIINPUT (nome => 'gender', classe => '', ident => 'gender-male', tipo => 'radio');
+                        gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-male', tipo => 'radio', value => 'M');
                         gui.AGGIUNGILABEL (target => 'gender-male', testo => 'Maschio');  
-                        gui.AGGIUNGIINPUT (nome => 'gender', classe => '', ident => 'gender-female',    tipo => 'radio');
+                        gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-female', tipo => 'radio', value => 'F');
                         gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina'); 
                     gui.CHIUDIGRUPPOINPUT;  
             gui.CHIUDIDIV;
@@ -237,35 +51,407 @@ create or replace package body operazioniclienti as
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (nome => 'Registra', value => 'Registra'); 
+                gui.AGGIUNGIBOTTONESUBMIT (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
     gui.CHIUDIFORM; 
     END registrazioneCliente; 
 
-    
-  procedure visualizzazioneClienti IS
-    /*DECLARE
+--inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
+    procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
+    Cognome VARCHAR2 DEFAULT NULL,
+    Email VARCHAR2 DEFAULT NULL,
+    Password VARCHAR2 DEFAULT NULL,
+    Telefono VARCHAR2 DEFAULT NULL,
+    Day VARCHAR2 DEFAULT NULL,   
+    Month VARCHAR2 DEFAULT NULL,
+    Year VARCHAR2 DEFAULT NULL,
+    Gender VARCHAR2 DEFAULT NULL) IS
 
-    TYPE array_di_stringhe IS VARRAY(10) OF VARCHAR2(100);
-    */
+    DataNascita DATE; 
+    Sesso CHAR(1); 
+    /*CURSOR controllo IS 
+        SELECT * FROM CLIENTI c WHERE c.Nome = Nome AND c.Cognome = Cognome;  
+    
+    RigaControllo Controllo%ROWTYPE; 
+    ClienteEsistente EXCEPTION; 
+*/
+    begin
+        gui.ApriPagina ('Registrazione');
+        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
+        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+       -- OPEN controllo; 
+       -- FETCH controllo INTO RigaControllo;  
+
+       /* IF controllo%NOTFOUND 
+            THEN RAISE ClienteEsistente;
+
+        ELSE 
+
+        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
+        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+
+        --Inserimento dei dati nella tabella Clienti : per gli id usiamo la sequenza sequenceIDClienti
+        /*
+        drop sequence sequenceIDClienti; 
+        CREATE SEQUENCE sequenceIdClienti START WITH 1 INCREMENT BY 1 MAXVALUE 4294967295 ;
+        */
+
+        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+
+        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+
+        --END IF; 
+
+    EXCEPTION
+    WHEN OTHERS /*ClienteEsistente*/ THEN
+        --visualizza popup di errore
+        gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
+    end inserisciDati; 
+
+
+--modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
+    procedure modificaCliente IS
+    BEGIN
+    gui.APRIPAGINA(titolo => 'Modifica dati cliente');
+    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+
+        gui.AGGIUNGIRIGAFORM;   
+            gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+            gui.AGGIUNGIGRUPPOINPUT;    
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
+                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Nuova mail');
+            gui.CHIUDIGRUPPOINPUT; 
+
+
+            gui.AGGIUNGIGRUPPOINPUT;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
+                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
+
+            gui.CHIUDIGRUPPOINPUT; 
+
+            gui.AGGIUNGIGRUPPOINPUT; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
+                gui.ACAPO; 
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
+            gui.CHIUDIGRUPPOINPUT;
+        gui.CHIUDIRIGAFORM; 
+
+        gui.AGGIUNGIRIGAFORM;
+            gui.AGGIUNGIGRUPPOINPUT; 
+                gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
+            gui.CHIUDIGRUPPOINPUT; 
+        gui.CHIUDIRIGAFORM; 
+
+    gui.CHIUDIFORM; 
+    END modificaCliente; 
+
+--visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
+    procedure visualizzaBustePaga(
+        r_dipendente in varchar2 default null,
+		r_contabile  in varchar2 default null,
+		r_data       in varchar2 default null,
+		r_importo    in varchar2 default null,
+		r_bonus      in varchar2 default null
+    ) is
+
+    head gui.StringArray; 
+
+    BEGIN   
+
+    head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
+    gui.apriPagina(titolo => 'VisualizzazioneBustePaga'); 
+    gui.APRIFORMFILTRO(/*root||'.visualizzaBustePaga'*/); 
+
+        gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Dipendente',
+		                           placeholder => 'Dipendente'
+                                   );
+		gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Bonus',
+		                           placeholder => 'Bonus'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Contabile',
+		                           placeholder => 'Contabile'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
+    gui.CHIUDIFORMFILTRO; 
+    gui.aCapo;
+
+    gui.APRITABELLA (elementi => head); 
+
+    for busta_paga IN
+    (select *
+			  from bustepaga b
+			 where ( b.fk_dipendente = r_dipendente
+			    or r_dipendente is null )
+			   and ( b.fk_contabile = r_contabile
+			    or r_contabile is null )
+			   and ( ( trunc(
+				b.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( b.importo = to_number(r_importo)
+			    or r_importo is null )
+			   and ( b.bonus = to_number(r_bonus)
+			    or r_bonus is null )
+			 order by data desc) 
+    LOOP
+        gui.AGGIUNGIRIGATABELLA; 
+
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE); 
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
+            gui.AGGIUNGIPULSANTECANCELLAZIONE; 
+            gui.AGGIUNGIPULSANTEMODIFICA;
+
+        gui.CHIUDIRIGATABELLA;
+    end LOOP; 
+        gui.ChiudiTabella; 
+    END visualizzaBustePaga; 
+
+    procedure visualizzaBustePagaDipendente (
+        r_idsessione in varchar2 default null,
+		r_data       in varchar2 default null,
+		r_importo    in varchar2 default null,
+		r_bonus      in varchar2 default null
+    ) is
+
+    head gui.StringArray; 
 
     BEGIN
-   gui.apriPagina;     
-   gui.APRITABELLA; 
-   gui.APRIHEADERTABELLA;
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'IDCliente');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Nome'); 
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Cognome'); 
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'DataNascita'); 
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Sesso');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'NTelefono');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Email');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Stato');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Saldo');
 
-   gui.CHIUDIHEADERTABELLA; 
+    gui.apriPagina ('visualizza buste paga dipendenti');
+    gui.APRIFORMFILTRO(); 
+    gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Bonus',
+		                           placeholder => 'Bonus'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
+    gui.CHIUDIFORMFILTRO; 
+    gui.aCapo;
+
+    head := gui.StringArray('Data', 'Importo', 'Bonus'); 
+    gui.APRITABELLA (elementi => head); 
+
+    for busta_paga IN
+    (select data,
+			       importo,
+			       bonus
+			  from bustepaga b
+			 where ( b.fk_dipendente = sessionhandler.getiduser(r_idsessione) )
+			   and ( ( trunc(
+				b.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( b.importo = to_number(r_importo)
+			    or r_importo is null )
+			   and ( b.bonus = to_number(r_bonus)
+			    or r_bonus is null )
+			 order by data desc) 
+    LOOP
+        gui.AGGIUNGIRIGATABELLA; 
+        
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data); 
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);  
+
+        gui.ChiudiRigaTabella;
+        end LOOP; 
+
+        gui.ChiudiTabella; 
+
+    END visualizzaBustePagaDipendente;
+
+    procedure visualizzaRicarica (
+        r_cliente in varchar2 default null,
+		r_data    in varchar2 default null,
+		r_importo in varchar2 default null
+    ) 
+    is
+
+    head gui.StringArray; 
+
+    BEGIN
+
+   head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
+   gui.APRIPAGINA ('visualizza ricariche');
+   gui.APRIFORMFILTRO(/*root || '.visualizzaRicarica'*/); 
+
+   gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Cliente',
+		                           placeholder => 'Cliente'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
+   gui.CHIUDIFORMFILTRO; 
+   gui.aCapo; 
+
+   gui.APRITABELLA (elementi => head); 
+   for ricarica IN
+   (select *
+			  from ricariche
+			 where ( ricariche.fk_cliente = r_cliente
+			    or r_cliente is null )
+			   and ( ( trunc(
+				ricariche.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( ricariche.importo = to_number(r_importo)
+			    or r_importo is null)
+    ) 
+   LOOP
+
+        gui.AGGIUNGIRIGATABELLA; 
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.IDRicarica );
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.FK_CLIENTE );
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.importo );
+        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.data );
+        gui.AggiungiPulsanteCancellazione; 
+        gui.aggiungiPulsanteModifica(collegamento1 => '#'); 
+
+        gui.ChiudiRigaTabella;
+
+
+    end LOOP; 
+    gui.CHIUDITABELLA;   
+
+    END visualizzaricarica;
+ 
+    procedure visualizzaRicaricheCliente (
+        r_idsessione in varchar2 default null,
+		r_data       in varchar2 default null,
+		r_importo    in varchar2 default null
+    ) is
+
+    head gui.stringArray; 
+
+    BEGIN
+    gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente'); 
+
+   gui.APRIFORMFILTRO(); 
+
+   gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
+
+   gui.ACAPO; 
+   gui.CHIUDIFORMFILTRO; 
+ 
+   head := gui.StringArray('Identificativo','Importo', 'Data');
+   gui.APRITABELLA (elementi => head); 
+
+   for ricarica IN
+   (select idricarica,
+			       importo,
+			       data
+			  from ricariche r
+			 where ( r.fk_cliente = sessionhandler.getiduser(r_idsessione) )
+			   and ( ( trunc(
+				r.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( r.importo = to_number(r_importo)
+			    or r_importo is null )
+			 order by data desc) 
+   LOOP
+    gui.AGGIUNGIRIGATABELLA; 
+    
+        gui.aggiungielementotabella(elemento => ricarica.idricarica);
+        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Importo);
+        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
+
+    gui.ChiudiRigaTabella;
+    end LOOP; 
+
+    gui.ChiudiTabella; 
+    END visualizzaRicaricheCliente; 
+
+  procedure visualizzazioneClienti IS
+
+   head gui.StringArray; 
+
+   BEGIN
+   head := gui.StringArray ('IDCliente', 'Nome', 'Cognome', 'DataNascita', 'Sesso', 'NTelefono', 'Email', 'Stato', 'Saldo'); 
+   gui.apriPagina ('visualizza clienti'); 
+     
+   gui.APRITABELLA (elementi => head); 
 
    for clienti IN
    (SELECT IDCliente, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Stato, Saldo FROM Clienti) 
@@ -281,45 +467,36 @@ create or replace package body operazioniclienti as
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Stato);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Saldo);
-            gui.AGGIUNGIPULSANTEINTABELLA('null', '.');
-
+            gui.AggiungiPulsanteCancellazione; 
+            gui.aggiungiPulsanteModifica (collegamento1 => '#'); 
 
     gui.ChiudiRigaTabella;
 
     end LOOP;
+    gui.CHIUDITABELLA; 
       
 END visualizzazioneClienti; 
 
 procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
     DataFine VARCHAR2 DEFAULT NULL,
     Ente VARCHAR2 DEFAULT NULL
-    /*cumulabile*/) is      
+    /*cumulabile*/) is 
+
+    head gui.StringArray; 
+
 BEGIN
 
-   gui.apriPagina;
-   htp.prn('<br>');
-   gui.APRIFORMFILTRO(azione => 'GET'); 
+   head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
+   gui.apriPagina ('visualizza Convenzioni');
+   gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'Submit', tipo => 'submit', value => 'Filtra');
-
+   gui.AggiungiCampoFormFiltro(tipo =>'submit', nome => 'Submit', value => 'Filtra'); 
    gui.CHIUDIFORMFILTRO; 
+   gui.aCapo; 
 
-   htp.prn('<br>'); 
-
-   gui.APRITABELLA; 
-   gui.APRIHEADERTABELLA;
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'IDConvenzione');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Nome'); 
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Ente'); 
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Sconto'); 
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'CodiceAccesso');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'DataInizio');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'DataFine');
-   gui.AGGIUNGIHEADERTABELLA(elemento => 'Cumulabile');
-
-   gui.CHIUDIHEADERTABELLA; 
+   gui.APRITABELLA (head); 
 
    for convenzioni IN
    (SELECT IDConvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile FROM CONVENZIONI) 
@@ -338,7 +515,8 @@ BEGIN
     gui.ChiudiRigaTabella;
     end LOOP; 
 
-    END visualizzazioneConvenzioni; 
+    gui.ChiudiTabella; 
 
+    END visualizzazioneConvenzioni; 
 
 end operazioniClienti; 
