@@ -17,9 +17,10 @@ procedure visualizzaRicarica( r_Cliente in varchar2 default null,
 procedure visualizzaRicaricheCliente(r_IdSessione in varchar2 default null,
 		r_data    in varchar2 default null,
 		r_importo in varchar2 default null); 
+procedure registrazioneCliente; 
 procedure visualizzazioneClienti;
-procedure visualizzazioneConvenzioni;
-
-
+procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
+    DataFine VARCHAR2 DEFAULT NULL, 
+    Ente VARCHAR2 DEFAULT NULL);
 
 end operazioniClienti; 
