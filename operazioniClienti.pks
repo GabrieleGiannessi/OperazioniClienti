@@ -20,15 +20,27 @@ procedure visualizzaBustePagaDipendente(
 	r_data    in varchar2 default null,
 	r_importo in varchar2 default null,
         r_bonus in varchar2 default null); 
-procedure visualizzaRicarica( r_Cliente in varchar2 default null,
+procedure inserimentoBustaPaga(
+        r_IdSessioneContabile in varchar2 default null, 
+        r_FkDipendente in varchar2 default null,
+        r_Importo in varchar2 default null, 
+        r_Bonus in varchar2 default null);
+procedure visualizzaRicariche( r_Cliente in varchar2 default null,
         r_Data in varchar2 default null,
         r_Importo in varchar2 default null); 
-procedure visualizzaRicaricheCliente(r_IdSessione in varchar2 default null,
-		r_data    in varchar2 default null,
-		r_importo in varchar2 default null);
+procedure visualizzaRicaricheCliente(r_IdSessioneCliente in varchar2 default null,
+		r_Data    in varchar2 default null,
+		r_Importo in varchar2 default null);
+procedure inserimentoRicarica (
+        r_IdSessioneCliente in varchar2 default null,
+        r_Importo in varchar2 default null);
 procedure visualizzazioneClienti;
 procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
     DataFine VARCHAR2 DEFAULT NULL, 
     Ente VARCHAR2 DEFAULT NULL);
+procedure inserimentoContabile (
+    r_IdSessioneManager varchar2 default null,
+    r_FkDipendente varchar2 default null
+);
 
 end operazioniClienti; 
