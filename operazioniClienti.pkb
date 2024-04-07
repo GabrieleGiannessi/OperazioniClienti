@@ -71,35 +71,12 @@ create or replace PACKAGE BODY operazioniClienti as
 
     DataNascita DATE; 
     Sesso CHAR(1); 
-    /*CURSOR controllo IS 
-        SELECT * FROM CLIENTI c WHERE c.Nome = Nome AND c.Cognome = Cognome;  
-    
-    RigaControllo Controllo%ROWTYPE; 
-    ClienteEsistente EXCEPTION; 
-*/
+   
     begin
         gui.ApriPagina ('Registrazione');
         DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
         Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
-       -- OPEN controllo; 
-       -- FETCH controllo INTO RigaControllo;  
-
-       /* IF controllo%NOTFOUND 
-            THEN RAISE ClienteEsistente;
-
-        ELSE 
-
-        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
-        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
-        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
-        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
-        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
-
-        --Inserimento dei dati nella tabella Clienti : per gli id usiamo la sequenza sequenceIDClienti
-        /*
-        drop sequence sequenceIDClienti; 
-        CREATE SEQUENCE sequenceIdClienti START WITH 1 INCREMENT BY 1 MAXVALUE 4294967295 ;
-        */
+       
 
         INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
         VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
@@ -108,18 +85,19 @@ create or replace PACKAGE BODY operazioniClienti as
 
         --END IF; 
 
-    EXCEPTION
+     EXCEPTION
     WHEN OTHERS /*ClienteEsistente*/ THEN
         --visualizza popup di errore
         gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
-    end inserisciDati; 
+    end inserisciDati;
+    
 
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente IS
     BEGIN
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
-    gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
+    gui.AGGIUNGIFORM (url => 'taxilocal.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
