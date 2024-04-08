@@ -1,4 +1,4 @@
-create or replace PACKAGE BODY operazioniClienti as
+create or replace PACKAGE BODY operazioniclientii as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
@@ -101,8 +101,8 @@ create or replace PACKAGE BODY operazioniClienti as
         CREATE SEQUENCE sequenceIdClienti START WITH 1 INCREMENT BY 1 MAXVALUE 4294967295 ;
         */
 
-        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
-        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+        INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
 
         gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
 
@@ -519,4 +519,4 @@ BEGIN
 
     END visualizzazioneConvenzioni; 
 
-end operazioniClienti; 
+end operazioniclientii; 
