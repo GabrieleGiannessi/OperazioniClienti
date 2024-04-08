@@ -123,7 +123,7 @@ END inserisciDati;
     procedure modificaCliente IS
     BEGIN
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
-    gui.AGGIUNGIFORM (url => 'taxilocal.operazioniClienti.inserisciDati');  
+    gui.AGGIUNGIFORM (url => 'a.cucchiara.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
