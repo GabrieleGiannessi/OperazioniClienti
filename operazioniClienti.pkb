@@ -59,37 +59,63 @@ create or replace PACKAGE BODY operazioniClienti as
     END registrazioneCliente; 
 
 --inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
-    procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
+    PROCEDURE inserisciDati (
+    Nome VARCHAR2 DEFAULT NULL,
     Cognome VARCHAR2 DEFAULT NULL,
     Email VARCHAR2 DEFAULT NULL,
     Password VARCHAR2 DEFAULT NULL,
     Telefono VARCHAR2 DEFAULT NULL,
-    Day VARCHAR2 DEFAULT NULL,   
+    Day VARCHAR2 DEFAULT NULL,
     Month VARCHAR2 DEFAULT NULL,
     Year VARCHAR2 DEFAULT NULL,
-    Gender VARCHAR2 DEFAULT NULL) IS
+    Gender VARCHAR2 DEFAULT NULL
+) IS
+    DataNascita DATE;
+    Sesso CHAR(1);
+BEGIN
+    -- Apre una pagina di registrazione
+    gui.ApriPagina('Registrazione');
 
-    DataNascita DATE; 
-    Sesso CHAR(1); 
-   
-    begin
-        gui.ApriPagina ('Registrazione');
-        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
-        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
-       
+    -- Converte la data di nascita in formato DATE
+    DataNascita := TO_DATE(Day || '/' || Month || '/' || Year, 'DD/MM/YYYY');
 
-        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
-        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+    -- Esegue un substring per ottenere il sesso
+    Sesso := SUBSTR(Gender, 1, 1);
 
-        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+    -- Inserisce i dati nella tabella dei clienti
+    INSERT INTO CLIENTI (
+        IDCliente,
+        Nome,
+        Cognome,
+        DataNascita,
+        Sesso,
+        NTelefono,
+        Email,
+        Password,
+        Stato,
+        Saldo
+    ) VALUES (
+        sequenceIDClienti.nextval,
+        Nome,
+        Cognome,
+        DataNascita,
+        Sesso,
+        TO_NUMBER(Telefono),
+        Email,
+        Password,
+        1,
+        0
+    );
 
-        --END IF; 
+    -- Aggiunge un popup di conferma di registrazione avvenuta con successo
+    gui.AggiungiPopup(TRUE, 'Registrazione avvenuta con successo!');
 
-     EXCEPTION
-    WHEN OTHERS /*ClienteEsistente*/ THEN
-        --visualizza popup di errore
-        gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
-    end inserisciDati;
+EXCEPTION
+    -- Gestione delle eccezioni
+    WHEN OTHERS THEN
+        -- Visualizza un popup di errore in caso di registrazione fallita
+        gui.AggiungiPopup(FALSE, 'Registrazione fallita, cliente già presente sul sito!');
+END inserisciDati;
     
 
 
