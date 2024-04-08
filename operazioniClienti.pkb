@@ -1,9 +1,9 @@
-create or replace PACKAGE BODY operazioniclientii as
+create or replace PACKAGE BODY operazioniClienti as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
     BEGIN   
-    gui.APRIPAGINA(titolo => 'Registrazione');
+    gui.APRIPAGINA(titolo => 'Registrazione', idSessione => 0);
     gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
@@ -88,17 +88,10 @@ create or replace PACKAGE BODY operazioniclientii as
             THEN RAISE ClienteEsistente;
 
         ELSE 
-
-        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
-        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
-        INSERT INTO CLIENTI (IDCliente, Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
-        VALUES (sequenceIDClienti.nextval, Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+        
+        INSERT INTO CLIENTI ( Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES ( Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
         gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
-
-        --Inserimento dei dati nella tabella Clienti : per gli id usiamo la sequenza sequenceIDClienti
-        /*
-        drop sequence sequenceIDClienti; 
-        CREATE SEQUENCE sequenceIdClienti START WITH 1 INCREMENT BY 1 MAXVALUE 4294967295 ;
         */
 
         INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
