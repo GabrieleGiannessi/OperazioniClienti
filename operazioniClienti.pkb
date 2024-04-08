@@ -1,4 +1,4 @@
-create or replace PACKAGE BODY operazioniclientii as
+create or replace PACKAGE BODY operazioniClienti as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
