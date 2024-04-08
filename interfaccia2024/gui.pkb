@@ -10,7 +10,7 @@ procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione int defa
 begin
 	htp.htmlOpen;
 	htp.headOpen;
-	htp.title(titolo);
+	htp.title(titolo);	
 	htp.print('
   		<meta charset="utf-8">
   		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,7 +20,7 @@ begin
 '); /*FONTAwesome*/
 	htp.print('<script type="text/javascript">' || costanti.scriptjs || '</script>'); -- Aggiunto script di base
  	htp.headClose; 
-	gui.ApriBody(idSessione, SessionHandler.getRuolo(idSessione));
+	gui.ApriBody(idSessione, 'Cliente'/*Implementare getRuolo del session handler*/);
 
 end ApriPagina;
 
@@ -392,7 +392,7 @@ END Footer;
 
 /*Form*/
 
-procedure aggiungiForm (classe VARCHAR2 default '', name VARCHAR2 default '', url VARCHAR default '') IS
+procedure aggiungiForm (classe VARCHAR2 default '', name VARCHAR2 default '', url VARCHAR2 default '') IS
 BEGIN
 	htp.prn ('<form method="GET" class="'||classe||'" name="'||name||'" action="'||url||'"">'); 
 	gui.APRIDIV(classe => 'form-container'); 
@@ -400,7 +400,7 @@ END aggiungiForm;
 
 procedure chiudiForm IS
 BEGIN
-	gui.CHIUDIDIV; --form-container
+	gui.CHIUDIDIV;
 	htp.prn ('</form>'); 
 END chiudiForm; 
 
@@ -445,6 +445,8 @@ BEGIN
 	htp.prn('<div class="button-add-container"><button class="' || classe || '"type="submyt"> '|| testo ||' </button></div>' );
 end BottoneAggiungi;
 
+
+
 procedure aggiungiIcona (classe VARCHAR2 default '') IS
 BEGIN
 	htp.prn ('<i class="'||classe||'"></i>'); 
@@ -470,6 +472,7 @@ begin
                 gui.apriDiv (classe => 'input-icon'); 
                     gui.aggiungiIcona(classe => classeIcona); 
                 gui.chiudiDiv; 
+
  	gui.chiudiDiv; 
 	end if;  
 
@@ -485,12 +488,10 @@ BEGIN
 	gui.CHIUDIDIV; 
 	END chiudiRigaForm; 
 
-procedure aggiungiBottoneSubmit (value VARCHAR2 default '') is
-BEGIN 
+procedure aggiungiBottoneSubmit (nome VARCHAR2, value VARCHAR2 default '') is
+BEGIN
 	gui.APRIDIV(classe => 'form-submit');   
-					
-                    gui.AGGIUNGIINPUT (tipo => 'submit', value => value);
-
+                    gui.AGGIUNGIINPUT (nome => nome, tipo => 'submit', value => value);
                 gui.CHIUDIDIV;
 END aggiungiBottoneSubmit; 
 
@@ -515,6 +516,8 @@ procedure chiudiFormHiddenRigaTabella is
 begin
 	htp.prn(' </td> </form>');
 end chiudiFormHiddenRigaTabella;
+
+-----------------
 
 procedure aCapo is
 BEGIN
