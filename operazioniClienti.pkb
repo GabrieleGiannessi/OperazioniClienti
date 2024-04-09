@@ -115,7 +115,27 @@ EXCEPTION
     WHEN OTHERS THEN
         -- Visualizza un popup di errore in caso di registrazione fallita
         gui.AggiungiPopup(FALSE, 'Registrazione fallita, cliente già presente sul sito!');
-END inserisciDati;  
+END inserisciDati;
+
+--form per la insert della convenzione (da verificare perchè non funziona)
+procedure insertConvenzione IS
+BEGIN
+    gui.ApriPagina('Inserimento Convenzione');
+    gui.AggiungiForm(name => 'inserimento_convenzione_form', url => 'a_cucchiara.operazioniClienti.insertConvenzione');
+    gui.aggiungiRigaForm;
+    gui.aggiungiGruppoInput;
+    gui.aggiungiLabel('nome_convenzione', 'Nome Convenzione:');
+    gui.AggiungiInput(nome => 'nome_convenzione', placeholder => 'Inserisci il nome della convenzione');
+    gui.chiudiGruppoInput;
+    gui.chiudiRigaForm;
+
+    -- Ripeti lo stesso per gli altri campi della convenzione (Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+
+    gui.aggiungiBottoneSubmit(nome => 'submit_btn', value => 'Inserisci Convenzione');
+    gui.chiudiForm;
+    gui.ChiudiPagina;
+END insertConvenzione;
+
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente IS

@@ -76,6 +76,8 @@ create or replace package operazioniclienti as
 		datafine   varchar2 default null,
 		ente       varchar2 default null
 	);
+
+	procedure insertConvenzione;
 /*	procedure inserisciConvenzione(
     p_nome IN VARCHAR2,
     p_ente IN VARCHAR2,
