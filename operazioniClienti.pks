@@ -76,9 +76,20 @@ create or replace package operazioniclienti as
 		datafine   varchar2 default null,
 		ente       varchar2 default null
 	);
+/*	procedure inserisciConvenzione(
+    p_nome IN VARCHAR2,
+    p_ente IN VARCHAR2,
+    p_sconto IN NUMBER,
+    p_codice_accesso IN NUMBER,
+    p_data_inizio IN DATE,
+    p_data_fine IN DATE,
+    p_cumulabile IN NUMBER
+);*/
+
 	procedure inserimentocontabile (
 		r_idsessionemanager varchar2 default null,
 		r_fkdipendente      varchar2 default null
 	);
+	
 
 end operazioniclienti;
