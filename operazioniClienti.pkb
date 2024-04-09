@@ -116,13 +116,14 @@ EXCEPTION
         -- Visualizza un popup di errore in caso di registrazione fallita
         gui.AggiungiPopup(FALSE, 'Registrazione fallita, cliente già presente sul sito!');
 END inserisciDati;
+    
 
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente IS
     BEGIN
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
-    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+    gui.AGGIUNGIFORM (url => 'a.cucchiara.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
@@ -161,7 +162,7 @@ END inserisciDati;
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
+               gui.AGGIUNGIBOTTONESUBMIT (nome => 'Modifica',value => 'Modifica'); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
@@ -183,30 +184,56 @@ END inserisciDati;
 
     head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina(titolo => 'VisualizzazioneBustePaga'); 
+    gui.APRIFORMFILTRO(/*root||'.visualizzaBustePaga'*/); 
 
-    gui.APRIFORMFILTRO(); 
-        gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-		gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-		gui.aggiungicampoformfiltro('submit', '',' Filtra','');
+        gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Dipendente',
+		                           placeholder => 'Dipendente'
+                                   );
+		gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Bonus',
+		                           placeholder => 'Bonus'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Contabile',
+		                           placeholder => 'Contabile'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
     gui.CHIUDIFORMFILTRO; 
-
     gui.aCapo;
 
     gui.APRITABELLA (elementi => head); 
 
-    for busta_paga IN (
-        select *
-        from bustepaga b
-        where ( b.fk_dipendente = r_dipendente or r_dipendente is null )
-            and ( b.fk_contabile = r_contabile or r_contabile is null )
-            and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-            and ( b.importo = to_number(r_importo) or r_importo is null )
-            and ( b.bonus = to_number(r_bonus) or r_bonus is null )
-        order by data desc
-    ) 
+    for busta_paga IN
+    (select *
+			  from bustepaga b
+			 where ( b.fk_dipendente = r_dipendente
+			    or r_dipendente is null )
+			   and ( b.fk_contabile = r_contabile
+			    or r_contabile is null )
+			   and ( ( trunc(
+				b.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( b.importo = to_number(r_importo)
+			    or r_importo is null )
+			   and ( b.bonus = to_number(r_bonus)
+			    or r_bonus is null )
+			 order by data desc) 
     LOOP
         gui.AGGIUNGIRIGATABELLA; 
 
@@ -235,28 +262,48 @@ END inserisciDati;
     BEGIN
 
     gui.apriPagina ('visualizza buste paga dipendenti');
-
     gui.APRIFORMFILTRO(); 
-        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_idsessione', value => r_idsessione);
-        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra','');
+    gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Bonus',
+		                           placeholder => 'Bonus'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
     gui.CHIUDIFORMFILTRO; 
-    
     gui.aCapo;
 
     head := gui.StringArray('Data', 'Importo', 'Bonus'); 
     gui.APRITABELLA (elementi => head); 
 
-    for busta_paga IN (
-        select data, importo, bonus
-		from bustepaga b
-		where ( b.fk_dipendente = sessionhandler.getiduser(r_idsessione) )
-			and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD')) or r_data is null )
-			and ( b.importo = to_number(r_importo) or r_importo is null )
-			and ( b.bonus = to_number(r_bonus) or r_bonus is null )
-		order by data desc) 
+    for busta_paga IN
+    (select data,
+			       importo,
+			       bonus
+			  from bustepaga b
+			 where ( b.fk_dipendente = sessionhandler.getiduser(r_idsessione) )
+			   and ( ( trunc(
+				b.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( b.importo = to_number(r_importo)
+			    or r_importo is null )
+			   and ( b.bonus = to_number(r_bonus)
+			    or r_bonus is null )
+			 order by data desc) 
     LOOP
         gui.AGGIUNGIRIGATABELLA; 
         
@@ -271,50 +318,7 @@ END inserisciDati;
 
     END visualizzaBustePagaDipendente;
 
-
-    procedure inserimentoBustaPaga(
-        r_IdSessioneContabile in varchar2 default null, 
-        r_FkDipendente in varchar2 default null,
-        r_Importo in varchar2 default null, 
-        r_Bonus in varchar2 default null) IS
-
-    head gui.StringArray; 
-
-    BEGIN
-        
-        gui.APRIPAGINA(titolo => 'inserimentoBustaPaga');
-        gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoBustaPaga');  
-
-            gui.AGGIUNGIRIGAFORM;  
-                gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
-                gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessioneContabile', value => r_IdSessioneContabile); 
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');        
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-percent', nome => 'r_Bonus', placeholder => 'Bonus');
-                gui.CHIUDIGRUPPOINPUT;
-            gui.CHIUDIRIGAFORM; 
-
-            gui.AGGIUNGIRIGAFORM;
-                gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
-                gui.CHIUDIGRUPPOINPUT; 
-            gui.CHIUDIRIGAFORM; 
-        gui.CHIUDIFORM;
-
-        IF(r_importo > 0)
-
-            THEN INSERT INTO BUSTEPAGA VALUES (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessioneContabile), SYSDATE, TO_NUMBER(r_Importo), TO_NUMBER(r_Bonus));
-            gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
-
-            /*Aggiungere bottone per ritornare a visualizzaBustePaga*/
-
-        END IF;        
-
-    END inserimentoBustaPaga;
-
-
-    procedure visualizzaRicariche (
+    procedure visualizzaRicarica (
         r_cliente in varchar2 default null,
 		r_data    in varchar2 default null,
 		r_importo in varchar2 default null
@@ -325,24 +329,44 @@ END inserisciDati;
 
     BEGIN
 
-    head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
-    gui.APRIPAGINA ('visualizza ricariche');
+   head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
+   gui.APRIPAGINA ('visualizza ricariche');
+   gui.APRIFORMFILTRO(/*root || '.visualizzaRicarica'*/); 
 
-    gui.APRIFORMFILTRO(/*root || '.visualizzaRicarica'*/); 
-        gui.aggiungicampoformfiltro(nome => 'r_Cliente', placeholder => 'Cliente');
-		gui.aggiungicampoformfiltro( nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-    gui.CHIUDIFORMFILTRO; 
-    gui.aCapo; 
+   gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Cliente',
+		                           placeholder => 'Cliente'
+		);
+		gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
+   gui.CHIUDIFORMFILTRO; 
+   gui.aCapo; 
 
-    gui.APRITABELLA (elementi => head); 
-   for ricarica IN(
-    select *
-    from ricariche
-	where ( ricariche.fk_cliente = r_cliente or r_cliente is null )
-		and ( ( trunc( ricariche.data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-		and ( ricariche.importo = to_number(r_importo) or r_importo is null)
+   gui.APRITABELLA (elementi => head); 
+   for ricarica IN
+   (select *
+			  from ricariche
+			 where ( ricariche.fk_cliente = r_cliente
+			    or r_cliente is null )
+			   and ( ( trunc(
+				ricariche.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( ricariche.importo = to_number(r_importo)
+			    or r_importo is null)
     ) 
    LOOP
 
@@ -356,15 +380,16 @@ END inserisciDati;
 
         gui.ChiudiRigaTabella;
 
+
     end LOOP; 
     gui.CHIUDITABELLA;   
 
-    END visualizzaRicariche;
+    END visualizzaricarica;
  
     procedure visualizzaRicaricheCliente (
-        r_IdSessioneCliente in varchar2 default null,
-		r_Data       in varchar2 default null,
-		r_Importo    in varchar2 default null
+        r_idsessione in varchar2 default null,
+		r_data       in varchar2 default null,
+		r_importo    in varchar2 default null
     ) is
 
     head gui.stringArray; 
@@ -372,25 +397,43 @@ END inserisciDati;
     BEGIN
     gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente'); 
 
-    gui.APRIFORMFILTRO(); 
-        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessioneCliente', value => r_IdSessioneCliente);
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-            gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-        gui.ACAPO; 
-    gui.CHIUDIFORMFILTRO; 
+   gui.APRIFORMFILTRO(); 
+
+   gui.aggiungicampoformfiltro(
+		                           nome        => 'r_Importo',
+		                           placeholder => 'Importo'
+		);
+		gui.aggiungicampoformfiltro(
+		                           tipo        => 'date',
+		                           nome        => 'r_Data',
+		                           placeholder => 'Data'
+		);
+		gui.aggiungicampoformfiltro(
+		                           'submit',
+		                           '',
+		                           'Filtra',
+		                           ''
+		);
+
+   gui.ACAPO; 
+   gui.CHIUDIFORMFILTRO; 
  
    head := gui.StringArray('Identificativo','Importo', 'Data');
    gui.APRITABELLA (elementi => head); 
 
-   for ricarica IN (
-        select idricarica, importo,data
-        from ricariche r
-        where ( r.fk_cliente = sessionhandler.getiduser(r_IdSessioneCliente) )
-            and ( ( trunc(r.data) = to_date(r_Data,'YYYY-MM-DD') ) or r_Data is null )
-            and ( r.importo = to_number(r_Importo) or r_Importo is null )
-        order by data desc
-    ) 
+   for ricarica IN
+   (select idricarica,
+			       importo,
+			       data
+			  from ricariche r
+			 where ( r.fk_cliente = sessionhandler.getiduser(r_idsessione) )
+			   and ( ( trunc(
+				r.data
+			) = to_date(r_data,'YYYY-MM-DD') )
+			    or r_data is null )
+			   and ( r.importo = to_number(r_importo)
+			    or r_importo is null )
+			 order by data desc) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
     
@@ -403,48 +446,6 @@ END inserisciDati;
 
     gui.ChiudiTabella; 
     END visualizzaRicaricheCliente; 
-
-    procedure inserimentoRicarica (
-        r_IdSessioneCliente in varchar2 default null,
-        r_Importo in varchar2 default null
-    )IS
-
-    head gui.StringArray; 
-
-    BEGIN
-        gui.APRIPAGINA(titolo => 'inserimentoRicarica');
-        gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoRicarica');  
-
-            gui.AGGIUNGIRIGAFORM;   
-                gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
-                gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessioneCliente', value => r_IdSessioneCliente);
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
-                gui.CHIUDIGRUPPOINPUT;
-            gui.CHIUDIRIGAFORM; 
-
-            gui.AGGIUNGIRIGAFORM;
-                gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
-                gui.CHIUDIGRUPPOINPUT; 
-            gui.CHIUDIRIGAFORM; 
-        gui.CHIUDIFORM;
-
-        IF r_importo>0 
-        THEN 
-            /* Inserimento nuova ricarica */
-            INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(r_IdSessioneCliente), SYSDATE, TO_NUMBER(r_Importo));
-            /* Aggiornamento del Saldo */
-            UPDATE CLIENTI SET Saldo = (SELECT c.Saldo FROM CLIENTI c WHERE c.IDCLIENTE = sessionhandler.getiduser(r_IdSessioneCliente)) + r_Importo 
-            WHERE IDcliente = sessionhandler.getiduser(r_IdSessioneCliente);
-            /* Pop Up all'utente */
-            gui.AggiungiPopup(True, 'Ricarica inserita con successo!');
-            /* Reindiriziamo alla pagina visualizzaRicaricheCliente */
-            gui.REINDIRIZZA('l_bindi.operazioniClienti.visualizzaRicaricheCliente?r_IdSessioneCliente='||r_IdSessioneCliente);
-        /*ELSE*/
-        END IF; 
-    end inserimentoRicarica;
-
 
   procedure visualizzazioneClienti IS
 
@@ -520,23 +521,6 @@ BEGIN
 
     gui.ChiudiTabella; 
 
-END visualizzazioneConvenzioni; 
+    END visualizzazioneConvenzioni; 
 
-
-/* DA RIVEDERE CON L'ALTRO GRUPPO */
-procedure inserimentoContabile (
-    r_IdSessioneManager varchar2 default null,
-    r_FkDipendente varchar2 default null
-) 
-IS
-BEGIN
-
-    INSERT INTO RESPONSABILI VALUES (TO_NUMBER(r_FkDipendente),1);
-
-
-END inserimentoContabile;
-
-
-end operazioniClienti;
-
-
+end operazioniClienti; 
