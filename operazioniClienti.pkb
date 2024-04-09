@@ -105,8 +105,7 @@ create or replace PACKAGE BODY operazioniClienti as
     WHEN OTHERS /*ClienteEsistente*/ THEN
         --visualizza popup di errore
         gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
-    end inserisciDati; 
-
+    end inserisciDati;   
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente IS
@@ -436,39 +435,83 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserimentoRicarica;
 
 
-  procedure visualizzazioneClienti IS
+  procedure visualizzaClienti(
+    c_Nome VARCHAR2 default NULL,
+    c_Cognome VARCHAR2 default NULL,
+    c_DataNascita VARCHAR2 default NULL,
+    c_Sesso VARCHAR2 default NULL,
+    row_Nome VARCHAR2 default NULL, 
+    row_Cognome VARCHAR2 default NULL,
+    row_DataNascita VARCHAR2 default NULL,
+    row_Sesso VARCHAR2 default NULL,
+    row_Telefono VARCHAR2 default NULL,
+    row_Email VARCHAR2 default NULL,
+    Elimina VARCHAR2 default NULL, 
+    Modifica VARCHAR2 default NULL
+  ) IS
 
    head gui.StringArray; 
 
    BEGIN
-   head := gui.StringArray ('IDCliente', 'Nome', 'Cognome', 'DataNascita', 'Sesso', 'NTelefono', 'Email', 'Stato', 'Saldo'); 
-   gui.apriPagina ('visualizza clienti'); 
-     
-   gui.APRITABELLA (elementi => head); 
 
+    IF Elimina IS NOT NULL AND row_Email IS NOT NULL THEN
+       DELETE FROM CLIENTI c WHERE c.Email = row_Email;  
+    ELSIF Modifica IS NOT NULL THEN
+        operazioniClienti.modificaCliente; 
+
+    END IF;
+
+   head := gui.StringArray ('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email','',''); 
+   gui.apriPagina ('visualizza clienti');  
+
+   gui.APRIFORMFILTRO(/*root || '.visualizzaClienti'*/); 
+        gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
+		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
+		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
+        gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');
+		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
+    gui.CHIUDIFORMFILTRO; 
+    gui.aCapo; 
+
+    gui.APRITABELLA (elementi => head);
    for clienti IN
-   (SELECT IDCliente, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Stato, Saldo FROM Clienti) 
+   (SELECT Nome, Cognome, DataNascita, Sesso, Ntelefono, Email FROM Clienti 
+        where ( Clienti.Nome = c_Nome or c_Nome is null )
+		and ( ( trunc( Clienti.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') ) or c_DataNascita is null )
+		and ( Clienti.Cognome = c_Cognome or c_Cognome is null)
+        and ( Clienti.SESSO = c_Sesso or c_Sesso is null)
+    ) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
-
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.IDCliente);
+            gui.aggiungiformhiddenrigatabella; 
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.DataNascita);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Stato);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Saldo);
-            gui.AggiungiPulsanteCancellazione; 
-            gui.aggiungiPulsanteModifica (collegamento1 => '#'); 
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
 
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Cognome', value => clienti.Cognome);
+
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.DataNascita);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_DataNascita', value => clienti.DataNascita);
+
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Sesso', value => clienti.Sesso);
+
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Telefono', value => clienti.Ntelefono);
+
+            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);
+
+            gui.AggiungiPulsanteCancellazione; 
+            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente'); 
+
+    gui.CHIUDIFORMHIDDENRIGATABELLA; 
     gui.ChiudiRigaTabella;
 
     end LOOP;
     gui.CHIUDITABELLA; 
-      
-END visualizzazioneClienti; 
+
+END visualizzaClienti; 
 
 procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
     DataFine VARCHAR2 DEFAULT NULL,
@@ -485,7 +528,7 @@ BEGIN
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');  
-   gui.AggiungiCampoFormFiltro(tipo =>'submit', nome => 'Submit', value => 'Filtra'); 
+   gui.AggiungiCampoFormFiltro(tipo =>'submit', value => 'Filtra'); 
    gui.CHIUDIFORMFILTRO; 
    gui.aCapo; 
 
