@@ -38,8 +38,7 @@ create or replace package operazioniclienti as
 	procedure inserimentobustapaga (
 		r_idsessionecontabile in varchar2 default null,
 		r_fkdipendente        in varchar2 default null,
-		r_importo             in varchar2 default null,
-		r_bonus               in varchar2 default null
+		r_importo             in varchar2 default null
 	);
 	procedure visualizzaricariche (
 		r_cliente in varchar2 default null,
@@ -80,5 +79,9 @@ create or replace package operazioniclienti as
 		r_idsessionemanager varchar2 default null,
 		r_fkdipendente      varchar2 default null
 	);
+
+	function checkDipendente(r_IdDipendente in varchar2 default null) return boolean;
+
+	function checkContabile(r_IdContabile in varchar2 default null) return boolean;
 
 end operazioniclienti;
