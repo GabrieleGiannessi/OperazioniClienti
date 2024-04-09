@@ -1,3 +1,5 @@
+SET DEFINE OFF; 
+
 create or replace PACKAGE BODY operazioniClienti as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
@@ -108,10 +110,19 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserisciDati;   
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
-    procedure modificaCliente IS
+    procedure modificaCliente(
+        c_Email VARCHAR2 DEFAULT NULL,
+        c_Password VARCHAR2 DEFAULT NULL,
+        c_Telefono VARCHAR2 DEFAULT NULL,
+        new_Email VARCHAR2 DEFAULT NULL,
+        new_Password VARCHAR2 DEFAULT NULL,
+        new_Telefono VARCHAR2 DEFAULT NULL
+    ) IS
     BEGIN
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
-    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+
+    --aggiungere controlli sulla presenza dei valori nuovi : se true aggiungiPopup con scritto valori inseriti 
+    gui.AGGIUNGIFORM ();  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
@@ -122,7 +133,7 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
                 gui.ACAPO; 
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
-                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Nuova mail');
+                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'new_Email', placeholder => 'Nuova mail');
             gui.CHIUDIGRUPPOINPUT; 
 
 
@@ -133,7 +144,7 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
                 gui.ACAPO; 
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
-                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
+                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'new_Password', placeholder => 'Password'); 
 
             gui.CHIUDIGRUPPOINPUT; 
 
@@ -144,7 +155,7 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
                 gui.ACAPO; 
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'new_Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
         gui.CHIUDIRIGAFORM; 
 
@@ -446,8 +457,7 @@ create or replace PACKAGE BODY operazioniClienti as
     row_Sesso VARCHAR2 default NULL,
     row_Telefono VARCHAR2 default NULL,
     row_Email VARCHAR2 default NULL,
-    Elimina VARCHAR2 default NULL, 
-    Modifica VARCHAR2 default NULL
+    Elimina VARCHAR2 default NULL
   ) IS
 
    head gui.StringArray; 
@@ -456,19 +466,16 @@ create or replace PACKAGE BODY operazioniClienti as
 
     IF Elimina IS NOT NULL AND row_Email IS NOT NULL THEN
        DELETE FROM CLIENTI c WHERE c.Email = row_Email;  
-    ELSIF Modifica IS NOT NULL THEN
-        operazioniClienti.modificaCliente; 
-
     END IF;
 
    head := gui.StringArray ('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email','',''); 
    gui.apriPagina ('visualizza clienti');  
 
-   gui.APRIFORMFILTRO(/*root || '.visualizzaClienti'*/); 
+   gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');
+        /*gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');*/
 		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo; 
@@ -502,10 +509,10 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
             gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);
 
-            gui.AggiungiPulsanteCancellazione; 
-            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente'); 
-
-    gui.CHIUDIFORMHIDDENRIGATABELLA; 
+            gui.AggiungiPulsanteCancellazione;  
+            gui.CHIUDIFORMHIDDENRIGATABELLA;
+     
+            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?c_Email='||clienti.Email||'&c_Password='/*||clienti.PASSWORD*/||'&c_Telefono='||clienti.NTelefono||''); --tolto dal form
     gui.ChiudiRigaTabella;
 
     end LOOP;
