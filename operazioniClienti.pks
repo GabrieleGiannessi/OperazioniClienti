@@ -1,35 +1,84 @@
-create or replace PACKAGE operazioniClienti as
+create or replace package operazioniclienti as
 
-
-      /*  u_user CONSTANT VARCHAR(20):='a_cucchiara'; 
-        u_root CONSTANT VARCHAR(20):=u_user||'.operazioniClienti';
+/*
+        user CONSTANT VARCHAR(20):='g_giannessi'; 
+        root CONSTANT VARCHAR(20):=user||'.operazioniClienti';
     */
     --capire bene come mai l'integrazione delle costanti causa errori nel pkb
-    --ho riprovato e ancora non va 
 
-procedure registrazioneCliente; 
-PROCEDURE inserisciDati (Nome VARCHAR2 DEFAULT NULL, Cognome VARCHAR2 DEFAULT NULL, Email VARCHAR2 DEFAULT NULL, Password VARCHAR2 DEFAULT NULL, Telefono VARCHAR2 DEFAULT NULL, Day VARCHAR2 DEFAULT NULL, Month VARCHAR2 DEFAULT NULL, Year VARCHAR2 DEFAULT NULL, Gender VARCHAR2 DEFAULT NULL);
-procedure modificaCliente;
-procedure visualizzaBustePaga(
-        r_Dipendente in varchar2 default null,
-        r_Contabile in varchar2 default null,
-	r_data    in varchar2 default null,
-	r_importo in varchar2 default null,
-        r_bonus in varchar2 default null); 
-procedure visualizzaBustePagaDipendente(
-        r_IdSessione in varchar2 default null,
-	r_data    in varchar2 default null,
-	r_importo in varchar2 default null,
-        r_bonus in varchar2 default null); 
-procedure visualizzaRicarica( r_Cliente in varchar2 default null,
-        r_Data in varchar2 default null,
-        r_Importo in varchar2 default null); 
-procedure visualizzaRicaricheCliente(r_IdSessione in varchar2 default null,
+	procedure registrazionecliente;
+
+	procedure inseriscidati (
+		nome     varchar2 default null,
+		cognome  varchar2 default null,
+		email    varchar2 default null,
+		password varchar2 default null,
+		telefono varchar2 default null,
+		day      varchar2 default null,
+		month    varchar2 default null,
+		year     varchar2 default null,
+		gender   varchar2 default null
+	);
+
+	procedure modificacliente;
+
+	procedure visualizzabustepaga (
+		r_dipendente in varchar2 default null,
+		r_contabile  in varchar2 default null,
+		r_data       in varchar2 default null,
+		r_importo    in varchar2 default null,
+		r_bonus      in varchar2 default null
+	);
+	procedure visualizzabustepagadipendente (
+		r_idsessione in varchar2 default null,
+		r_data       in varchar2 default null,
+		r_importo    in varchar2 default null,
+		r_bonus      in varchar2 default null
+	);
+	procedure inserimentobustapaga (
+		r_idsessionecontabile in varchar2 default null,
+		r_fkdipendente        in varchar2 default null,
+		r_importo             in varchar2 default null,
+		r_bonus               in varchar2 default null
+	);
+	procedure visualizzaricariche (
+		r_cliente in varchar2 default null,
 		r_data    in varchar2 default null,
-		r_importo in varchar2 default null);
-procedure visualizzazioneClienti;
-procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
-    DataFine VARCHAR2 DEFAULT NULL, 
-    Ente VARCHAR2 DEFAULT NULL);
+		r_importo in varchar2 default null
+	);
+	procedure visualizzaricarichecliente (
+		r_idsessionecliente in varchar2 default null,
+		r_data              in varchar2 default null,
+		r_importo           in varchar2 default null
+	);
+	procedure inserimentoricarica (
+		r_idsessionecliente in varchar2 default null,
+		r_importo           in varchar2 default null
+	);
 
-end operazioniClienti; 
+	procedure visualizzaclienti (
+		c_nome          varchar2 default null,
+		c_cognome       varchar2 default null,
+		c_datanascita   varchar2 default null,
+		c_sesso         varchar2 default null,
+		row_nome        varchar2 default null,
+		row_cognome     varchar2 default null,
+		row_datanascita varchar2 default null,
+		row_sesso       varchar2 default null,
+		row_telefono    varchar2 default null,
+		row_email       varchar2 default null,
+		elimina         varchar2 default null,
+		modifica        varchar2 default null
+	);
+
+	procedure visualizzazioneconvenzioni (
+		datainizio varchar2 default null,
+		datafine   varchar2 default null,
+		ente       varchar2 default null
+	);
+	procedure inserimentocontabile (
+		r_idsessionemanager varchar2 default null,
+		r_fkdipendente      varchar2 default null
+	);
+
+end operazioniclienti;

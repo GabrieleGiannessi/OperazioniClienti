@@ -3,7 +3,7 @@ create or replace PACKAGE BODY operazioniClienti as
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
     BEGIN   
-    gui.APRIPAGINA(titolo => 'Registrazione',idSessione => 0);
+    gui.APRIPAGINA(titolo => 'Registrazione');
     gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
