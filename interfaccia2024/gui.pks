@@ -62,6 +62,7 @@ create or replace package gui as
 	procedure aggiungielementotabella (
 		elemento varchar2 default ''
 	);
+
 	procedure aggiungipulsantecancellazione (
 		proceduraeliminazione varchar2 default ''
 	);
@@ -77,7 +78,7 @@ create or replace package gui as
 	);
 	procedure aggiungicampoformfiltro (
 		tipo        varchar2 default 'text',
-		nome        varchar2,
+		nome        varchar2 default NULL,
 		value       varchar2 default '',
 		placeholder varchar2 default '',
 		required    boolean default false,
@@ -133,51 +134,63 @@ create or replace package gui as
 		name   varchar2 default '',
 		url    varchar2 default ''
 	);
+
 	procedure aggiungiinput (
 		tipo        varchar2 default 'text',
 		nome        varchar2,
 		value       varchar2 default '',
 		placeholder varchar2 default '',
 		required    boolean default false,
+		readonly    boolean default false,
 		classe      varchar2 default '',
 		ident       varchar2 default '',
 		pattern     varchar2 default '',
 		minimo      varchar2 default '',
 		massimo     varchar2 default ''
 	);
+
 	procedure aggiungilabel (
 		target varchar2,
 		testo  varchar2
 	);
+
 	procedure aggiungiicona (
 		classe varchar2 default ''
 	);
+
 	procedure aggiungicampoform (
 		tipo        varchar2 default 'text',
 		classeicona varchar2 default '',
 		nome        varchar2,
 		placeholder varchar2 default ''
 	);
+
 ------------------- Aggiunto per fare delle prove per le procedure nel gruppo operazioni
 	procedure aggiungiformhiddenrigatabella (
 		azione varchar2 default ''
 	);
 	procedure chiudiformhiddenrigatabella;
 -------------------
+
 	procedure aggiungicampoformhidden (
 		tipo  varchar2 default 'text',
 		nome  varchar2,
 		value varchar2 default ''
 	);
+
 	procedure aggiungirigaform;
+
 	procedure chiudirigaform;
-	procedure aggiungibottonesubmit (
-		nome  varchar2,
+
+	procedure aggiungibottonesubmit(
+		nome varchar2 default null, 
 		value varchar2 default ''
 	);
 
 	procedure aggiungigruppoinput;
+
 	procedure chiudigruppoinput;
+
 	procedure chiudiform;
 
 	procedure cancella;

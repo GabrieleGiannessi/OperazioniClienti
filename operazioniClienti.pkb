@@ -464,7 +464,7 @@ create or replace PACKAGE BODY operazioniClienti as
     IF Elimina IS NOT NULL AND row_Email IS NOT NULL THEN
        DELETE FROM CLIENTI c WHERE c.Email = row_Email;  
     ELSIF Modifica IS NOT NULL THEN
-        gui.apriPagina;--test
+        operazioniClienti.modificaCliente; 
 
     END IF;
 
@@ -490,7 +490,7 @@ create or replace PACKAGE BODY operazioniClienti as
     ) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
-            gui.aggiungiformhiddenrigatabella (); 
+            gui.aggiungiformhiddenrigatabella; 
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
             gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
 
@@ -509,8 +509,8 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
             gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);
 
-            gui.AggiungiPulsanteCancellazione (); 
-            gui.aggiungiPulsanteModifica (collegamento1 => '#'); 
+            gui.AggiungiPulsanteCancellazione; 
+            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente'); 
 
     gui.CHIUDIFORMHIDDENRIGATABELLA; 
     gui.ChiudiRigaTabella;
