@@ -514,7 +514,6 @@ create or replace PACKAGE BODY operazioniClienti as
      
             gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?c_Email='||clienti.Email||'&c_Password='/*||clienti.PASSWORD*/||'&c_Telefono='||clienti.NTelefono||''); --tolto dal form
     gui.ChiudiRigaTabella;
-
     end LOOP;
     gui.CHIUDITABELLA; 
 
