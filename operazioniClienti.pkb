@@ -234,7 +234,7 @@ END modificaCliente;
 		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
 		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
 		gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-		gui.aggiungicampoformfiltro('submit', '',' Filtra','');
+		gui.aggiungicampoformfiltro('submit', '','','Filtra');
     gui.CHIUDIFORMFILTRO; 
 
     gui.aCapo;
@@ -330,7 +330,7 @@ END modificaCliente;
     function checkContabile(r_IdContabile in varchar2 default null) return boolean IS 
         count_c NUMBER;
     BEGIN
-        SELECT COUNT(*) INTO count_c FROM RESPONSABILI r WHERE r.FK_RESPONSABILE = r_IdContabile AND r.RUOLO=0;
+        SELECT COUNT(*) INTO count_c FROM RESPONSABILI r WHERE r.FK_DIPENDENTE = r_IdContabile AND r.RUOLO=0;
         IF(count_c=1) THEN
             return true;
         ELSE
@@ -404,7 +404,7 @@ END modificaCliente;
         gui.aggiungicampoformfiltro(nome => 'r_Cliente', placeholder => 'Cliente');
 		gui.aggiungicampoformfiltro( nome => 'r_Importo', placeholder => 'Importo');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
+		gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo; 
 
