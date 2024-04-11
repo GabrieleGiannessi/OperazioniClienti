@@ -1,3 +1,5 @@
+SET DEFINE OFF; 
+
 create or replace PACKAGE BODY operazioniClienti as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
@@ -183,59 +185,110 @@ EXCEPTION
     WHEN OTHERS THEN
         -- Gestione dell'eccezione e stampa dell'errore
         gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
-END inseriscidatiConvenzione;
-
-
+END inseriscidatiConvenzione;   
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
-    procedure modificaCliente IS
+    procedure modificaCliente(
+    id VARCHAR2 DEFAULT NULL,
+    cl_Email VARCHAR2 DEFAULT NULL,
+    cl_Password VARCHAR2 DEFAULT NULL,
+    cl_Telefono VARCHAR2 DEFAULT NULL
+) IS
+
+    current_email CLIENTI.Email%TYPE := NULL;
+    current_telefono CLIENTI.Ntelefono%TYPE := NULL;
+    current_password CLIENTI.Password%TYPE := NULL; 
+
     BEGIN
+    
+    SELECT Email, Ntelefono, Password
+    INTO current_email, current_telefono, current_password
+    FROM CLIENTI
+    WHERE IDcliente = id;
+
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
-    gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
 
-        gui.AGGIUNGIRIGAFORM;   
-            gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
-            gui.AGGIUNGIGRUPPOINPUT;    
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
-                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
-                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Nuova mail');
-            gui.CHIUDIGRUPPOINPUT; 
+    IF cl_Email <> current_email THEN
+        -- Aggiornamento dell'email
+        UPDATE CLIENTI
+        SET Email = cl_Email
+        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
+        gui.AGGIUNGIPOPUP (True , 'Email modificata!');
+        gui.aCapo;
+    END IF;
 
-            gui.AGGIUNGIGRUPPOINPUT;
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
-                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
-                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
+    IF cl_Password <> current_password THEN
+        -- Aggiornamento della password
+        UPDATE CLIENTI
+        SET Password = cl_Password
+        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
-            gui.CHIUDIGRUPPOINPUT; 
+        gui.AGGIUNGIPOPUP (True , 'Password modificata!');
+        gui.aCapo;  
+    END IF;
 
-            gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
-                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
-            gui.CHIUDIGRUPPOINPUT;
-        gui.CHIUDIRIGAFORM; 
+    IF cl_Telefono <> current_telefono THEN
+        -- Aggiornamento del telefono
+        UPDATE CLIENTI
+        SET Ntelefono = cl_Telefono
+        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
-        gui.AGGIUNGIRIGAFORM;
-            gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
-            gui.CHIUDIGRUPPOINPUT; 
-        gui.CHIUDIRIGAFORM; 
+        gui.AGGIUNGIPOPUP (True , 'Numero di telefono modificato!');
+        gui.aCapo; 
+        
+    END IF;
+
+    --ri-aggiorno i valori da visualizzare nella schermata 
+    SELECT Email, Ntelefono, Password
+    INTO current_email, current_telefono, current_password
+    FROM CLIENTI
+    WHERE IDcliente = id;
+
+    gui.AGGIUNGIFORM;  
+    gui.AGGIUNGIRIGAFORM;   
+
+    gui.aggiungiInput (tipo => 'hidden', nome => 'id', value => id); 
+
+    gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+    gui.AGGIUNGIGRUPPOINPUT;      
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
+    gui.AGGIUNGIPARAGRAFO (testo => current_email);     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');  
+    gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
+    gui.CHIUDIGRUPPOINPUT; 
+
+    gui.AGGIUNGIGRUPPOINPUT;
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');  
+    gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false); 
+    gui.CHIUDIGRUPPOINPUT; 
+
+    gui.AGGIUNGIGRUPPOINPUT; 
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
+    gui.AGGIUNGIPARAGRAFO (testo => current_telefono);     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
+    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
+    gui.CHIUDIGRUPPOINPUT;
+    gui.CHIUDIRIGAFORM; 
+
+    gui.AGGIUNGIRIGAFORM;
+    gui.AGGIUNGIGRUPPOINPUT; 
+    gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
+    
+    
+    gui.CHIUDIGRUPPOINPUT; 
+    gui.CHIUDIRIGAFORM; 
 
     gui.CHIUDIFORM; 
-    END modificaCliente; 
+
+    EXCEPTION 
+    WHEN OTHERS THEN
+    gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!'); 
+END modificaCliente;
+ 
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
     procedure visualizzaBustePaga(
@@ -259,7 +312,7 @@ END inseriscidatiConvenzione;
 		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
 		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
 		gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-		gui.aggiungicampoformfiltro('submit', '',' Filtra','');
+		gui.aggiungicampoformfiltro('submit', '','','Filtra');
     gui.CHIUDIFORMFILTRO; 
 
     gui.aCapo;
@@ -341,17 +394,40 @@ END inseriscidatiConvenzione;
     END visualizzaBustePagaDipendente;
 
 
+    function checkDipendente(r_IdDipendente in varchar2 default null) return boolean IS 
+        count_d NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_d FROM DIPENDENTI d WHERE d.Matricola = r_IdDipendente;
+        IF(count_d=1) THEN
+            return true;
+        ELSE
+            return false;
+        END IF;
+    END checkDipendente;
+
+    function checkContabile(r_IdContabile in varchar2 default null) return boolean IS 
+        count_c NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_c FROM RESPONSABILI r WHERE r.FK_DIPENDENTE = r_IdContabile AND r.RUOLO=0;
+        IF(count_c=1) THEN
+            return true;
+        ELSE
+            return false;
+        END IF;
+    END checkContabile;
+
     procedure inserimentoBustaPaga(
         r_IdSessioneContabile in varchar2 default null, 
         r_FkDipendente in varchar2 default null,
-        r_Importo in varchar2 default null, 
-        r_Bonus in varchar2 default null) IS
+        r_Importo in varchar2 default null) IS
 
+    bonus_percent NUMBER := 0;
+    
     head gui.StringArray; 
 
     BEGIN
         
-        gui.APRIPAGINA(titolo => 'inserimentoBustaPaga');
+        gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessioneContabile);
         gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoBustaPaga');  
 
             gui.AGGIUNGIRIGAFORM;  
@@ -360,25 +436,30 @@ END inseriscidatiConvenzione;
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessioneContabile', value => r_IdSessioneContabile); 
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');        
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-percent', nome => 'r_Bonus', placeholder => 'Bonus');
                 gui.CHIUDIGRUPPOINPUT;
             gui.CHIUDIRIGAFORM; 
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
+                    gui.AGGIUNGIBOTTONESUBMIT (nome => '', value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
 
-        IF(r_importo > 0)
-
-            THEN INSERT INTO BUSTEPAGA VALUES (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessioneContabile), SYSDATE, TO_NUMBER(r_Importo), TO_NUMBER(r_Bonus));
-            gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
-
-            /*Aggiungere bottone per ritornare a visualizzaBustePaga*/
-
-        END IF;        
+        if(r_Importo > 0) THEN
+            IF(checkDipendente(r_FkDipendente)) THEN 
+                /* Recupero il bonus percentuale in dipendenti */
+                SELECT d.Bonus INTO bonus_percent FROM DIPENDENTI d WHERE d.Matricola = sessionhandler.getiduser(r_IdSessioneContabile);
+                /* Inserisco la busta paga calcolando il bonus */
+                INSERT INTO BUSTEPAGA (FK_Dipendente, FK_Contabile, Data, Importo, Bonus) VALUES 
+                (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessioneContabile), SYSDATE, TO_NUMBER(r_Importo), (TO_NUMBER(r_Importo)*bonus_percent)/100);
+                /* Popup di successo */
+                gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
+            ELSE
+                gui.AggiungiPopup(False, 'Errori inserimento dati');
+            END IF;
+        END IF;
+        
 
     END inserimentoBustaPaga;
 
@@ -401,7 +482,7 @@ END inseriscidatiConvenzione;
         gui.aggiungicampoformfiltro(nome => 'r_Cliente', placeholder => 'Cliente');
 		gui.aggiungicampoformfiltro( nome => 'r_Importo', placeholder => 'Importo');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
+		gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo; 
 
@@ -519,15 +600,15 @@ END inseriscidatiConvenzione;
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
-    c_Sesso VARCHAR2 default NULL,
+    c_Maschio VARCHAR2 default NULL,
+    c_Femmina VARCHAR2 default NULL,
     row_Nome VARCHAR2 default NULL, 
     row_Cognome VARCHAR2 default NULL,
     row_DataNascita VARCHAR2 default NULL,
     row_Sesso VARCHAR2 default NULL,
     row_Telefono VARCHAR2 default NULL,
     row_Email VARCHAR2 default NULL,
-    Elimina VARCHAR2 default NULL, 
-    Modifica VARCHAR2 default NULL
+    Elimina VARCHAR2 default NULL
   ) IS
 
    head gui.StringArray; 
@@ -536,30 +617,29 @@ END inseriscidatiConvenzione;
 
     IF Elimina IS NOT NULL AND row_Email IS NOT NULL THEN
        DELETE FROM CLIENTI c WHERE c.Email = row_Email;  
-    ELSIF Modifica IS NOT NULL THEN
-        operazioniClienti.modificaCliente; 
-
     END IF;
 
    head := gui.StringArray ('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email','',''); 
    gui.apriPagina ('visualizza clienti');  
 
-   gui.APRIFORMFILTRO(/*root || '.visualizzaClienti'*/); 
+   gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');
+        /*gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');*/
+        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', nomiParametri => gui.StringArray ('c_Maschio', 'c_Femmina'), opzioni => gui.StringArray ('Maschio', 'Femmina')); 
 		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo; 
 
     gui.APRITABELLA (elementi => head);
    for clienti IN
-   (SELECT Nome, Cognome, DataNascita, Sesso, Ntelefono, Email FROM Clienti 
-        where ( Clienti.Nome = c_Nome or c_Nome is null )
+   (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM Clienti 
+        where ( Clienti.NOME = c_Nome or c_Nome is null )
 		and ( ( trunc( Clienti.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') ) or c_DataNascita is null )
-		and ( Clienti.Cognome = c_Cognome or c_Cognome is null)
-        and ( Clienti.SESSO = c_Sesso or c_Sesso is null)
+		and ( Clienti.COGNOME = c_Cognome or c_Cognome is null)
+        and ( (Clienti.SESSO = 'M' and c_Maschio = 'on') or c_Maschio is null)
+        and ( (Clienti.SESSO = 'F' and c_Femmina = 'on') or c_Femmina is null)
     ) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
@@ -582,12 +662,11 @@ END inseriscidatiConvenzione;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
             gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);
 
-            gui.AggiungiPulsanteCancellazione; 
-            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente'); 
-
-    gui.CHIUDIFORMHIDDENRIGATABELLA; 
+            gui.AggiungiPulsanteCancellazione;  
+            gui.CHIUDIFORMHIDDENRIGATABELLA;
+     
+            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
     gui.ChiudiRigaTabella;
-
     end LOOP;
     gui.CHIUDITABELLA; 
 
