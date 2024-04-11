@@ -77,16 +77,16 @@ create or replace package operazioniclienti as
 		ente       varchar2 default null
 	);
 
-	procedure insertConvenzione;
-/*	procedure inserisciConvenzione(
-    p_nome IN VARCHAR2,
-    p_ente IN VARCHAR2,
-    p_sconto IN NUMBER,
-    p_codice_accesso IN NUMBER,
-    p_data_inizio IN DATE,
-    p_data_fine IN DATE,
-    p_cumulabile IN NUMBER
-);*/
+	procedure inserimentoConvenzione;
+	PROCEDURE inseriscidatiConvenzione (
+    p_nome IN CONVENZIONI.nome%TYPE,
+    p_ente IN CONVENZIONI.ente%TYPE,
+    p_sconto IN CONVENZIONI.sconto%TYPE,
+    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
+    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
+    p_dataFine IN CONVENZIONI.dataFine%TYPE,
+    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+);
 
 	procedure inserimentocontabile (
 		r_idsessionemanager varchar2 default null,

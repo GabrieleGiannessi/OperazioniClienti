@@ -118,30 +118,80 @@ EXCEPTION
 END inserisciDati;
 
 --form per la insert della convenzione (da verificare perchè non funziona)
-procedure insertConvenzione IS
+PROCEDURE inserimentoConvenzione AS
 BEGIN
-    gui.ApriPagina('Inserimento Convenzione');
-    gui.AggiungiForm(name => 'inserimento_convenzione_form', url => 'a_cucchiara.operazioniClienti.insertConvenzione');
-    gui.aggiungiRigaForm;
-    gui.aggiungiGruppoInput;
-    gui.aggiungiLabel('nome_convenzione', 'Nome Convenzione:');
-    gui.AggiungiInput(nome => 'nome_convenzione', placeholder => 'Inserisci il nome della convenzione');
-    gui.chiudiGruppoInput;
-    gui.chiudiRigaForm;
+    -- Apertura della pagina HTML per l'inserimento della convenzione
+    gui.ApriPagina(titolo => 'Inserimento Convenzione');
+    gui.AggiungiForm(url => 'a_cucchiara.operazioniConvenzioni.inseriscidatiConvenzione');
 
-    -- Ripeti lo stesso per gli altri campi della convenzione (Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+    -- Inserimento dei campi del modulo
+    gui.AggiungiRigaForm;
+    gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
+    gui.AggiungiGruppoInput;
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'Nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'Ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'Sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'CodiceAccesso', placeholder => 'Codice Accesso');
+    gui.ChiudiGruppoInput;
+    gui.ChiudiRigaForm;
 
-    gui.aggiungiBottoneSubmit(nome => 'submit_btn', value => 'Inserisci Convenzione');
-    gui.chiudiForm;
+    gui.AggiungiRigaForm;
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataInizio', placeholder => 'Data Inizio');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataFine', placeholder => 'Data Fine');
+    gui.ApriSelectFormFiltro(nome => 'Cumulabile', placeholder => 'Cumulabile');
+    gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
+    gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
+    gui.ChiudiSelectFormFiltro;
+    gui.ChiudiRigaForm;
+
+    -- Bottone di submit per inviare il modulo
+    gui.AggiungiRigaForm;
+    gui.AggiungiGruppoInput;
+    gui.AggiungiBottoneSubmit(nome => '', value => 'Inserisci');
+    gui.ChiudiGruppoInput;
+    gui.ChiudiRigaForm;
+
+    -- Chiusura del modulo
+    gui.ChiudiForm;
+
+    -- Chiusura della pagina HTML
     gui.ChiudiPagina;
-END insertConvenzione;
+END inserimentoConvenzione;
+
+--procedura per la insert convenzione nel form
+procedure inseriscidatiConvenzione (
+    p_nome IN CONVENZIONI.nome%TYPE,
+    p_ente IN CONVENZIONI.ente%TYPE,
+    p_sconto IN CONVENZIONI.sconto%TYPE,
+    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
+    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
+    p_dataFine IN CONVENZIONI.dataFine%TYPE,
+    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+) AS
+BEGIN
+
+    -- Apre una pagina di registrazione
+    gui.ApriPagina('Registrazione');
+
+    -- Inserimento dei dati nella tabella CONVENZIONI
+    INSERT INTO CONVENZIONI (IDconvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+    VALUES (seq_IDconvenzione.nextval, p_nome, p_ente, p_sconto, p_codiceAccesso, p_dataInizio, p_dataFine, p_cumulabile);
+
+    -- Messaggio di conferma dell'inserimento
+    gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Gestione dell'eccezione e stampa dell'errore
+        gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
+END inseriscidatiConvenzione;
+
 
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente IS
     BEGIN
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
-    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+    gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
