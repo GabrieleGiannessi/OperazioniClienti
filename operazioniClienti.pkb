@@ -316,17 +316,40 @@ END modificaCliente;
     END visualizzaBustePagaDipendente;
 
 
+    function checkDipendente(r_IdDipendente in varchar2 default null) return boolean IS 
+        count_d NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_d FROM DIPENDENTI d WHERE d.Matricola = r_IdDipendente;
+        IF(count_d=1) THEN
+            return true;
+        ELSE
+            return false;
+        END IF;
+    END checkDipendente;
+
+    function checkContabile(r_IdContabile in varchar2 default null) return boolean IS 
+        count_c NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_c FROM RESPONSABILI r WHERE r.FK_RESPONSABILE = r_IdContabile AND r.RUOLO=0;
+        IF(count_c=1) THEN
+            return true;
+        ELSE
+            return false;
+        END IF;
+    END checkContabile;
+
     procedure inserimentoBustaPaga(
         r_IdSessioneContabile in varchar2 default null, 
         r_FkDipendente in varchar2 default null,
-        r_Importo in varchar2 default null, 
-        r_Bonus in varchar2 default null) IS
+        r_Importo in varchar2 default null) IS
 
+    bonus_percent NUMBER := 0;
+    
     head gui.StringArray; 
 
     BEGIN
         
-        gui.APRIPAGINA(titolo => 'inserimentoBustaPaga');
+        gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessioneContabile);
         gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoBustaPaga');  
 
             gui.AGGIUNGIRIGAFORM;  
@@ -335,25 +358,30 @@ END modificaCliente;
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessioneContabile', value => r_IdSessioneContabile); 
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');        
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-percent', nome => 'r_Bonus', placeholder => 'Bonus');
                 gui.CHIUDIGRUPPOINPUT;
             gui.CHIUDIRIGAFORM; 
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
+                    gui.AGGIUNGIBOTTONESUBMIT (nome => '', value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
 
-        IF(r_importo > 0)
-
-            THEN INSERT INTO BUSTEPAGA VALUES (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessioneContabile), SYSDATE, TO_NUMBER(r_Importo), TO_NUMBER(r_Bonus));
-            gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
-
-            /*Aggiungere bottone per ritornare a visualizzaBustePaga*/
-
-        END IF;        
+        if(r_Importo > 0) THEN
+            IF(checkDipendente(r_FkDipendente)) THEN 
+                /* Recupero il bonus percentuale in dipendenti */
+                SELECT d.Bonus INTO bonus_percent FROM DIPENDENTI d WHERE d.Matricola = sessionhandler.getiduser(r_IdSessioneContabile);
+                /* Inserisco la busta paga calcolando il bonus */
+                INSERT INTO BUSTEPAGA (FK_Dipendente, FK_Contabile, Data, Importo, Bonus) VALUES 
+                (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessioneContabile), SYSDATE, TO_NUMBER(r_Importo), (TO_NUMBER(r_Importo)*bonus_percent)/100);
+                /* Popup di successo */
+                gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
+            ELSE
+                gui.AggiungiPopup(False, 'Errori inserimento dati');
+            END IF;
+        END IF;
+        
 
     END inserimentoBustaPaga;
 
