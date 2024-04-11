@@ -117,7 +117,7 @@ EXCEPTION
         gui.AggiungiPopup(FALSE, 'Registrazione fallita, cliente già presente sul sito!');
 END inserisciDati;
 
---form per la insert della convenzione (da verificare perchè non funziona)
+--form per la insert della convenzione
 PROCEDURE inserimentoConvenzione AS
 BEGIN
     -- Apertura della pagina HTML per l'inserimento della convenzione
@@ -171,7 +171,7 @@ procedure inseriscidatiConvenzione (
 BEGIN
 
     -- Apre una pagina di registrazione
-    gui.ApriPagina('Registrazione');
+    gui.ApriPagina('Inserimento Convenzione');
 
     -- Inserimento dei dati nella tabella CONVENZIONI
     INSERT INTO CONVENZIONI (IDconvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
