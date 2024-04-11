@@ -43,8 +43,7 @@ create or replace package operazioniclienti as
     procedure inserimentobustapaga (
         r_idsessionecontabile in varchar2 default null,
         r_fkdipendente        in varchar2 default null,
-        r_importo             in varchar2 default null,
-        r_bonus               in varchar2 default null
+        r_importo             in varchar2 default null
     );
     procedure visualizzaricariche (
         r_cliente in varchar2 default null,
