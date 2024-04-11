@@ -147,7 +147,7 @@ create or replace PACKAGE BODY operazioniClienti as
         WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
         gui.AGGIUNGIPOPUP (True , 'Password modificata!');
-        gui.aCapo;
+        gui.aCapo;  
     END IF;
 
     IF cl_Telefono <> current_telefono THEN
@@ -199,6 +199,7 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.AGGIUNGIRIGAFORM;
     gui.AGGIUNGIGRUPPOINPUT; 
     gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
+    
     
     gui.CHIUDIGRUPPOINPUT; 
     gui.CHIUDIRIGAFORM; 

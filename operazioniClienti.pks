@@ -1,9 +1,9 @@
 create or replace package operazioniclienti as
 
 /*
-        user CONSTANT VARCHAR(20):='g_giannessi'; 
-        root CONSTANT VARCHAR(20):=user||'.operazioniClienti';
-    */
+    user CONSTANT VARCHAR(20):='g_giannessi'; 
+    root CONSTANT VARCHAR(20):=user||'.operazioniClienti';
+  */  
     --capire bene come mai l'integrazione delle costanti causa errori nel pkb
 
     procedure registrazionecliente;
