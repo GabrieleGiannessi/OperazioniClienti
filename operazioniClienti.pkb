@@ -111,62 +111,105 @@ create or replace PACKAGE BODY operazioniClienti as
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente(
-        c_Email VARCHAR2 DEFAULT NULL,
-        c_Password VARCHAR2 DEFAULT NULL,
-        c_Telefono VARCHAR2 DEFAULT NULL,
-        new_Email VARCHAR2 DEFAULT NULL,
-        new_Password VARCHAR2 DEFAULT NULL,
-        new_Telefono VARCHAR2 DEFAULT NULL
-    ) IS
+    id VARCHAR2 DEFAULT NULL,
+    cl_Email VARCHAR2 DEFAULT NULL,
+    cl_Password VARCHAR2 DEFAULT NULL,
+    cl_Telefono VARCHAR2 DEFAULT NULL
+) IS
+
+    current_email CLIENTI.Email%TYPE := NULL;
+    current_telefono CLIENTI.Ntelefono%TYPE := NULL;
+    current_password CLIENTI.Password%TYPE := NULL; 
+
     BEGIN
+    
+    SELECT Email, Ntelefono, Password
+    INTO current_email, current_telefono, current_password
+    FROM CLIENTI
+    WHERE IDcliente = id;
+
     gui.APRIPAGINA(titolo => 'Modifica dati cliente');
 
-    --aggiungere controlli sulla presenza dei valori nuovi : se true aggiungiPopup con scritto valori inseriti 
-    gui.AGGIUNGIFORM ();  
+    IF cl_Email <> current_email THEN
+        -- Aggiornamento dell'email
+        UPDATE CLIENTI
+        SET Email = cl_Email
+        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
-        gui.AGGIUNGIRIGAFORM;   
-            gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
-            gui.AGGIUNGIGRUPPOINPUT;    
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
-                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
-                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'new_Email', placeholder => 'Nuova mail');
-            gui.CHIUDIGRUPPOINPUT; 
+        gui.AGGIUNGIPOPUP (True , 'Email modificata!');
+        gui.aCapo;
+    END IF;
 
+    IF cl_Password <> current_password THEN
+        -- Aggiornamento della password
+        UPDATE CLIENTI
+        SET Password = cl_Password
+        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
-            gui.AGGIUNGIGRUPPOINPUT;
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia : ', dimensione => 'h3');
-                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova : ', dimensione => 'h3');  
-                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'new_Password', placeholder => 'Password'); 
+        gui.AGGIUNGIPOPUP (True , 'Password modificata!');
+        gui.aCapo;
+    END IF;
 
-            gui.CHIUDIGRUPPOINPUT; 
+    IF cl_Telefono <> current_telefono THEN
+        -- Aggiornamento del telefono
+        UPDATE CLIENTI
+        SET Ntelefono = cl_Telefono
+        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
 
-            gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
-                gui.AGGIUNGIPARAGRAFO (testo => 'Esempio');    
-                gui.ACAPO; 
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'new_Telefono', placeholder => 'Telefono'); 
-            gui.CHIUDIGRUPPOINPUT;
-        gui.CHIUDIRIGAFORM; 
+        gui.AGGIUNGIPOPUP (True , 'Numero di telefono modificato!');
+        gui.aCapo; 
+        
+    END IF;
 
-        gui.AGGIUNGIRIGAFORM;
-            gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
-            gui.CHIUDIGRUPPOINPUT; 
-        gui.CHIUDIRIGAFORM; 
+    --ri-aggiorno i valori da visualizzare nella schermata 
+    SELECT Email, Ntelefono, Password
+    INTO current_email, current_telefono, current_password
+    FROM CLIENTI
+    WHERE IDcliente = id;
+
+    gui.AGGIUNGIFORM;  
+    gui.AGGIUNGIRIGAFORM;   
+
+    gui.aggiungiInput (tipo => 'hidden', nome => 'id', value => id); 
+
+    gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+    gui.AGGIUNGIGRUPPOINPUT;      
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
+    gui.AGGIUNGIPARAGRAFO (testo => current_email);     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');  
+    gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
+    gui.CHIUDIGRUPPOINPUT; 
+
+    gui.AGGIUNGIGRUPPOINPUT;
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');  
+    gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false); 
+    gui.CHIUDIGRUPPOINPUT; 
+
+    gui.AGGIUNGIGRUPPOINPUT; 
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
+    gui.AGGIUNGIPARAGRAFO (testo => current_telefono);     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
+    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
+    gui.CHIUDIGRUPPOINPUT;
+    gui.CHIUDIRIGAFORM; 
+
+    gui.AGGIUNGIRIGAFORM;
+    gui.AGGIUNGIGRUPPOINPUT; 
+    gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
+    
+    gui.CHIUDIGRUPPOINPUT; 
+    gui.CHIUDIRIGAFORM; 
 
     gui.CHIUDIFORM; 
-    END modificaCliente; 
+
+    EXCEPTION 
+    WHEN OTHERS THEN
+    gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!'); 
+END modificaCliente;
+ 
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
     procedure visualizzaBustePaga(
@@ -450,7 +493,8 @@ create or replace PACKAGE BODY operazioniClienti as
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
-    c_Sesso VARCHAR2 default NULL,
+    c_Maschio VARCHAR2 default NULL,
+    c_Femmina VARCHAR2 default NULL,
     row_Nome VARCHAR2 default NULL, 
     row_Cognome VARCHAR2 default NULL,
     row_DataNascita VARCHAR2 default NULL,
@@ -476,17 +520,19 @@ create or replace PACKAGE BODY operazioniClienti as
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
         /*gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');*/
+        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', nomiParametri => gui.StringArray ('c_Maschio', 'c_Femmina'), opzioni => gui.StringArray ('Maschio', 'Femmina')); 
 		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo; 
 
     gui.APRITABELLA (elementi => head);
    for clienti IN
-   (SELECT Nome, Cognome, DataNascita, Sesso, Ntelefono, Email FROM Clienti 
-        where ( Clienti.Nome = c_Nome or c_Nome is null )
+   (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM Clienti 
+        where ( Clienti.NOME = c_Nome or c_Nome is null )
 		and ( ( trunc( Clienti.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') ) or c_DataNascita is null )
-		and ( Clienti.Cognome = c_Cognome or c_Cognome is null)
-        and ( Clienti.SESSO = c_Sesso or c_Sesso is null)
+		and ( Clienti.COGNOME = c_Cognome or c_Cognome is null)
+        and ( (Clienti.SESSO = 'M' and c_Maschio = 'on') or c_Maschio is null)
+        and ( (Clienti.SESSO = 'F' and c_Femmina = 'on') or c_Femmina is null)
     ) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
@@ -512,7 +558,7 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AggiungiPulsanteCancellazione;  
             gui.CHIUDIFORMHIDDENRIGATABELLA;
      
-            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?c_Email='||clienti.Email||'&c_Password='/*||clienti.PASSWORD*/||'&c_Telefono='||clienti.NTelefono||''); --tolto dal form
+            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
     gui.ChiudiRigaTabella;
     end LOOP;
     gui.CHIUDITABELLA; 

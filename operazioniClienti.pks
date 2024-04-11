@@ -21,12 +21,10 @@ create or replace package operazioniclienti as
     );
 
     procedure modificacliente (
-        c_email      varchar2 default null,
-        c_password   varchar2 default null,
-        c_telefono   varchar2 default null,
-        new_email    varchar2 default null,
-        new_password varchar2 default null,
-        new_telefono varchar2 default null
+        id          varchar2 default null,
+        cl_email    varchar2 default null,
+        cl_password varchar2 default null,
+        cl_telefono varchar2 default null
     );
 
     procedure visualizzabustepaga (
@@ -67,7 +65,8 @@ create or replace package operazioniclienti as
         c_nome          varchar2 default null,
         c_cognome       varchar2 default null,
         c_datanascita   varchar2 default null,
-        c_sesso         varchar2 default null,
+        c_maschio       varchar2 default null,
+        c_femmina       varchar2 default null,
         row_nome        varchar2 default null,
         row_cognome     varchar2 default null,
         row_datanascita varchar2 default null,
