@@ -75,6 +75,17 @@ create or replace package operazioniclienti as
         elimina         varchar2 default null
     );
 
+	procedure inserimentoConvenzione;
+	PROCEDURE inseriscidatiConvenzione (
+    p_nome IN CONVENZIONI.nome%TYPE,
+    p_ente IN CONVENZIONI.ente%TYPE,
+    p_sconto IN CONVENZIONI.sconto%TYPE,
+    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
+    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
+    p_dataFine IN CONVENZIONI.dataFine%TYPE,
+    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+);
+
     procedure visualizzazioneconvenzioni (
         datainizio varchar2 default null,
         datafine   varchar2 default null,
