@@ -32,8 +32,21 @@ create or replace package operazioniclienti as
         r_contabile  in varchar2 default null,
         r_data       in varchar2 default null,
         r_importo    in varchar2 default null,
-        r_bonus      in varchar2 default null
+        r_bonus      in varchar2 default null,
+        r_PopUp in varchar2 default null
     );
+
+    procedure modificaBustaPaga (
+        r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_bonus in varchar default null,
+        r_popUp in BOOLEAN default false,
+        new_Importo in varchar2 default null,
+        new_Bonus in varchar2 default null
+    );
+
     procedure visualizzabustepagadipendente (
         r_idsessione in varchar2 default null,
         r_data       in varchar2 default null,
@@ -43,8 +56,7 @@ create or replace package operazioniclienti as
     procedure inserimentobustapaga (
         r_idsessionecontabile in varchar2 default null,
         r_fkdipendente        in varchar2 default null,
-        r_importo             in varchar2 default null,
-        r_bonus               in varchar2 default null
+        r_importo             in varchar2 default null
     );
     procedure visualizzaricariche (
         r_cliente in varchar2 default null,
@@ -76,6 +88,17 @@ create or replace package operazioniclienti as
         elimina         varchar2 default null
     );
 
+	procedure inserimentoConvenzione;
+	PROCEDURE inseriscidatiConvenzione (
+    p_nome IN CONVENZIONI.nome%TYPE,
+    p_ente IN CONVENZIONI.ente%TYPE,
+    p_sconto IN CONVENZIONI.sconto%TYPE,
+    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
+    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
+    p_dataFine IN CONVENZIONI.dataFine%TYPE,
+    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+);
+
     procedure visualizzazioneconvenzioni (
         datainizio varchar2 default null,
         datafine   varchar2 default null,
@@ -89,5 +112,9 @@ create or replace package operazioniclienti as
 	function checkDipendente(r_IdDipendente in varchar2 default null) return boolean;
 
 	--function checkContabile(r_IdContabile in varchar2 default null) return boolean;
+
+    function existBustaPaga(r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null) return boolean;
 
 end operazioniclienti;
