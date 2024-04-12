@@ -27,7 +27,8 @@ create or replace package operazioniclienti as
         cl_telefono varchar2 default null
     );
 
-    procedure visualizzabustepaga (
+    procedure visualizzaBustePaga (
+        r_IdSessione varchar2,
         r_dipendente in varchar2 default null,
         r_contabile  in varchar2 default null,
         r_data       in varchar2 default null,
@@ -48,29 +49,25 @@ create or replace package operazioniclienti as
     );
 
     procedure visualizzabustepagadipendente (
-        r_idsessione in varchar2 default null,
-        r_data       in varchar2 default null,
-        r_importo    in varchar2 default null,
-        r_bonus      in varchar2 default null
+        r_IDsessione in varchar2,
+        r_Data       in varchar2 default null,
+        r_Importo    in varchar2 default null,
+        r_Bonus      in varchar2 default null
     );
     procedure inserimentobustapaga (
-        r_idsessionecontabile in varchar2 default null,
-        r_fkdipendente        in varchar2 default null,
-        r_importo             in varchar2 default null
+        r_IdSessioneContabile in varchar2,
+        r_FkDipendente        in varchar2 default null,
+        r_Importo             in varchar2 default null
     );
-    procedure visualizzaricariche (
-        r_cliente in varchar2 default null,
-        r_data    in varchar2 default null,
-        r_importo in varchar2 default null
-    );
+    
     procedure visualizzaricarichecliente (
-        r_idsessionecliente in varchar2 default null,
-        r_data              in varchar2 default null,
-        r_importo           in varchar2 default null
+        r_IdSessioneCliente in varchar2,
+        r_Data              in varchar2 default null,
+        r_Importo           in varchar2 default null
     );
     procedure inserimentoricarica (
-        r_idsessionecliente in varchar2 default null,
-        r_importo           in varchar2 default null
+        r_IdSessioneCliente in varchar2,
+        r_Importo           in varchar2 default null
     );
 
     procedure visualizzaclienti (
