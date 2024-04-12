@@ -282,27 +282,40 @@ END modificaCliente;
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
     procedure visualizzaBustePaga(
-        r_dipendente in varchar2 default null,
-		r_contabile  in varchar2 default null,
-		r_data       in varchar2 default null,
-		r_importo    in varchar2 default null,
-		r_bonus      in varchar2 default null
+        r_Dipendente in varchar2 default null,
+        r_Contabile  in varchar2 default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in varchar2 default null,
+        r_Bonus      in varchar2 default null,
+        r_PopUp      in varchar2  default null
     ) is
 
     head gui.StringArray; 
 
-    BEGIN   
+    BEGIN
+
+    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
+    htp.prn('<script>   const newUrl = "http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.visualizzaBustePaga"; 
+                        history.replaceState(null, null, newUrl); 
+    </script>'); 
+
 
     head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina(titolo => 'VisualizzazioneBustePaga'); 
+    
+    IF (r_popUp = 'True') THEN
+
+        gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
+    
+    END IF;
 
     gui.APRIFORMFILTRO(); 
         gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-		gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-		gui.aggiungicampoformfiltro('submit', '','','Filtra');
+        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+        gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
+        gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
+        gui.aggiungicampoformfiltro('submit', '','','Filtra');
     gui.CHIUDIFORMFILTRO; 
 
     gui.aCapo;
@@ -312,11 +325,11 @@ END modificaCliente;
     for busta_paga IN (
         select *
         from bustepaga b
-        where ( b.fk_dipendente = r_dipendente or r_dipendente is null )
-            and ( b.fk_contabile = r_contabile or r_contabile is null )
-            and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-            and ( b.importo = to_number(r_importo) or r_importo is null )
-            and ( b.bonus = to_number(r_bonus) or r_bonus is null )
+        where ( b.fk_dipendente = r_Dipendente or r_Dipendente is null )
+            and ( b.fk_contabile = r_Contabile or r_Contabile is null )
+            and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD') ) or r_Data is null )
+            and ( b.importo = to_number(r_Importo) or r_Importo is null )
+            and ( b.bonus = to_number(r_Bonus) or r_Bonus is null )
         order by data desc
     ) 
     LOOP
@@ -327,13 +340,94 @@ END modificaCliente;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
-            gui.AGGIUNGIPULSANTECANCELLAZIONE; 
-            gui.AGGIUNGIPULSANTEMODIFICA;
+            gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => 'http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.modificaBustaPaga?r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
 
         gui.CHIUDIRIGATABELLA;
     end LOOP; 
         gui.ChiudiTabella; 
     END visualizzaBustePaga; 
+
+    function existBustaPaga(r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null) return boolean IS
+
+        count_b NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND b.FK_CONTABILE = r_FkContabile AND TRUNC(b.Data) = r_Data;
+        IF(count_b=1) THEN
+            return true;
+        ELSE
+            return false;
+        END IF;
+    END existBustaPaga;
+
+    procedure modificaBustaPaga (
+        r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_bonus in varchar default null,
+        r_popUp in BOOLEAN default false,
+        new_Importo in varchar2 default null,
+        new_Bonus in varchar2 default null
+    )
+    IS
+    head gui.StringArray;
+    
+    BEGIN
+        gui.apriPagina(titolo => 'modificaBustaPaga');
+        gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga di '||r_FkDipendente);
+        IF(existBustaPaga (r_FkDipendente, r_FkContabile, r_Data)) THEN
+            gui.AGGIUNGIFORM();
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkDipendente', value => r_FkDipendente);
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkContabile', value => r_FkContabile);
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
+
+                gui.AGGIUNGIRIGAFORM;
+                    gui.AGGIUNGIGRUPPOINPUT;    
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Importo);    
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');  
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
+                    gui.CHIUDIGRUPPOINPUT; 
+
+
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Bonus', dimensione => 'h2');
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Bonus: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Bonus);    
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Bonus: ', dimensione => 'h3');  
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-percent', nome => 'new_Bonus', placeholder => 'Inserire nuovo bonus...'); 
+
+                    gui.CHIUDIGRUPPOINPUT; 
+                gui.CHIUDIRIGAFORM;
+
+                gui.AGGIUNGIRIGAFORM;
+                    gui.AGGIUNGIGRUPPOINPUT; 
+                        gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
+                    gui.CHIUDIGRUPPOINPUT; 
+                gui.CHIUDIRIGAFORM;                        
+            gui.chiudiform; 
+
+        END IF;
+
+        IF (new_Importo > 0) THEN
+
+            UPDATE BUSTEPAGA 
+            SET BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
+                BUSTEPAGA.Bonus = TO_NUMBER(new_Bonus)
+            WHERE BUSTEPAGA.Fk_Dipendente = TO_NUMBER(r_FkDipendente) AND BUSTEPAGA.Fk_Contabile = TO_NUMBER(r_FkContabile) AND TRUNC(BUSTEPAGA.Data) = TRUNC(TO_DATE(r_Data));
+
+            gui.REINDIRIZZA('http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.visualizzaBustePaga?r_popUp=True');
+
+        END IF;
+
+    END modificaBustaPaga;
 
     procedure visualizzaBustePagaDipendente (
         r_idsessione in varchar2 default null,
@@ -449,7 +543,6 @@ END modificaCliente;
                 gui.AggiungiPopup(False, 'Errori inserimento dati');
             END IF;
         END IF;
-        
 
     END inserimentoBustaPaga;
 
@@ -584,6 +677,7 @@ END modificaCliente;
         /*ELSE*/
         END IF; 
     end inserimentoRicarica;
+
 
 
   procedure visualizzaClienti(

@@ -32,8 +32,21 @@ create or replace package operazioniclienti as
         r_contabile  in varchar2 default null,
         r_data       in varchar2 default null,
         r_importo    in varchar2 default null,
-        r_bonus      in varchar2 default null
+        r_bonus      in varchar2 default null,
+        r_PopUp in varchar2 default null
     );
+
+    procedure modificaBustaPaga (
+        r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_bonus in varchar default null,
+        r_popUp in BOOLEAN default false,
+        new_Importo in varchar2 default null,
+        new_Bonus in varchar2 default null
+    );
+
     procedure visualizzabustepagadipendente (
         r_idsessione in varchar2 default null,
         r_data       in varchar2 default null,
@@ -99,5 +112,9 @@ create or replace package operazioniclienti as
 	function checkDipendente(r_IdDipendente in varchar2 default null) return boolean;
 
 	function checkContabile(r_IdContabile in varchar2 default null) return boolean;
+
+    function existBustaPaga(r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null) return boolean;
 
 end operazioniclienti;
