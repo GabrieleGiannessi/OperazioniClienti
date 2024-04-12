@@ -5,8 +5,8 @@ create or replace PACKAGE BODY operazioniClienti as
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
     BEGIN   
-    gui.APRIPAGINA(titolo => 'Registrazione');
-    gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
+    gui.APRIPAGINA(titolo => 'Registrazione', idSessione => 0);
+    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
@@ -15,7 +15,7 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');        
                 gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');   
                 gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
+                gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
         gui.CHIUDIRIGAFORM; 
 
@@ -53,7 +53,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (nome => '',value => 'Registra');
+                gui.AGGIUNGIBOTTONESUBMIT (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
@@ -61,63 +61,53 @@ create or replace PACKAGE BODY operazioniClienti as
     END registrazioneCliente; 
 
 --inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
-    PROCEDURE inserisciDati (
-    Nome VARCHAR2 DEFAULT NULL,
+    procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
     Cognome VARCHAR2 DEFAULT NULL,
     Email VARCHAR2 DEFAULT NULL,
     Password VARCHAR2 DEFAULT NULL,
     Telefono VARCHAR2 DEFAULT NULL,
-    Day VARCHAR2 DEFAULT NULL,
+    Day VARCHAR2 DEFAULT NULL,   
     Month VARCHAR2 DEFAULT NULL,
     Year VARCHAR2 DEFAULT NULL,
-    Gender VARCHAR2 DEFAULT NULL
-) IS
-    DataNascita DATE;
-    Sesso CHAR(1);
-BEGIN
-    -- Apre una pagina di registrazione
-    gui.ApriPagina('Registrazione');
+    Gender VARCHAR2 DEFAULT NULL) IS
 
-    -- Converte la data di nascita in formato DATE
-    DataNascita := TO_DATE(Day || '/' || Month || '/' || Year, 'DD/MM/YYYY');
+    DataNascita DATE; 
+    Sesso CHAR(1); 
+    /*CURSOR controllo IS 
+        SELECT * FROM CLIENTI c WHERE c.Nome = Nome AND c.Cognome = Cognome;  
+    
+    RigaControllo Controllo%ROWTYPE; 
+    ClienteEsistente EXCEPTION; 
+*/
+    begin
+        gui.ApriPagina ('Registrazione');
+        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
+        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+       -- OPEN controllo; 
+       -- FETCH controllo INTO RigaControllo;  
 
-    -- Esegue un substring per ottenere il sesso
-    Sesso := SUBSTR(Gender, 1, 1);
+       /* IF controllo%NOTFOUND 
+            THEN RAISE ClienteEsistente;
 
-    -- Inserisce i dati nella tabella dei clienti
-    INSERT INTO CLIENTI (
-        IDCliente,
-        Nome,
-        Cognome,
-        DataNascita,
-        Sesso,
-        NTelefono,
-        Email,
-        Password,
-        Stato,
-        Saldo
-    ) VALUES (
-        sequenceIDClienti.nextval,
-        Nome,
-        Cognome,
-        DataNascita,
-        Sesso,
-        TO_NUMBER(Telefono),
-        Email,
-        Password,
-        1,
-        0
-    );
+        ELSE 
+        
+        INSERT INTO CLIENTI ( Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES ( Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
+        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+        */
 
-    -- Aggiunge un popup di conferma di registrazione avvenuta con successo
-    gui.AggiungiPopup(TRUE, 'Registrazione avvenuta con successo!');
+        INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
 
-EXCEPTION
-    -- Gestione delle eccezioni
-    WHEN OTHERS THEN
-        -- Visualizza un popup di errore in caso di registrazione fallita
-        gui.AggiungiPopup(FALSE, 'Registrazione fallita, cliente già presente sul sito!');
-END inserisciDati;
+        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+
+        --END IF; 
+
+    EXCEPTION
+    WHEN OTHERS /*ClienteEsistente*/ THEN
+        --visualizza popup di errore
+        gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
+    end inserisciDati;
 
 --form per la insert della convenzione
 PROCEDURE inserimentoConvenzione AS
