@@ -88,6 +88,6 @@ create or replace package operazioniclienti as
 
 	function checkDipendente(r_IdDipendente in varchar2 default null) return boolean;
 
-	function checkContabile(r_IdContabile in varchar2 default null) return boolean;
+	--function checkContabile(r_IdContabile in varchar2 default null) return boolean;
 
 end operazioniclienti;

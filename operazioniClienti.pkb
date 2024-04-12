@@ -53,7 +53,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (value => 'Registra'); 
+                    gui.aggiungiBottoneSubmit (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
@@ -197,10 +197,10 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.CHIUDIRIGAFORM; 
 
     gui.AGGIUNGIRIGAFORM;
-    gui.AGGIUNGIGRUPPOINPUT; 
-    gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
-    
-    
+    gui.AGGIUNGIGRUPPOINPUT;
+    --apro div per i bottoni 
+            --gui.aggiungiBottoneSinistra (testo => 'Torna indietro'); 
+            gui.aggiungiBottoneSubmit (ident => 'bottoneModifica', value => 'Modifica'); 
     gui.CHIUDIGRUPPOINPUT; 
     gui.CHIUDIRIGAFORM; 
 
@@ -327,6 +327,7 @@ END modificaCliente;
         END IF;
     END checkDipendente;
 
+/*
     function checkContabile(r_IdContabile in varchar2 default null) return boolean IS 
         count_c NUMBER;
     BEGIN
@@ -337,11 +338,12 @@ END modificaCliente;
             return false;
         END IF;
     END checkContabile;
-
+*/
     procedure inserimentoBustaPaga(
         r_IdSessioneContabile in varchar2 default null, 
         r_FkDipendente in varchar2 default null,
-        r_Importo in varchar2 default null) IS
+        r_Importo in varchar2 default null,
+        r_bonus in varchar2 default null) IS
 
     bonus_percent NUMBER := 0;
     
@@ -363,7 +365,7 @@ END modificaCliente;
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (nome => '', value => 'Inserisci'); 
+                        gui.aggiungiBottoneSubmit (nome => '', value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
@@ -497,7 +499,7 @@ END modificaCliente;
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
+                        gui.aggiungiBottoneSubmit (value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
@@ -548,7 +550,6 @@ END modificaCliente;
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        /*gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');*/
         gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', nomiParametri => gui.StringArray ('c_Maschio', 'c_Femmina'), opzioni => gui.StringArray ('Maschio', 'Femmina')); 
 		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
     gui.CHIUDIFORMFILTRO; 
@@ -565,6 +566,7 @@ END modificaCliente;
     ) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
+    
             gui.aggiungiformhiddenrigatabella; 
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
             gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
@@ -588,6 +590,7 @@ END modificaCliente;
             gui.CHIUDIFORMHIDDENRIGATABELLA;
      
             gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            
     gui.ChiudiRigaTabella;
     end LOOP;
     gui.CHIUDITABELLA; 
