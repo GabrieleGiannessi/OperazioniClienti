@@ -27,37 +27,47 @@ create or replace package operazioniclienti as
         cl_telefono varchar2 default null
     );
 
-    procedure visualizzabustepaga (
+    procedure visualizzaBustePaga (
+        r_IdSessione varchar2,
         r_dipendente in varchar2 default null,
         r_contabile  in varchar2 default null,
         r_data       in varchar2 default null,
         r_importo    in varchar2 default null,
-        r_bonus      in varchar2 default null
+        r_bonus      in varchar2 default null,
+        r_PopUp in varchar2 default null
     );
+
+    procedure modificaBustaPaga (
+        r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_bonus in varchar default null,
+        r_popUp in BOOLEAN default false,
+        new_Importo in varchar2 default null,
+        new_Bonus in varchar2 default null
+    );
+
     procedure visualizzabustepagadipendente (
-        r_idsessione in varchar2 default null,
-        r_data       in varchar2 default null,
-        r_importo    in varchar2 default null,
-        r_bonus      in varchar2 default null
+        r_IDsessione in varchar2,
+        r_Data       in varchar2 default null,
+        r_Importo    in varchar2 default null,
+        r_Bonus      in varchar2 default null
     );
     procedure inserimentobustapaga (
-        r_idsessionecontabile in varchar2 default null,
-        r_fkdipendente        in varchar2 default null,
-        r_importo             in varchar2 default null
+        r_IdSessioneContabile in varchar2,
+        r_FkDipendente        in varchar2 default null,
+        r_Importo             in varchar2 default null
     );
-    procedure visualizzaricariche (
-        r_cliente in varchar2 default null,
-        r_data    in varchar2 default null,
-        r_importo in varchar2 default null
-    );
+    
     procedure visualizzaricarichecliente (
-        r_idsessionecliente in varchar2 default null,
-        r_data              in varchar2 default null,
-        r_importo           in varchar2 default null
+        r_IdSessioneCliente in varchar2,
+        r_Data              in varchar2 default null,
+        r_Importo           in varchar2 default null
     );
     procedure inserimentoricarica (
-        r_idsessionecliente in varchar2 default null,
-        r_importo           in varchar2 default null
+        r_IdSessioneCliente in varchar2,
+        r_Importo           in varchar2 default null
     );
 
     procedure visualizzaclienti (
@@ -77,13 +87,13 @@ create or replace package operazioniclienti as
 
 	procedure inserimentoConvenzione;
 	PROCEDURE inseriscidatiConvenzione (
-    p_nome IN CONVENZIONI.nome%TYPE,
-    p_ente IN CONVENZIONI.ente%TYPE,
-    p_sconto IN CONVENZIONI.sconto%TYPE,
-    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
-    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
-    p_dataFine IN CONVENZIONI.dataFine%TYPE,
-    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+    p_nome varchar2 default null,
+    p_ente varchar2 default null,
+    p_sconto NUMBER default null,
+    p_codiceAccesso NUMBER default null,
+    p_dataInizio DATE default null,
+    p_dataFine  DATE default null,
+    p_cumulabile  number default null
 );
 
     procedure visualizzazioneconvenzioni (
@@ -99,5 +109,9 @@ create or replace package operazioniclienti as
 	function checkDipendente(r_IdDipendente in varchar2 default null) return boolean;
 
 	function checkContabile(r_IdContabile in varchar2 default null) return boolean;
+
+    function existBustaPaga(r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null) return boolean;
 
 end operazioniclienti;

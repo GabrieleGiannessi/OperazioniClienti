@@ -120,17 +120,17 @@ BEGIN
     gui.AggiungiRigaForm;
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
     gui.AggiungiGruppoInput;
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'Nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'Ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'Sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'CodiceAccesso', placeholder => 'Codice Accesso');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'p_nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'p_ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'p_sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'p_odiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
     gui.ChiudiRigaForm;
 
     gui.AggiungiRigaForm;
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataInizio', placeholder => 'Data Inizio');
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataFine', placeholder => 'Data Fine');
-    gui.ApriSelectFormFiltro(nome => 'Cumulabile', placeholder => 'Cumulabile');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'p_dataInizio', placeholder => 'Data Inizio');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'p_dataFine', placeholder => 'Data Fine');
+    gui.ApriSelectFormFiltro(nome => 'p_cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
@@ -150,21 +150,21 @@ BEGIN
     gui.ChiudiPagina;
 END inserimentoConvenzione;
 
---procedura per la insert convenzione nel form
+--procedura per la insert convenzione nel form (DA FIXARE ASAP mannaggia il clero)
 procedure inseriscidatiConvenzione (
-    p_nome IN CONVENZIONI.nome%TYPE,
-    p_ente IN CONVENZIONI.ente%TYPE,
-    p_sconto IN CONVENZIONI.sconto%TYPE,
-    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
-    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
-    p_dataFine IN CONVENZIONI.dataFine%TYPE,
-    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+    p_nome varchar2 default null,
+    p_ente varchar2 default null,
+    p_sconto NUMBER default null,
+    p_codiceAccesso NUMBER default null,
+    p_dataInizio DATE default null,
+    p_dataFine  DATE default null,
+    p_cumulabile  number default null
 ) AS
 BEGIN
 
     -- Apre una pagina di registrazione
     gui.ApriPagina('Inserimento Convenzione');
-
+--VA IN PALLA QUI SECONDO IL DEBUGGER!
     -- Inserimento dei dati nella tabella CONVENZIONI
     INSERT INTO CONVENZIONI (IDconvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
     VALUES (seq_IDconvenzione.nextval, p_nome, p_ente, p_sconto, p_codiceAccesso, p_dataInizio, p_dataFine, p_cumulabile);
@@ -281,65 +281,167 @@ END modificaCliente;
  
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
+/* [IMPORTANTE] appena viene aggiornato il meccanismo delle sessioni:
+    aggiungere il controllo che la modifica di una busta paga può essere
+    fatta soltanto dal contabile che la inserita.
+*/
     procedure visualizzaBustePaga(
-        r_dipendente in varchar2 default null,
-		r_contabile  in varchar2 default null,
-		r_data       in varchar2 default null,
-		r_importo    in varchar2 default null,
-		r_bonus      in varchar2 default null
+        r_IdSessione in varchar2,
+        r_Dipendente in varchar2 default null,
+        r_Contabile  in varchar2 default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in varchar2 default null,
+        r_Bonus      in varchar2 default null,
+        r_PopUp      in varchar2  default null
     ) is
 
     head gui.StringArray; 
 
-    BEGIN   
+    BEGIN
+
+    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
+    htp.prn('<script>   const newUrl = "http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.visualizzaBustePaga"; 
+                        history.replaceState(null, null, newUrl); 
+    </script>'); 
+
 
     head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
     gui.apriPagina(titolo => 'VisualizzazioneBustePaga'); 
+    
+    /* DA SISTEMARE IL CONTROLLO SOLO PER CONTABILI !!!!!!!!!!!!!! */
+    IF(sessionhandler.getRuolo(r_IdSessione) = 'Responsabile') THEN
+        IF (r_popUp = 'True') THEN
+            gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
+        END IF;
 
-    gui.APRIFORMFILTRO(); 
-        gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-		gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-		gui.aggiungicampoformfiltro('submit', '','','Filtra');
-    gui.CHIUDIFORMFILTRO; 
+        gui.APRIFORMFILTRO(); 
+            gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
+            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+            gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+            gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
+            gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
+            gui.aggiungicampoformfiltro('submit', '','','Filtra');
+        gui.CHIUDIFORMFILTRO; 
 
-    gui.aCapo;
+        gui.aCapo;
 
-    gui.APRITABELLA (elementi => head); 
+        gui.APRITABELLA (elementi => head); 
 
-    for busta_paga IN (
-        select *
-        from bustepaga b
-        where ( b.fk_dipendente = r_dipendente or r_dipendente is null )
-            and ( b.fk_contabile = r_contabile or r_contabile is null )
-            and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-            and ( b.importo = to_number(r_importo) or r_importo is null )
-            and ( b.bonus = to_number(r_bonus) or r_bonus is null )
-        order by data desc
-    ) 
-    LOOP
-        gui.AGGIUNGIRIGATABELLA; 
+        for busta_paga IN (
+            select *
+            from bustepaga b
+            where ( b.fk_dipendente = r_Dipendente or r_Dipendente is null )
+                and ( b.fk_contabile = r_Contabile or r_Contabile is null )
+                and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD') ) or r_Data is null )
+                and ( b.importo = to_number(r_Importo) or r_Importo is null )
+                and ( b.bonus = to_number(r_Bonus) or r_Bonus is null )
+            order by data desc
+        ) 
+        LOOP
+            gui.AGGIUNGIRIGATABELLA; 
 
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE); 
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
-            gui.AGGIUNGIPULSANTECANCELLAZIONE; 
-            gui.AGGIUNGIPULSANTEMODIFICA;
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE); 
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => 'http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.modificaBustaPaga?r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
 
-        gui.CHIUDIRIGATABELLA;
-    end LOOP; 
-        gui.ChiudiTabella; 
+            gui.CHIUDIRIGATABELLA;
+        end LOOP; 
+            gui.ChiudiTabella; 
+    else
+        gui.AGGIUNGIPOPUP(FALSE, 'Non hai permessi necessari per accedere a questa pagina!');
+    end if;
     END visualizzaBustePaga; 
 
+    function existBustaPaga(r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null) return boolean IS
+
+        count_b NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND b.FK_CONTABILE = r_FkContabile AND TRUNC(b.Data) = r_Data;
+        IF(count_b=1) THEN
+            return true;
+        ELSE
+            return false;
+        END IF;
+    END existBustaPaga;
+
+    procedure modificaBustaPaga (
+        r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_bonus in varchar default null,
+        r_popUp in BOOLEAN default false,
+        new_Importo in varchar2 default null,
+        new_Bonus in varchar2 default null
+    )
+    IS
+    head gui.StringArray;
+    
+    BEGIN
+        gui.apriPagina(titolo => 'modificaBustaPaga');
+        gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga di '||r_FkDipendente);
+        IF(existBustaPaga (r_FkDipendente, r_FkContabile, r_Data)) THEN
+            gui.AGGIUNGIFORM();
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkDipendente', value => r_FkDipendente);
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkContabile', value => r_FkContabile);
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
+
+                gui.AGGIUNGIRIGAFORM;
+                    gui.AGGIUNGIGRUPPOINPUT;    
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Importo);    
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');  
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
+                    gui.CHIUDIGRUPPOINPUT; 
+
+
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Bonus', dimensione => 'h2');
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Bonus: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Bonus);    
+                        gui.ACAPO; 
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Bonus: ', dimensione => 'h3');  
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-percent', nome => 'new_Bonus', placeholder => 'Inserire nuovo bonus...'); 
+
+                    gui.CHIUDIGRUPPOINPUT; 
+                gui.CHIUDIRIGAFORM;
+
+                gui.AGGIUNGIRIGAFORM;
+                    gui.AGGIUNGIGRUPPOINPUT; 
+                        gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
+                    gui.CHIUDIGRUPPOINPUT; 
+                gui.CHIUDIRIGAFORM;                        
+            gui.chiudiform; 
+
+        END IF;
+
+        IF (new_Importo > 0) THEN
+
+            UPDATE BUSTEPAGA 
+            SET BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
+                BUSTEPAGA.Bonus = TO_NUMBER(new_Bonus)
+            WHERE BUSTEPAGA.Fk_Dipendente = TO_NUMBER(r_FkDipendente) AND BUSTEPAGA.Fk_Contabile = TO_NUMBER(r_FkContabile) AND TRUNC(BUSTEPAGA.Data) = TRUNC(TO_DATE(r_Data));
+
+            gui.REINDIRIZZA('http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.visualizzaBustePaga?r_popUp=True');
+
+        END IF;
+
+    END modificaBustaPaga;
+
     procedure visualizzaBustePagaDipendente (
-        r_idsessione in varchar2 default null,
-		r_data       in varchar2 default null,
-		r_importo    in varchar2 default null,
-		r_bonus      in varchar2 default null
+        r_IdSessione in varchar2,
+		r_Data       in varchar2 default null,
+		r_Importo    in varchar2 default null,
+		r_Bonus      in varchar2 default null
     ) is
 
     head gui.StringArray; 
@@ -348,39 +450,44 @@ END modificaCliente;
 
     gui.apriPagina ('visualizza buste paga dipendenti');
 
-    gui.APRIFORMFILTRO(); 
-        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_idsessione', value => r_idsessione);
-        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra','');
-    gui.CHIUDIFORMFILTRO; 
-    
-    gui.aCapo;
+    /* Controllo i permessi di accesso */
+    IF(sessionhandler.getRuolo(r_IdSessione) != 'Cliente') THEN
 
-    head := gui.StringArray('Data', 'Importo', 'Bonus'); 
-    gui.APRITABELLA (elementi => head); 
-
-    for busta_paga IN (
-        select data, importo, bonus
-		from bustepaga b
-		where ( b.fk_dipendente = sessionhandler.getiduser(r_idsessione) )
-			and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD')) or r_data is null )
-			and ( b.importo = to_number(r_importo) or r_importo is null )
-			and ( b.bonus = to_number(r_bonus) or r_bonus is null )
-		order by data desc) 
-    LOOP
-        gui.AGGIUNGIRIGATABELLA; 
+        gui.APRIFORMFILTRO(); 
+            gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_idsessione', value => r_idsessione);
+            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+            gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+            gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
+            gui.aggiungicampoformfiltro('submit', '', 'Filtra','');
+        gui.CHIUDIFORMFILTRO; 
         
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data); 
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);  
+        gui.aCapo;
 
-        gui.ChiudiRigaTabella;
-        end LOOP; 
+        head := gui.StringArray('Data', 'Importo', 'Bonus'); 
+        gui.APRITABELLA (elementi => head); 
 
-        gui.ChiudiTabella; 
+        for busta_paga IN (
+            select data, importo, bonus
+            from bustepaga b
+            where ( b.fk_dipendente = sessionhandler.getiduser(r_IdSessione) )
+                and ( ( trunc(b.data) = to_date(r_Data,'YYYY-MM-DD')) or r_Data is null )
+                and ( b.importo = to_number(r_Importo) or r_Importo is null )
+                and ( b.bonus = to_number(r_Bonus) or r_Bonus is null )
+            order by data desc) 
+        LOOP
+            gui.AGGIUNGIRIGATABELLA; 
+            
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data); 
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);  
 
+            gui.ChiudiRigaTabella;
+            end LOOP; 
+
+            gui.ChiudiTabella; 
+    ELSE
+        gui.AGGIUNGIPOPUP(False, 'Non hai i permessi necessari per accedere alla pagina');
+    END IF;
     END visualizzaBustePagaDipendente;
 
 
@@ -407,7 +514,7 @@ END modificaCliente;
     END checkContabile;
 
     procedure inserimentoBustaPaga(
-        r_IdSessioneContabile in varchar2 default null, 
+        r_IdSessioneContabile in varchar2, 
         r_FkDipendente in varchar2 default null,
         r_Importo in varchar2 default null) IS
 
@@ -417,6 +524,9 @@ END modificaCliente;
 
     BEGIN
         
+    /* Controllo i permessi di accesso [IMPORTANTE] aggiornare poi con 'Contabile' */
+    IF(sessionhandler.getRuolo(r_IdSessioneContabile) = 'Responsabile') THEN
+
         gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessioneContabile);
         gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoBustaPaga');  
 
@@ -449,60 +559,14 @@ END modificaCliente;
                 gui.AggiungiPopup(False, 'Errori inserimento dati');
             END IF;
         END IF;
-        
+    ELSE
+        gui.AGGIUNGIPOPUP(False, 'Non hai i permessi necessari per accedere alla pagina!');
+    END IF;
 
     END inserimentoBustaPaga;
-
-
-    procedure visualizzaRicariche (
-        r_cliente in varchar2 default null,
-		r_data    in varchar2 default null,
-		r_importo in varchar2 default null
-    ) 
-    is
-
-    head gui.StringArray; 
-
-    BEGIN
-
-    head := gui.StringArray ('IDRicarica', 'Cliente', 'Importo', 'Data');
-    gui.APRIPAGINA ('visualizza ricariche');
-
-    gui.APRIFORMFILTRO(/*root || '.visualizzaRicarica'*/); 
-        gui.aggiungicampoformfiltro(nome => 'r_Cliente', placeholder => 'Cliente');
-		gui.aggiungicampoformfiltro( nome => 'r_Importo', placeholder => 'Importo');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-		gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
-    gui.CHIUDIFORMFILTRO; 
-    gui.aCapo; 
-
-    gui.APRITABELLA (elementi => head); 
-   for ricarica IN(
-    select *
-    from ricariche
-	where ( ricariche.fk_cliente = r_cliente or r_cliente is null )
-		and ( ( trunc( ricariche.data) = to_date(r_data,'YYYY-MM-DD') ) or r_data is null )
-		and ( ricariche.importo = to_number(r_importo) or r_importo is null)
-    ) 
-   LOOP
-
-        gui.AGGIUNGIRIGATABELLA; 
-        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.IDRicarica );
-        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.FK_CLIENTE );
-        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.importo );
-        gui.AGGIUNGIELEMENTOTABELLA( elemento => ricarica.data );
-        gui.AggiungiPulsanteCancellazione; 
-        gui.aggiungiPulsanteModifica(collegamento1 => '#'); 
-
-        gui.ChiudiRigaTabella;
-
-    end LOOP; 
-    gui.CHIUDITABELLA;   
-
-    END visualizzaRicariche;
  
     procedure visualizzaRicaricheCliente (
-        r_IdSessioneCliente in varchar2 default null,
+        r_IdSessioneCliente in varchar2,
 		r_Data       in varchar2 default null,
 		r_Importo    in varchar2 default null
     ) is
@@ -512,78 +576,90 @@ END modificaCliente;
     BEGIN
     gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente'); 
 
-    gui.APRIFORMFILTRO(); 
-        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessioneCliente', value => r_IdSessioneCliente);
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-            gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
-        gui.ACAPO; 
-    gui.CHIUDIFORMFILTRO; 
- 
-   head := gui.StringArray('Identificativo','Importo', 'Data');
-   gui.APRITABELLA (elementi => head); 
+    /* Controllo i permessi di accesso */
+    IF(sessionhandler.getruolo(r_IdSessioneCliente) = 'Cliente' ) THEN
 
-   for ricarica IN (
-        select idricarica, importo,data
-        from ricariche r
-        where ( r.fk_cliente = sessionhandler.getiduser(r_IdSessioneCliente) )
-            and ( ( trunc(r.data) = to_date(r_Data,'YYYY-MM-DD') ) or r_Data is null )
-            and ( r.importo = to_number(r_Importo) or r_Importo is null )
-        order by data desc
-    ) 
-   LOOP
-    gui.AGGIUNGIRIGATABELLA; 
-    
-        gui.aggiungielementotabella(elemento => ricarica.idricarica);
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Importo);
-        gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
+            gui.APRIFORMFILTRO(); 
+                gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessioneCliente', value => r_IdSessioneCliente);
+                gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+                    gui.aggiungicampoformfiltro('submit', '', 'Filtra', '');
+                gui.ACAPO; 
+            gui.CHIUDIFORMFILTRO; 
+        
+        head := gui.StringArray('Identificativo','Importo', 'Data');
+        gui.APRITABELLA (elementi => head); 
 
-    gui.ChiudiRigaTabella;
-    end LOOP; 
+        for ricarica IN (
+                select idricarica, importo,data
+                from ricariche r
+                where ( r.fk_cliente = sessionhandler.getiduser(r_IdSessioneCliente) )
+                    and ( ( trunc(r.data) = to_date(r_Data,'YYYY-MM-DD') ) or r_Data is null )
+                    and ( r.importo = to_number(r_Importo) or r_Importo is null )
+                order by data desc
+            ) 
+        LOOP
+            gui.AGGIUNGIRIGATABELLA; 
+            
+                gui.aggiungielementotabella(elemento => ricarica.idricarica);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Importo);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
 
-    gui.ChiudiTabella; 
+            gui.ChiudiRigaTabella;
+            end LOOP; 
+
+            gui.ChiudiTabella; 
+    ELSE
+        gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina');
+    END IF;
     END visualizzaRicaricheCliente; 
 
     procedure inserimentoRicarica (
-        r_IdSessioneCliente in varchar2 default null,
+        r_IdSessioneCliente in varchar2,
         r_Importo in varchar2 default null
     )IS
 
     head gui.StringArray; 
 
     BEGIN
-        gui.APRIPAGINA(titolo => 'inserimentoRicarica');
-        gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoRicarica');  
+        /* Controllo i permessi di accesso */
+        IF(sessionhandler.getruolo(r_IdSessioneCliente) = 'Cliente' ) THEN
+            gui.APRIPAGINA(titolo => 'inserimentoRicarica');
+            gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoRicarica');  
 
-            gui.AGGIUNGIRIGAFORM;   
-                gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
-                gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessioneCliente', value => r_IdSessioneCliente);
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
-                gui.CHIUDIGRUPPOINPUT;
-            gui.CHIUDIRIGAFORM; 
+                gui.AGGIUNGIRIGAFORM;   
+                    gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
+                    gui.AGGIUNGIGRUPPOINPUT; 
+                        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessioneCliente', value => r_IdSessioneCliente);
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
+                    gui.CHIUDIGRUPPOINPUT;
+                gui.CHIUDIRIGAFORM; 
 
-            gui.AGGIUNGIRIGAFORM;
-                gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
-                gui.CHIUDIGRUPPOINPUT; 
-            gui.CHIUDIRIGAFORM; 
-        gui.CHIUDIFORM;
+                gui.AGGIUNGIRIGAFORM;
+                    gui.AGGIUNGIGRUPPOINPUT; 
+                        gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
+                    gui.CHIUDIGRUPPOINPUT; 
+                gui.CHIUDIRIGAFORM; 
+            gui.CHIUDIFORM;
 
-        IF r_importo>0 
-        THEN 
-            /* Inserimento nuova ricarica */
-            INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(r_IdSessioneCliente), SYSDATE, TO_NUMBER(r_Importo));
-            /* Aggiornamento del Saldo */
-            UPDATE CLIENTI SET Saldo = (SELECT c.Saldo FROM CLIENTI c WHERE c.IDCLIENTE = sessionhandler.getiduser(r_IdSessioneCliente)) + r_Importo 
-            WHERE IDcliente = sessionhandler.getiduser(r_IdSessioneCliente);
-            /* Pop Up all'utente */
-            gui.AggiungiPopup(True, 'Ricarica inserita con successo!');
-            /* Reindiriziamo alla pagina visualizzaRicaricheCliente */
-            gui.REINDIRIZZA('l_bindi.operazioniClienti.visualizzaRicaricheCliente?r_IdSessioneCliente='||r_IdSessioneCliente);
-        /*ELSE*/
-        END IF; 
+            IF r_importo>0 
+            THEN 
+                /* Inserimento nuova ricarica */
+                INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(r_IdSessioneCliente), SYSDATE, TO_NUMBER(r_Importo));
+                /* Aggiornamento del Saldo */
+                UPDATE CLIENTI SET Saldo = (SELECT c.Saldo FROM CLIENTI c WHERE c.IDCLIENTE = sessionhandler.getiduser(r_IdSessioneCliente)) + r_Importo 
+                WHERE IDcliente = sessionhandler.getiduser(r_IdSessioneCliente);
+                /* Pop Up all'utente */
+                gui.AggiungiPopup(True, 'Ricarica inserita con successo!');
+                /* Reindiriziamo alla pagina visualizzaRicaricheCliente */
+                gui.REINDIRIZZA('l_bindi.operazioniClienti.visualizzaRicaricheCliente?r_IdSessioneCliente='||r_IdSessioneCliente);
+            /*ELSE*/
+            END IF; 
+        ELSE
+            gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina');
+        END IF;
     end inserimentoRicarica;
+
 
 
   procedure visualizzaClienti(
