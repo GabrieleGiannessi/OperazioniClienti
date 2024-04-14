@@ -530,7 +530,7 @@ END modificaCliente;
     IF(sessionhandler.getRuolo(r_IdSessioneContabile) = 'Responsabile') THEN
 
         gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessioneContabile);
-        gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoBustaPaga');  
+        gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserimentoBustaPaga');  
 
             gui.AGGIUNGIRIGAFORM;  
                 gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
