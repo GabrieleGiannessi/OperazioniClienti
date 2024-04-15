@@ -139,7 +139,7 @@ BEGIN
     -- Bottone di submit per inviare il modulo
     gui.AggiungiRigaForm;
     gui.AggiungiGruppoInput;
-    gui.AggiungiBottoneSubmit(nome => '', value => 'Inserisci');
+    gui.AggiungiBottoneSubmit(value => 'Inserisci');
     gui.ChiudiGruppoInput;
     gui.ChiudiRigaForm;
 
@@ -543,7 +543,7 @@ END modificaCliente;
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                        gui.aggiungiBottoneSubmit (nome => '', value => 'Inserisci'); 
+                        gui.aggiungiBottoneSubmit (value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
@@ -694,10 +694,10 @@ END modificaCliente;
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', nomiParametri => gui.StringArray ('c_Maschio', 'c_Femmina'), opzioni => gui.StringArray ('Maschio', 'Femmina')); 
+        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', ids => gui.StringArray ('c_Maschio', 'c_Femmina'), names => gui.StringArray ('Maschio', 'Femmina')); 
 		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
     gui.CHIUDIFORMFILTRO; 
-    gui.aCapo; 
+    gui.aCapo(2); 
 
     gui.APRITABELLA (elementi => head);
    for clienti IN
