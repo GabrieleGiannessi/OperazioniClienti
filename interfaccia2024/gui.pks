@@ -1,27 +1,20 @@
-   SET DEFINE OFF;
-create or replace package gui as
-	type stringarray is
-		varray(15) of varchar2(30); -- Tipo array di stringhe 
 
-	emptyarray stringarray;
-	
-	procedure apripagina (
-		titolo     varchar2 default 'Senza titolo',
-		idsessione int default -1
+SET DEFINE OFF;
+create or replace PACKAGE gui as
+
+type StringArray is table of varchar2(30) not null;
+
+emptyArray StringArray;
+
+procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione varchar default '-1',  scriptJS VARCHAR2 default '');
+
+procedure Reindirizza(indirizzo varchar2);
+procedure aCapo(volte number default 1);
+procedure ApriBody(idSessione varchar2);
+
+	procedure chiudipagina (
+		scriptjs varchar2 default ''
 	);
-
-	procedure reindirizza (
-		indirizzo varchar2
-	);
-
-	procedure acapo;
-
-	procedure apribody (
-		idsessione int,
-		ruolo      varchar
-	);
-
-	procedure chiudipagina;
 
 	procedure bottonetopbar (
 		testo  varchar2 default '',
@@ -36,20 +29,19 @@ create or replace package gui as
 	);
 
 	procedure apridiv (
-		ident  varchar2 default '',
-		classe varchar2 default ''
+		ident   varchar2 default '',
+		classe  varchar2 default '',
+		onclick varchar2 default ''
 	);
 
 	procedure chiudidiv;
 
-	procedure topbar (
-		saldo varchar2 default null,
-		ruolo varchar2
-	);
+procedure TopBar(id_user int, username VARCHAR2, ruolo varchar2);
 
 	procedure aggiungipopup (
-		successo boolean,
-		testo    varchar2 default 'Errore!'
+		successo  boolean,
+		testo     varchar2 default 'Errore!',
+		indirizzo varchar2 default ''
 	);
 
 -- Procedure per Tabella
@@ -62,13 +54,16 @@ create or replace package gui as
 	procedure aggiungielementotabella (
 		elemento varchar2 default ''
 	);
-
 	procedure aggiungipulsantecancellazione (
 		proceduraeliminazione varchar2 default ''
 	);
 	procedure aggiungipulsantemodifica (
 		collegamento1 varchar2 default ''
 	);
+	procedure aggiungipulsantegenerale (
+		proceduraeliminazione varchar2 default '',
+		testo                 varchar2
+	);	
 	procedure chiuditabella;
 
 
@@ -78,7 +73,7 @@ create or replace package gui as
 	);
 	procedure aggiungicampoformfiltro (
 		tipo        varchar2 default 'text',
-		nome        varchar2 default NULL,
+		nome        varchar2 default null,
 		value       varchar2 default '',
 		placeholder varchar2 default '',
 		required    boolean default false,
@@ -118,62 +113,68 @@ create or replace package gui as
 		opzioni stringarray default null
 	);
 	procedure aggiungidropdownformfiltro (
-		testo         varchar2 default 'testo',
-		placeholder   varchar2 default 'testo',
-		nomiparametri stringarray default null,
-		opzioni       stringarray default null
+		testo           varchar2 default 'testo',
+		placeholder     varchar2 default 'testo',
+		ids             stringarray default emptyarray,
+		names           stringarray default emptyarray,
+		hiddenparameter varchar2 default ''
 	);
-
 --Footer
 	procedure footer;
 
 --Form
 
-	procedure aggiungiform (
-		classe varchar2 default '',
-		name   varchar2 default '',
-		url    varchar2 default ''
-	);
-
-	procedure aggiungiinput (
-		tipo        varchar2 default 'text',
-		nome        varchar2,
-		value       varchar2 default '',
-		placeholder varchar2 default '',
-		required    boolean default false,
-		readonly    boolean default false,
-		classe      varchar2 default '',
-		ident       varchar2 default '',
-		pattern     varchar2 default '',
-		minimo      varchar2 default '',
-		massimo     varchar2 default ''
-	);
-
-	procedure aggiungilabel (
-		target varchar2,
-		testo  varchar2
-	);
-
-	procedure aggiungiicona (
-		classe varchar2 default ''
-	);
-
-	procedure aggiungicampoform (
-		tipo        varchar2 default 'text',
-		classeicona varchar2 default '',
-		nome        varchar2,
-		required    BOOLEAN default true,
-		ident VARCHAR2 default '',  
-		placeholder varchar2 default ''
-	);
-
+    procedure aggiungiform (
+        classe varchar2 default '',
+        name   varchar2 default '',
+        url    varchar2 default ''
+    );
+    procedure aggiungiinput (
+        tipo        varchar2 default 'text',
+        nome        varchar2,
+        value       varchar2 default '',
+        placeholder varchar2 default '',
+        required    boolean default false,
+        classe      varchar2 default '',
+        ident       varchar2 default '',
+        pattern     varchar2 default '',
+        minimo      varchar2 default '',
+        massimo     varchar2 default '',
+        readonly    boolean default false,
+        selected    boolean default false
+    );
+    procedure aggiungilabel (
+        target varchar2,
+        testo  varchar2
+    );
+    procedure aggiungiicona (
+        classe varchar2 default ''
+    );
+    procedure aggiungicampoform (
+        tipo        varchar2 default 'text',
+        classeicona varchar2 default '',
+        nome        varchar2,
+		required BOOLEAN default true,
+		ident VARCHAR2 default '',
+        placeholder varchar2 default ''
+    );
+    procedure aggiungiselezionesingola (
+        elementi        stringarray,
+        valoreeffettivo stringarray default null,
+        titolo          varchar2 default '',
+        ident           varchar2
+    );
+    procedure aggiungiselezionemultipla (
+        elementi stringarray,
+        titolo   varchar2 default '',
+        ident    varchar2
+    );
 ------------------- Aggiunto per fare delle prove per le procedure nel gruppo operazioni
 	procedure aggiungiformhiddenrigatabella (
 		azione varchar2 default ''
 	);
 	procedure chiudiformhiddenrigatabella;
 -------------------
-
 	procedure aggiungicampoformhidden (
 		tipo  varchar2 default 'text',
 		nome  varchar2,
@@ -184,28 +185,35 @@ create or replace package gui as
 
 	procedure chiudirigaform;
 
-	procedure aggiungibottonesubmit(
-		ident varchar2 default null,
-		nome varchar2 default null, 
-		value varchar2 default ''
+    procedure aggiungibottonesubmit (
+        ident varchar2 default null,
+        value varchar2 default ''
+    );
+    procedure aggiungigruppoinput;
+    procedure chiudigruppoinput;
+    procedure chiudiform;
+-------------------
+
+	procedure cancella (
+		linktest varchar2
 	);
 
-	procedure aggiungigruppoinput;
 
-	procedure chiudigruppoinput;
-
-	procedure chiudiform;
 
 	procedure aggiungibottonetabella (
 		testo  varchar2 default '',
-		classe varchar2 default 'button-tab', 
-		url varchar2 
+		classe varchar2 default 'button-tab',
+		url    varchar2 default ''
 	);
-	
 	procedure bottoneaggiungi (
 		testo  varchar2 default '',
 		classe varchar2 default 'button-add',
-		url VARCHAR2 
+		url    varchar2
 	);
+
+---------------------- Homepage
+
+procedure HomePage(p_success varchar2 default ' ', cEmail VARCHAR2 default null, p_password varchar2 default null, tipo_utente varchar2 default null, idSessione varchar default '-1');
+procedure LogOut(idUser int, ruolo varchar2);
 
 end gui;

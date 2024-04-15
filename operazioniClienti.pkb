@@ -5,8 +5,8 @@ create or replace PACKAGE BODY operazioniClienti as
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
     BEGIN   
-    gui.APRIPAGINA(titolo => 'Registrazione', idSessione => 0);
-    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+    gui.APRIPAGINA(titolo => 'Registrazione');
+    gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
@@ -448,7 +448,7 @@ END modificaCliente;
 
     BEGIN
 
-    gui.apriPagina ('visualizza buste paga dipendenti');
+    gui.apriPagina (titolo => 'visualizza buste paga dipendenti');
 
     /* Controllo i permessi di accesso */
     IF(sessionhandler.getRuolo(r_IdSessione) != 'Cliente') THEN
@@ -688,7 +688,7 @@ END modificaCliente;
     END IF;
 
    head := gui.StringArray ('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email','',''); 
-   gui.apriPagina ('visualizza clienti');  
+   gui.apriPagina (titolo => 'visualizza clienti');  
 
    gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
@@ -733,7 +733,7 @@ END modificaCliente;
             gui.AggiungiPulsanteCancellazione;  
             gui.CHIUDIFORMHIDDENRIGATABELLA;
      
-            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            gui.aggiungiPulsanteModifica (collegamento1 => u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
             
     gui.ChiudiRigaTabella;
     end LOOP;
@@ -751,7 +751,7 @@ procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
 BEGIN
 
    head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
-   gui.apriPagina ('visualizza Convenzioni');
+   gui.apriPagina (titolo => 'visualizza Convenzioni');
    gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 

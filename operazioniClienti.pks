@@ -1,11 +1,8 @@
 create or replace package operazioniclienti as
 
-/*
-    user CONSTANT VARCHAR(20):='g_giannessi'; 
-    root CONSTANT VARCHAR(20):=user||'.operazioniClienti';
-  */  
-    --capire bene come mai l'integrazione delle costanti causa errori nel pkb
-
+    u_user CONSTANT VARCHAR(100):='http://131.114.73.203:8080/apex/g_giannessi'; 
+    u_root CONSTANT VARCHAR(100):=user||'.operazioniClienti';
+  
     procedure registrazionecliente;
 
     procedure inseriscidati (
