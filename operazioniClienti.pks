@@ -87,6 +87,7 @@ create or replace package operazioniclienti as
 
 	procedure inserimentoConvenzione;
 	PROCEDURE inseriscidatiConvenzione (
+    p_idSessioneManager varchar2,
     p_nome varchar2 default null,
     p_ente varchar2 default null,
     p_sconto NUMBER default null,

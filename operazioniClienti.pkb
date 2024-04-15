@@ -6,7 +6,7 @@ create or replace PACKAGE BODY operazioniClienti as
     procedure registrazioneCliente IS
     BEGIN   
     gui.APRIPAGINA(titolo => 'Registrazione', idSessione => 0);
-    gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserisciDati');  
+    gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
@@ -110,7 +110,7 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserisciDati;
 
 --form per la insert della convenzione
-PROCEDURE inserimentoConvenzione AS
+PROCEDURE inserimentoConvenzione IS
 BEGIN
     -- Apertura della pagina HTML per l'inserimento della convenzione
     gui.ApriPagina(titolo => 'Inserimento Convenzione');
@@ -152,6 +152,7 @@ END inserimentoConvenzione;
 
 --procedura per la insert convenzione nel form (DA FIXARE ASAP mannaggia il clero)
 procedure inseriscidatiConvenzione (
+    p_idSessioneManager varchar2,
     p_nome varchar2 default null,
     p_ente varchar2 default null,
     p_sconto NUMBER default null,
@@ -159,7 +160,7 @@ procedure inseriscidatiConvenzione (
     p_dataInizio DATE default null,
     p_dataFine  DATE default null,
     p_cumulabile  number default null
-) AS
+) IS
 BEGIN
 
     -- Apre una pagina di registrazione
