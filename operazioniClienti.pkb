@@ -139,7 +139,7 @@ BEGIN
     -- Bottone di submit per inviare il modulo
     gui.AggiungiRigaForm;
     gui.AggiungiGruppoInput;
-    gui.AggiungiBottoneSubmit(nome => '', value => 'Inserisci');
+    gui.AggiungiBottoneSubmit(value => 'Inserisci');
     gui.ChiudiGruppoInput;
     gui.ChiudiRigaForm;
 
@@ -541,7 +541,7 @@ END modificaCliente;
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (nome => '', value => 'Inserisci'); 
+                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
