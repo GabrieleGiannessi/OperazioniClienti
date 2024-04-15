@@ -5,8 +5,8 @@ create or replace PACKAGE BODY operazioniClienti as
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
     BEGIN   
-    gui.APRIPAGINA(titolo => 'Registrazione', idSessione => 0);
-    gui.AGGIUNGIFORM (url => 'a_cucchiara.operazioniClienti.inserisciDati');  
+    gui.APRIPAGINA(titolo => 'Registrazione');
+    gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');  
 
         gui.AGGIUNGIRIGAFORM;   
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
@@ -53,7 +53,7 @@ create or replace PACKAGE BODY operazioniClienti as
 
         gui.AGGIUNGIRIGAFORM;
             gui.AGGIUNGIGRUPPOINPUT; 
-                gui.AGGIUNGIBOTTONESUBMIT (value => 'Registra'); 
+                    gui.aggiungiBottoneSubmit (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
         gui.CHIUDIRIGAFORM; 
 
@@ -110,7 +110,7 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserisciDati;
 
 --form per la insert della convenzione
-PROCEDURE inserimentoConvenzione IS
+PROCEDURE inserimentoConvenzione AS
 BEGIN
     -- Apertura della pagina HTML per l'inserimento della convenzione
     gui.ApriPagina(titolo => 'Inserimento Convenzione');
@@ -120,17 +120,17 @@ BEGIN
     gui.AggiungiRigaForm;
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
     gui.AggiungiGruppoInput;
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'p_nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'p_ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'p_sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'p_odiceAccesso', placeholder => 'Codice Accesso');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'Nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'Ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'Sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'CodiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
     gui.ChiudiRigaForm;
 
     gui.AggiungiRigaForm;
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'p_dataInizio', placeholder => 'Data Inizio');
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'p_dataFine', placeholder => 'Data Fine');
-    gui.ApriSelectFormFiltro(nome => 'p_cumulabile', placeholder => 'Cumulabile');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataInizio', placeholder => 'Data Inizio');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataFine', placeholder => 'Data Fine');
+    gui.ApriSelectFormFiltro(nome => 'Cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
@@ -139,7 +139,7 @@ BEGIN
     -- Bottone di submit per inviare il modulo
     gui.AggiungiRigaForm;
     gui.AggiungiGruppoInput;
-    gui.AggiungiBottoneSubmit(nome => '', value => 'Inserisci');
+    gui.AggiungiBottoneSubmit(value => 'Inserisci');
     gui.ChiudiGruppoInput;
     gui.ChiudiRigaForm;
 
@@ -150,22 +150,21 @@ BEGIN
     gui.ChiudiPagina;
 END inserimentoConvenzione;
 
---procedura per la insert convenzione nel form (DA FIXARE ASAP mannaggia il clero)
+--procedura per la insert convenzione nel form
 procedure inseriscidatiConvenzione (
-    p_idSessioneManager varchar2,
-    p_nome varchar2 default null,
-    p_ente varchar2 default null,
-    p_sconto NUMBER default null,
-    p_codiceAccesso NUMBER default null,
-    p_dataInizio DATE default null,
-    p_dataFine  DATE default null,
-    p_cumulabile  number default null
-) IS
+    p_nome IN CONVENZIONI.nome%TYPE,
+    p_ente IN CONVENZIONI.ente%TYPE,
+    p_sconto IN CONVENZIONI.sconto%TYPE,
+    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
+    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
+    p_dataFine IN CONVENZIONI.dataFine%TYPE,
+    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
+) AS
 BEGIN
 
     -- Apre una pagina di registrazione
     gui.ApriPagina('Inserimento Convenzione');
---VA IN PALLA QUI SECONDO IL DEBUGGER!
+
     -- Inserimento dei dati nella tabella CONVENZIONI
     INSERT INTO CONVENZIONI (IDconvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
     VALUES (seq_IDconvenzione.nextval, p_nome, p_ente, p_sconto, p_codiceAccesso, p_dataInizio, p_dataFine, p_cumulabile);
@@ -266,10 +265,10 @@ END inseriscidatiConvenzione;
     gui.CHIUDIRIGAFORM; 
 
     gui.AGGIUNGIRIGAFORM;
-    gui.AGGIUNGIGRUPPOINPUT; 
-    gui.AGGIUNGIBOTTONESUBMIT (ident => 'bottoneModifica', value => 'Modifica'); 
-    
-    
+    gui.AGGIUNGIGRUPPOINPUT;
+    --apro div per i bottoni 
+            --gui.aggiungiBottoneSinistra (testo => 'Torna indietro'); 
+            gui.aggiungiBottoneSubmit (ident => 'bottoneModifica', value => 'Modifica'); 
     gui.CHIUDIGRUPPOINPUT; 
     gui.CHIUDIRIGAFORM; 
 
@@ -449,7 +448,7 @@ END modificaCliente;
 
     BEGIN
 
-    gui.apriPagina ('visualizza buste paga dipendenti');
+    gui.apriPagina (titolo => 'visualizza buste paga dipendenti');
 
     /* Controllo i permessi di accesso */
     IF(sessionhandler.getRuolo(r_IdSessione) != 'Cliente') THEN
@@ -503,6 +502,7 @@ END modificaCliente;
         END IF;
     END checkDipendente;
 
+/*
     function checkContabile(r_IdContabile in varchar2 default null) return boolean IS 
         count_c NUMBER;
     BEGIN
@@ -513,11 +513,12 @@ END modificaCliente;
             return false;
         END IF;
     END checkContabile;
-
+*/
     procedure inserimentoBustaPaga(
         r_IdSessioneContabile in varchar2, 
         r_FkDipendente in varchar2 default null,
-        r_Importo in varchar2 default null) IS
+        r_Importo in varchar2 default null,
+        r_bonus in varchar2 default null) IS
 
     bonus_percent NUMBER := 0;
     
@@ -529,7 +530,7 @@ END modificaCliente;
     IF(sessionhandler.getRuolo(r_IdSessioneContabile) = 'Responsabile') THEN
 
         gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessioneContabile);
-        gui.AGGIUNGIFORM (url => 'l_bindi.operazioniClienti.inserimentoBustaPaga');  
+        gui.AGGIUNGIFORM (url => 'g_giannessi.operazioniClienti.inserimentoBustaPaga');  
 
             gui.AGGIUNGIRIGAFORM;  
                 gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
@@ -542,7 +543,7 @@ END modificaCliente;
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
-                    gui.AGGIUNGIBOTTONESUBMIT (nome => '', value => 'Inserisci'); 
+                        gui.aggiungiBottoneSubmit (value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
             gui.CHIUDIRIGAFORM; 
         gui.CHIUDIFORM;
@@ -687,17 +688,16 @@ END modificaCliente;
     END IF;
 
    head := gui.StringArray ('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email','',''); 
-   gui.apriPagina ('visualizza clienti');  
+   gui.apriPagina (titolo => 'visualizza clienti');  
 
    gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        /*gui.aggiungicampoformfiltro(nome => 'c_Sesso', placeholder => 'Birth');*/
-        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', nomiParametri => gui.StringArray ('c_Maschio', 'c_Femmina'), opzioni => gui.StringArray ('Maschio', 'Femmina')); 
+        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', ids => gui.StringArray ('c_Maschio', 'c_Femmina'), names => gui.StringArray ('Maschio', 'Femmina')); 
 		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
     gui.CHIUDIFORMFILTRO; 
-    gui.aCapo; 
+    gui.aCapo(2); 
 
     gui.APRITABELLA (elementi => head);
    for clienti IN
@@ -710,6 +710,7 @@ END modificaCliente;
     ) 
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
+    
             gui.aggiungiformhiddenrigatabella; 
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
             gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
@@ -732,7 +733,8 @@ END modificaCliente;
             gui.AggiungiPulsanteCancellazione;  
             gui.CHIUDIFORMHIDDENRIGATABELLA;
      
-            gui.aggiungiPulsanteModifica (collegamento1 => 'g_giannessi.operazioniClienti.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            gui.aggiungiPulsanteModifica (collegamento1 => u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            
     gui.ChiudiRigaTabella;
     end LOOP;
     gui.CHIUDITABELLA; 
@@ -749,7 +751,7 @@ procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
 BEGIN
 
    head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
-   gui.apriPagina ('visualizza Convenzioni');
+   gui.apriPagina (titolo => 'visualizza Convenzioni');
    gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio'); 
@@ -797,5 +799,3 @@ END inserimentoContabile;
 
 
 end operazioniClienti;
-
-
