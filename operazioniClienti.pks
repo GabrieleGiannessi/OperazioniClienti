@@ -35,14 +35,17 @@ create or replace package operazioniclienti as
     );
 
     procedure modificabustapaga (
-        r_fkdipendente in varchar2 default null,
-        r_fkcontabile  in varchar2 default null,
-        r_data         in varchar2 default null,
-        r_importo      in varchar2 default null,
-        r_bonus        in varchar default null,
-        r_popup        in boolean default false,
-        new_importo    in varchar2 default null,
-        new_bonus      in varchar2 default null
+        r_IdSessione in varchar2,
+        r_FkDipendente in varchar2 default null, 
+        r_FkContabile in varchar2 default null,
+        r_Data in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_Bonus in varchar default null,
+        r_popUpVisualizza in BOOLEAN default false,
+        r_popUpImportoNegativo in varchar2 default null,
+        r_popUpBonusNegativo in varchar2 default null,
+        new_Importo in varchar2 default null,
+        new_Bonus in varchar2 default null
     );
 
     procedure visualizzabustepagadipendente (
@@ -52,20 +55,22 @@ create or replace package operazioniclienti as
         r_bonus      in varchar2 default null
     );
     procedure inserimentobustapaga (
-        r_idsessionecontabile in varchar2,
+        r_IdSessione in varchar2,
         r_fkdipendente        in varchar2 default null,
         r_importo             in varchar2 default null,
         r_bonus               in varchar2 default null
     );
 
     procedure visualizzaricarichecliente (
-        r_idsessionecliente in varchar2,
-        r_data              in varchar2 default null,
-        r_importo           in varchar2 default null
+        r_IdSessione in varchar2,
+		r_Data       in varchar2 default null,
+		r_Importo    in varchar2 default null,
+        r_PopUp in varchar2 default null
     );
     procedure inserimentoricarica (
-        r_idsessionecliente in varchar2,
-        r_importo           in varchar2 default null
+        r_IdSessione in varchar2,
+        r_Importo in varchar2 default null,
+        r_PopUp in varchar2 default null
     );
 
     procedure visualizzaclienti (
@@ -98,7 +103,7 @@ create or replace package operazioniclienti as
         r_fkdipendente      varchar2 default null
     );
 
-    function checkdipendente (
+    function existdipendente (
         r_iddipendente in varchar2 default null
     ) return boolean;
 
