@@ -1,7 +1,7 @@
 create or replace package operazioniclienti as
 
     u_user CONSTANT VARCHAR(100):='http://131.114.73.203:8080/apex/g_giannessi'; 
-    u_root CONSTANT VARCHAR(100):=user||'.operazioniClienti';
+    u_root CONSTANT VARCHAR(100):=u_user||'.operazioniClienti';
   
     procedure registrazionecliente;
 
@@ -74,18 +74,12 @@ create or replace package operazioniclienti as
     );
 
     procedure visualizzaclienti (
+        c_idSess VARCHAR default '-1', 
         c_nome          varchar2 default null,
         c_cognome       varchar2 default null,
         c_datanascita   varchar2 default null,
-        c_maschio       varchar2 default null,
-        c_femmina       varchar2 default null,
-        row_nome        varchar2 default null,
-        row_cognome     varchar2 default null,
-        row_datanascita varchar2 default null,
-        row_sesso       varchar2 default null,
-        row_telefono    varchar2 default null,
-        row_email       varchar2 default null,
-        elimina         varchar2 default null
+        maschio       varchar2 default null,
+        femmina       varchar2 default null
     );
 
     procedure inserimentoconvenzione;

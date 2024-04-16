@@ -63,7 +63,7 @@ procedure TopBar(id_user int, username VARCHAR2, ruolo varchar2);
 	procedure aggiungipulsantegenerale (
 		proceduraeliminazione varchar2 default '',
 		testo                 varchar2
-	);	
+	);
 	procedure chiuditabella;
 
 
