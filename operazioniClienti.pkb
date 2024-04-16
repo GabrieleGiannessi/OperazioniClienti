@@ -305,7 +305,7 @@ END modificaCliente;
     </script>'); 
 
 
-    head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile'); 
+    head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile', ' ');
     gui.apriPagina(titolo => 'VisualizzazioneBustePaga'); 
     
     /* Controllo che l'utente abbia i permessi necessari */
