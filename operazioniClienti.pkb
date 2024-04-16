@@ -747,8 +747,6 @@ BEGIN
 
    BEGIN
 
-    --controllo che serve per eliminare la riga selezionata in precedenza
-
    head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email',' ', ' '); 
    gui.apriPagina (titolo => 'visualizza clienti', idSessione => c_idSess);  
 
@@ -779,17 +777,15 @@ BEGIN
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
-            gui.AggiungiPulsanteCancellazione (proceduraEliminazione => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||'');  --da implementare la procedura di eliminazione
+            gui.AggiungiPulsanteCancellazione (/*proceduraEliminazione => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||''*/);  --da implementare la procedura di eliminazione
             gui.aggiungiPulsanteModifica (collegamento1 => u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
 
-            --gui.aggiungiformhiddenrigatabella;
-            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Cognome', value => clienti.Cognome);
-            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_DataNascita', value => clienti.DataNascita);
-            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
-            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Sesso', value => clienti.Sesso);
-            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Telefono', value => clienti.Ntelefono);
-            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);  
-            --gui.CHIUDIFORMHIDDENRIGATABELLA; 
+            gui.aggiungiformhiddenrigatabella;
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_Cognome', value => clienti.Cognome);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_DataNascita', value => clienti.DataNascita);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_Nome', value => clienti.Nome);
+            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_Email', value => clienti.Email);  
+            gui.CHIUDIFORMHIDDENRIGATABELLA; 
 
     gui.ChiudiRigaTabella;
     end LOOP;

@@ -37,11 +37,12 @@ create or replace PACKAGE BODY gui as
 				gui.ApriDiv('', 'contentContainer');
 			return;
 		end if;
-/*
+
 		if not SessionHandler.checkSession(idSessione) then 
 			gui.Reindirizza(costanti.user_root||'gui.homePage?p_success=T');
+			return;
 		end if;
-*/
+		
 		gui.TopBar(SessionHandler.getIdUser(idSessione), SessionHandler.getUsername(idSessione), SessionHandler.getRuolo(idSessione));
 		gui.ApriDiv('', 'container');
 			gui.ApriDiv('', 'contentContainer');
@@ -195,9 +196,9 @@ create or replace PACKAGE BODY gui as
 
 			gui.indirizzo('Link to logica logout');
 				if(ruolo = 'Cliente') then
-					gui.indirizzo(costanti.user_root||'.gui.LogOut?idUser='||id_user||'&ruolo=00');
+					gui.indirizzo(costanti.user_root||'gui.LogOut?idUser='||id_user||'&ruolo=00');
 				else
-					gui.indirizzo(costanti.user_root||'.gui.LogOut?idUser='||id_user||'&ruolo=01');
+					gui.indirizzo(costanti.user_root||'gui.LogOut?idUser='||id_user||'&ruolo=01');
 				end if;
 					gui.BottonePrimario(testo => 'Logout'); 
 				gui.chiudiIndirizzo;
@@ -267,27 +268,21 @@ END AggiungiPulsanteCancellazione;
 		</button></td>');
 	END AggiungiPulsanteGenerale;
 
-
 	/*Da togliere*/
 	procedure cancella(linktest varchar2) IS
 	BEGIN
-		gui.aggiungiParagrafo(linktest);
+		gui.aggiungiParagrafo(linktest);	
 	end cancella;
 
 	procedure AggiungiPulsanteModifica(collegamento1 VARCHAR2 default '') IS
 	BEGIN
+		htp.prn('<input type="hidden" id="inputModifica" value="true">;');
 		htp.prn('<td><a href="'||collegamento1||'">
-			<button>
+			<button id="buttonModifica">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" fill-opacity="0" d="M20 7L17 4L15 6L18 9L20 7Z"><animate fill="freeze" attributeName="fill-opacity" begin="1.2s" dur="0.15s" values="0;0.3"/></path><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="20" stroke-dashoffset="20" d="M3 21H21"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="20;0"/></path><path stroke-dasharray="44" stroke-dashoffset="44" d="M7 17V13L17 3L21 7L11 17H7"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.4s" dur="0.6s" values="44;0"/></path><path stroke-dasharray="8" stroke-dashoffset="8" d="M14 6L18 10"><animate fill="freeze" attributeName="stroke-dashoffset" begin="1s" dur="0.2s" values="8;0"/></path></g></svg>
 			</button></a>');
-		htp.prn('</td>');
-    htp.prn('<td>');    
-    htp.prn('<input type="hidden" id="inputModifica" value="true">');
-    htp.prn('<a href="' || collegamento1 || '" target="_blank">');
-    htp.prn('<button id="buttonModifica">');
-    htp.prn('<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" fill-opacity="0" d="M20 7L17 4L15 6L18 9L20 7Z"><animate fill="freeze" attributeName="fill-opacity" begin="1.2s" dur="0.15s" values="0;0.3"/></path><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="20" stroke-dashoffset="20" d="M3 21H21"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="20;0"/></path><path stroke-dasharray="44" stroke-dashoffset="44" d="M7 17V13L17 3L21 7L11 17H7"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.4s" dur="0.6s" values="44;0"/></path><path stroke-dasharray="8" stroke-dashoffset="8" d="M14 6L18 10"><animate fill="freeze" attributeName="stroke-dashoffset" begin="1s" dur="0.2s" values="8;0"/></path></g></svg>');
-    htp.prn('</button></a>');
-    htp.prn('</td>');
+		htp.prn('</td>');    
+
     htp.prn('<script>');
     htp.prn('document.querySelector("#buttonModifica").addEventListener("click", function() {');
     htp.prn('window.location.href = "' || collegamento1 || '";');  -- Naviga verso la pagina di modifica quando il pulsante viene cliccato
@@ -378,8 +373,8 @@ END AggiungiPulsanteCancellazione;
 				
 				for i in 1..ids.count loop
 					gui.apriDiv(ident => 'option');
-						htp.prn('<input type="checkbox" name="'|| names(i) ||'id="' ||ids(i)|| '" value="' ||ids(i)||'" onchange="updateHiddenInput('||chr(39)||hiddenParameter||chr(39)||', this)"/>');
-						htp.prn('<span>'|| names(i) ||'</span>');
+						htp.prn('<input type="checkbox" name="'|| names(i) ||'"id="' ||ids(i)|| '" value="' ||ids(i)||'" onchange="updateHiddenInput('||chr(39)||hiddenParameter||chr(39)||', this)"/>');
+						htp.prn('<label for="'||ids(i)||'">'|| names(i) ||'</label>');
 					gui.chiudiDiv();
 				end loop;
 				
@@ -654,7 +649,7 @@ END AggiungiPulsanteCancellazione;
 
 			if((cEmail is null or p_password is null) and  p_success <> 'S') then
                 --gui.ApriFormFiltro(user_root||'.gui.homePage');
-                gui.aggiungiForm(url=> costanti.user_root||'.gui.homePage');
+                gui.aggiungiForm(url=> costanti.user_root||'gui.homePage');
 					gui.AGGIUNGIINTESTAZIONE('Login', 'h2');
 					gui.aggiungiRigaForm;
 						gui.aggiungiGruppoInput;
@@ -672,11 +667,11 @@ END AggiungiPulsanteCancellazione;
 								gui.AGGIUNGILABEL (target => 'cliente', testo => 'Cliente');
 								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'autista', tipo => 'radio', value => '02', selected => true);
 								gui.AGGIUNGILABEL (target => 'autista', testo => 'Autista');
-								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'operatore', tipo => 'radio', value => 'O1');
+								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'operatore', tipo => 'radio', value => '01');
 								gui.AGGIUNGILABEL (target => 'operatore', testo => 'Operatore');
-								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'menager', tipo => 'radio', value => 'O3');
+								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'menager', tipo => 'radio', value => '03');
 								gui.AGGIUNGILABEL (target => 'menager', testo => 'Manager');
-								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'contabile', tipo => 'radio', value => 'O4');
+								gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'contabile', tipo => 'radio', value => '04');
 								gui.AGGIUNGILABEL (target => 'contabile', testo => 'Contabile');
 							gui.CHIUDIGRUPPOINPUT;  
 						gui.CHIUDIDIV;
@@ -691,16 +686,16 @@ END AggiungiPulsanteCancellazione;
 				
             elsif p_success <> 'S' then
 
-				if tipo_utente is null then 
-					gui.reindirizza(costanti.user_root||'.gui.homePage?p_success=L');
+				if tipo_utente is null then -- in caso non venga scelto nessun ruolo per l'autenticazione 
+					gui.reindirizza(costanti.user_root||'gui.homePage?p_success=L');
 				end if;
 
 				idSess := LOGINLOGOUT.AGGIUNGISESSIONE(cEmail,p_password,tipo_utente);
 
                 if idSess is null then 
-                    gui.reindirizza(costanti.user_root||'.gui.homePage?p_success=L');
+                    gui.reindirizza(costanti.user_root||'gui.homePage?p_success=L');
 				else                   
-					gui.reindirizza(costanti.user_root||'.gui.homePage?p_success=S&idSessione='||tipo_utente||idSess||'');
+					gui.reindirizza(costanti.user_root||'gui.homePage?p_success=S&idSessione='||tipo_utente||idSess||'');
                 end if;
 
             end if;
@@ -708,15 +703,15 @@ END AggiungiPulsanteCancellazione;
 		gui.chiudiPagina();
 
 		EXCEPTION
-			WHEN OTHERS THEN  gui.reindirizza(costanti.user_root||'.gui.homePage?p_success=L');  -- errore ancora da risolvere'
+			WHEN OTHERS THEN  gui.reindirizza(costanti.user_root||'gui.homePage?p_success=L');  -- errore ancora da risolvere'
 	end HomePage;
 
 	procedure LogOut(idUser int, ruolo varchar2) is
 	begin
 		if loginlogout.terminaSessione(idUser, ruolo) THEN
-			gui.Reindirizza(costanti.user_root||'.gui.homePage?p_success=LOS');
+			gui.Reindirizza(costanti.user_root||'gui.homePage?p_success=LOS');
 		else
-			gui.Reindirizza(costanti.user_root||'.gui.homePage?p_success=LOF');
+			gui.Reindirizza(costanti.user_root||'gui.homePage?p_success=LOF');
 		end if;
 	end LogOut;
 

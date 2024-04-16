@@ -3,7 +3,7 @@ SET DEFINE OFF;
 create or replace package costanti as
 
 
-  user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.';
+  user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
 
   tableSortScript CONSTANT VARCHAR2(32767) := '
   var lastSortedTH;
@@ -343,6 +343,7 @@ dropdownScript constant VARCHAR2(32767) := '
     font-family: Helvetica,"Apple Color Emoji","Segoe UI Emoji",NotoColorEmoji,"Noto Color Emoji","Segoe UI Symbol","Android Emoji",EmojiSymbols,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans",sans-serif;
     background-color: #e3e3e3;
     box-sizing: border-box;
+    overflow-x:hidden;
   }
 
   .container{
@@ -1170,7 +1171,6 @@ dropdownScript constant VARCHAR2(32767) := '
 
   ';
 end costanti;
-
 
 /*
 
