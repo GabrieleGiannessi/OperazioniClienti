@@ -98,7 +98,7 @@ create or replace package operazioniclienti as
         r_dataFine      varchar2 default null,
         r_cumulabile    varchar2 default null
     );
-
+    --procedure associaConvenzione;
     procedure visualizzazioneconvenzioni (
         datainizio varchar2 default null,
         datafine   varchar2 default null,

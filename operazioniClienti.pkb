@@ -166,7 +166,7 @@ BEGIN
 
     -- Inserimento dei dati nella tabella CONVENZIONI
     INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
-    VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'DD/MM/YYYY'), TO_DATE(r_dataFine,'DD/MM/YYYY'), r_cumulabile);
+    VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
 
     -- Messaggio di conferma dell'inserimento
     gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
