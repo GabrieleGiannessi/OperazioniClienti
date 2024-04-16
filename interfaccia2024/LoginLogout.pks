@@ -1,5 +1,5 @@
 create or replace PACKAGE LOGINLOGOUT AS
-       URL CONSTANT varchar2(255):='e_leonardi';
+       URL CONSTANT varchar2(255):='a_cucchiara';
        procedure loginCliente(cEmail IN varchar2 DEFAULT null, password IN varchar2 DEFAULT null);
        procedure loginDipendente(cEmail IN varchar2 DEFAULT null, password IN varchar2 DEFAULT null, ruolo IN VARCHAR2 default null);
        function aggiungiSessione(

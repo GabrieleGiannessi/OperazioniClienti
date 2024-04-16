@@ -110,27 +110,25 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserisciDati;
 
 --form per la insert della convenzione
-PROCEDURE inserimentoConvenzione AS
+PROCEDURE inserimentoConvenzione IS
 BEGIN
-    -- Apertura della pagina HTML per l'inserimento della convenzione
-    gui.ApriPagina(titolo => 'Inserimento Convenzione');
-    gui.AggiungiForm(url => 'a_cucchiara.operazioniConvenzioni.inseriscidatiConvenzione');
-
+    gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
+    gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');  
     -- Inserimento dei campi del modulo
     gui.AggiungiRigaForm;
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
     gui.AggiungiGruppoInput;
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'Nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'Ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'Sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'CodiceAccesso', placeholder => 'Codice Accesso');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
     gui.ChiudiRigaForm;
 
     gui.AggiungiRigaForm;
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataInizio', placeholder => 'Data Inizio');
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataFine', placeholder => 'Data Fine');
-    gui.ApriSelectFormFiltro(nome => 'Cumulabile', placeholder => 'Cumulabile');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
+    gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
@@ -147,27 +145,28 @@ BEGIN
     gui.ChiudiForm;
 
     -- Chiusura della pagina HTML
-    gui.ChiudiPagina;
+  --  gui.ChiudiPagina;
 END inserimentoConvenzione;
 
---procedura per la insert convenzione nel form
+--procedura per la insert convenzione nel form (adesso funziona, bisogna settare le sessioni e i relativi controlli)
 procedure inseriscidatiConvenzione (
-    p_nome IN CONVENZIONI.nome%TYPE,
-    p_ente IN CONVENZIONI.ente%TYPE,
-    p_sconto IN CONVENZIONI.sconto%TYPE,
-    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
-    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
-    p_dataFine IN CONVENZIONI.dataFine%TYPE,
-    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
-) AS
+      --  r_IdSessioneManager varchar2,
+        r_nome          varchar2 default null,
+        r_ente          varchar2 default null,
+        r_sconto        varchar2 default null,
+        r_codiceAccesso varchar2 default null,
+        r_dataInizio    varchar2 default null,
+        r_dataFine      varchar2 default null,
+        r_cumulabile    varchar2 default null
+) IS
 BEGIN
 
     -- Apre una pagina di registrazione
     gui.ApriPagina('Inserimento Convenzione');
 
     -- Inserimento dei dati nella tabella CONVENZIONI
-    INSERT INTO CONVENZIONI (IDconvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
-    VALUES (seq_IDconvenzione.nextval, p_nome, p_ente, p_sconto, p_codiceAccesso, p_dataInizio, p_dataFine, p_cumulabile);
+    INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+    VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'DD/MM/YYYY'), TO_DATE(r_dataFine,'DD/MM/YYYY'), r_cumulabile);
 
     -- Messaggio di conferma dell'inserimento
     gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
