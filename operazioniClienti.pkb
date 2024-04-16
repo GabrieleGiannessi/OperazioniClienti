@@ -266,8 +266,6 @@ END inseriscidatiConvenzione;
 
     gui.AGGIUNGIRIGAFORM;
     gui.AGGIUNGIGRUPPOINPUT;
-    --apro div per i bottoni 
-            --gui.aggiungiBottoneSinistra (testo => 'Torna indietro'); 
             gui.aggiungiBottoneSubmit (ident => 'bottoneModifica', value => 'Modifica'); 
     gui.CHIUDIGRUPPOINPUT; 
     gui.CHIUDIRIGAFORM; 
@@ -278,6 +276,14 @@ END inseriscidatiConvenzione;
     WHEN OTHERS THEN
     gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!'); 
 END modificaCliente;
+
+procedure eliminaCliente(
+    id VARCHAR2 DEFAULT NULL
+) is
+BEGIN
+    DELETE FROM CLIENTI WHERE IDCliente = id; 
+    gui.REINDIRIZZA (u_root || '.visualizzaClienti'); --operazione di uscita
+    END eliminaCliente; 
  
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
@@ -662,79 +668,63 @@ END modificaCliente;
         END IF;
     end inserimentoRicarica;
 
-
-
   procedure visualizzaClienti(
+    c_idSess VARCHAR default '-1', 
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
-    c_Maschio VARCHAR2 default NULL,
-    c_Femmina VARCHAR2 default NULL,
-    row_Nome VARCHAR2 default NULL, 
-    row_Cognome VARCHAR2 default NULL,
-    row_DataNascita VARCHAR2 default NULL,
-    row_Sesso VARCHAR2 default NULL,
-    row_Telefono VARCHAR2 default NULL,
-    row_Email VARCHAR2 default NULL,
-    Elimina VARCHAR2 default NULL
+    Maschio VARCHAR2 default NULL,
+    Femmina VARCHAR2 default NULL
   ) IS
 
-   head gui.StringArray; 
+   head gui.StringArray; --parametri per headers della tabella 
 
    BEGIN
 
-    IF Elimina IS NOT NULL AND row_Email IS NOT NULL THEN
-       DELETE FROM CLIENTI c WHERE c.Email = row_Email;  
-    END IF;
+    --controllo che serve per eliminare la riga selezionata in precedenza
 
-   head := gui.StringArray ('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email','',''); 
-   gui.apriPagina (titolo => 'visualizza clienti');  
+   head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email',' ', ' '); 
+   gui.apriPagina (titolo => 'visualizza clienti', idSessione => c_idSess);  
 
-   gui.APRIFORMFILTRO; 
+  gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', ids => gui.StringArray ('c_Maschio', 'c_Femmina'), names => gui.StringArray ('Maschio', 'Femmina')); 
-		gui.aggiungicampoformfiltro('submit', '', 'Filtra', 'filtra');
+        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', ids => gui.StringArray ('M', 'F'), names => gui.StringArray ('Maschio', 'Femmina')); 
+		gui.aggiungicampoformfiltro(tipo => 'submit', value => 'Filtra', placeholder => 'filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo(2); 
 
     gui.APRITABELLA (elementi => head);
+   
    for clienti IN
    (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM Clienti 
         where ( Clienti.NOME = c_Nome or c_Nome is null )
 		and ( ( trunc( Clienti.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') ) or c_DataNascita is null )
 		and ( Clienti.COGNOME = c_Cognome or c_Cognome is null)
-        and ( (Clienti.SESSO = 'M' and c_Maschio = 'on') or c_Maschio is null)
-        and ( (Clienti.SESSO = 'F' and c_Femmina = 'on') or c_Femmina is null)
+        and ( (Clienti.SESSO = 'M' and Maschio = 'M') or Maschio is null)
+        and ( (Clienti.SESSO = 'F' and Femmina = 'F') or Femmina is null)
     ) 
    LOOP
-    gui.AGGIUNGIRIGATABELLA; 
-    
-            gui.aggiungiformhiddenrigatabella; 
+    gui.AGGIUNGIRIGATABELLA;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
-
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Cognome', value => clienti.Cognome);
-
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.DataNascita);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_DataNascita', value => clienti.DataNascita);
-
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Sesso', value => clienti.Sesso);
-
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Telefono', value => clienti.Ntelefono);
-
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);
-
-            gui.AggiungiPulsanteCancellazione;  
-            gui.CHIUDIFORMHIDDENRIGATABELLA;
-     
+            gui.AggiungiPulsanteCancellazione (proceduraEliminazione => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||'');  --da implementare la procedura di eliminazione
             gui.aggiungiPulsanteModifica (collegamento1 => u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
-            
+
+            --gui.aggiungiformhiddenrigatabella;
+            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Cognome', value => clienti.Cognome);
+            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_DataNascita', value => clienti.DataNascita);
+            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Nome', value => clienti.Nome);
+            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Sesso', value => clienti.Sesso);
+            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Telefono', value => clienti.Ntelefono);
+            --gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'row_Email', value => clienti.Email);  
+            --gui.CHIUDIFORMHIDDENRIGATABELLA; 
+
     gui.ChiudiRigaTabella;
     end LOOP;
     gui.CHIUDITABELLA; 
