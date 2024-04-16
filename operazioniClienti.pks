@@ -74,19 +74,18 @@ create or replace package operazioniclienti as
     );
 
     procedure visualizzaclienti (
+        c_idSess VARCHAR default '-1', 
         c_nome          varchar2 default null,
         c_cognome       varchar2 default null,
         c_datanascita   varchar2 default null,
-        c_maschio       varchar2 default null,
-        c_femmina       varchar2 default null,
-        row_nome        varchar2 default null,
-        row_cognome     varchar2 default null,
-        row_datanascita varchar2 default null,
-        row_sesso       varchar2 default null,
-        row_telefono    varchar2 default null,
-        row_email       varchar2 default null,
-        elimina         varchar2 default null
+        maschio       varchar2 default null,
+        femmina       varchar2 default null
     );
+
+    procedure visualizzaProfilo (
+        c_idSessione varchar default '-1', 
+        id varchar2 default null
+    ); 
 
     procedure inserimentoconvenzione;
     procedure inseriscidaticonvenzione (
@@ -121,5 +120,9 @@ create or replace package operazioniclienti as
         r_fkcontabile  in varchar2 default null,
         r_data         in varchar2 default null
     ) return boolean;
+
+    procedure eliminaCliente (
+        id varchar2 default null
+    ); 
 
 end operazioniclienti;
