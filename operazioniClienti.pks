@@ -78,8 +78,7 @@ create or replace package operazioniclienti as
         c_nome          varchar2 default null,
         c_cognome       varchar2 default null,
         c_datanascita   varchar2 default null,
-        maschio       varchar2 default null,
-        femmina       varchar2 default null
+        sesso       varchar2 default null
     );
 
     procedure visualizzaProfilo (
@@ -122,7 +121,7 @@ create or replace package operazioniclienti as
     ) return boolean;
 
     procedure eliminaCliente (
-        id varchar2 default null
+        c_email varchar2 default null
     ); 
 
 end operazioniclienti;

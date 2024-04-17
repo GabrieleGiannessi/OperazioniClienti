@@ -256,11 +256,17 @@ END inseriscidatiConvenzione;
 END modificaCliente;
 
 procedure eliminaCliente(
-    id VARCHAR2 DEFAULT NULL
+    c_email VARCHAR2 DEFAULT NULL
 ) is
 BEGIN
-    DELETE FROM CLIENTI WHERE IDCLIENTE = id; 
-    gui.REINDIRIZZA (u_root || '.visualizzaClienti');  
+    gui.apriPagina ('PaginaEliminaCliente'); 
+
+    DELETE FROM CLIENTI WHERE Email = c_email; 
+    gui.aggiungiPopup (True, 'Ciaooooo'); 
+
+    EXCEPTION
+    WHEN OTHERS THEN 
+        gui.aggiungiPopup (False, 'Rimozione del cliente non andata a buon fine!');    
     END eliminaCliente; 
 
     procedure visualizzaProfilo (
@@ -732,8 +738,7 @@ BEGIN
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
-    Maschio VARCHAR2 default NULL,
-    Femmina VARCHAR2 default NULL
+    Sesso VARCHAR2 default NULL
   ) IS
 
    head gui.StringArray; --parametri per headers della tabella 
@@ -747,7 +752,11 @@ BEGIN
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.aggiungiDropdownFormFiltro (testo => 'Scegli', placeholder => 'Sesso', ids => gui.StringArray ('M', 'F'), names => gui.StringArray ('Maschio', 'Femmina')); 
+        gui.apriSelectFormFiltro ('Sesso', 'Sesso'); 
+        gui.aggiungiOpzioneSelect ('', true, '');
+        gui.aggiungiOpzioneSelect ('M', true, 'Maschio');
+        gui.aggiungiOpzioneSelect ('F', true , 'Femmina');
+        gui.chiudiSelectFormFiltro; 
 		gui.aggiungicampoformfiltro(tipo => 'submit', value => 'Filtra', placeholder => 'filtra');
     gui.CHIUDIFORMFILTRO; 
     gui.aCapo(2); 
@@ -755,14 +764,13 @@ BEGIN
     gui.APRITABELLA (elementi => head);
    
    for clienti IN
-   (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM Clienti 
-        where ( Clienti.NOME = c_Nome or c_Nome is null )
-		and ( ( trunc( Clienti.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') ) or c_DataNascita is null )
-		and ( Clienti.COGNOME = c_Cognome or c_Cognome is null)
-        and ( (Clienti.SESSO = 'M' and Maschio = 'M') or Maschio is null)
-        and ( (Clienti.SESSO = 'F' and Femmina = 'F') or Femmina is null)
+   (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM CLIENTI
+        where ( CLIENTI.NOME = c_Nome or c_Nome is null )
+		and ( ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR trunc( CLIENTI.DATANASCITA) < to_date(c_DataNascita,'YYYY-MM-DD')) or c_DataNascita is null )
+		and ( CLIENTI.COGNOME = c_Cognome or c_Cognome is null )
+        and ( CLIENTI.SESSO = Sesso or Sesso is null )
     ) 
-   LOOP
+   LOOP 
     gui.AGGIUNGIRIGATABELLA;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
@@ -772,7 +780,7 @@ BEGIN
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
 
             gui.APRIELEMENTOPULSANTI; 
-            gui.AggiungiPulsanteCancellazione (collegamento => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||'');  
+            gui.AggiungiPulsanteCancellazione (collegamento => ''''|| u_root || '.eliminaCliente?email='||clienti.Email||'''');  
             gui.aggiungiPulsanteModifica (collegamento =>  u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
             gui.chiudiElementoPulsanti;
     gui.ChiudiRigaTabella;
