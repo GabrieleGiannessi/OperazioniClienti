@@ -80,6 +80,11 @@ create or replace package operazioniclienti as
         femmina       varchar2 default null
     );
 
+    procedure visualizzaProfilo (
+        c_idSessione varchar default '-1', 
+        id varchar2 default null
+    ); 
+
     procedure inserimentoconvenzione;
     procedure inseriscidaticonvenzione (
         p_nome          in convenzioni.nome%type,
@@ -112,5 +117,9 @@ create or replace package operazioniclienti as
         r_fkcontabile  in varchar2 default null,
         r_data         in varchar2 default null
     ) return boolean;
+
+    procedure eliminaCliente (
+        id varchar2 default null
+    ); 
 
 end operazioniclienti;

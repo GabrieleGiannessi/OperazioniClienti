@@ -8,7 +8,7 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.APRIPAGINA(titolo => 'Registrazione');
     gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');  
 
-        gui.AGGIUNGIRIGAFORM;   
+
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
             gui.AGGIUNGIGRUPPOINPUT; 
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');        
@@ -17,9 +17,9 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
                 gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
-        gui.CHIUDIRIGAFORM; 
 
-        gui.AGGIUNGIRIGAFORM;   
+
+
            gui.APRIDIV (classe => 'col-half');
            gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
 
@@ -49,13 +49,13 @@ create or replace PACKAGE BODY operazioniClienti as
                         gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina'); 
                     gui.CHIUDIGRUPPOINPUT;  
             gui.CHIUDIDIV;
-        gui.CHIUDIRIGAFORM; 
 
-        gui.AGGIUNGIRIGAFORM;
+
+
             gui.AGGIUNGIGRUPPOINPUT; 
                     gui.aggiungiBottoneSubmit (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
-        gui.CHIUDIRIGAFORM; 
+
 
     gui.CHIUDIFORM; 
     END registrazioneCliente; 
@@ -117,7 +117,7 @@ BEGIN
     gui.AggiungiForm(url => 'a_cucchiara.operazioniConvenzioni.inseriscidatiConvenzione');
 
     -- Inserimento dei campi del modulo
-    gui.AggiungiRigaForm;
+
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
     gui.AggiungiGruppoInput;
     gui.AggiungiCampoForm(tipo => 'text', nome => 'Nome', placeholder => 'Nome');
@@ -125,23 +125,23 @@ BEGIN
     gui.AggiungiCampoForm(tipo => 'number', nome => 'Sconto', placeholder => 'Sconto');
     gui.AggiungiCampoForm(tipo => 'number', nome => 'CodiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
-    gui.ChiudiRigaForm;
 
-    gui.AggiungiRigaForm;
+
+
     gui.AggiungiCampoForm(tipo => 'date', nome => 'DataInizio', placeholder => 'Data Inizio');
     gui.AggiungiCampoForm(tipo => 'date', nome => 'DataFine', placeholder => 'Data Fine');
     gui.ApriSelectFormFiltro(nome => 'Cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
-    gui.ChiudiRigaForm;
+
 
     -- Bottone di submit per inviare il modulo
-    gui.AggiungiRigaForm;
+
     gui.AggiungiGruppoInput;
     gui.AggiungiBottoneSubmit(value => 'Inserisci');
     gui.ChiudiGruppoInput;
-    gui.ChiudiRigaForm;
+
 
     -- Chiusura del modulo
     gui.ChiudiForm;
@@ -236,12 +236,13 @@ END inseriscidatiConvenzione;
     WHERE IDcliente = id;
 
     gui.AGGIUNGIFORM;  
-    gui.AGGIUNGIRIGAFORM;   
+
 
     gui.aggiungiInput (tipo => 'hidden', nome => 'id', value => id); 
 
     gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
-    gui.AGGIUNGIGRUPPOINPUT;      
+
+    gui.AGGIUNGIGRUPPOINPUT;
     gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
     gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
     gui.AGGIUNGIPARAGRAFO (testo => current_email);     
@@ -262,13 +263,13 @@ END inseriscidatiConvenzione;
     gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
     gui.CHIUDIGRUPPOINPUT;
-    gui.CHIUDIRIGAFORM; 
 
-    gui.AGGIUNGIRIGAFORM;
+
+
     gui.AGGIUNGIGRUPPOINPUT;
-            gui.aggiungiBottoneSubmit (ident => 'bottoneModifica', value => 'Modifica'); 
+            gui.aggiungiBottoneSubmit (value => 'Modifica');
     gui.CHIUDIGRUPPOINPUT; 
-    gui.CHIUDIRIGAFORM; 
+
 
     gui.CHIUDIFORM; 
 
@@ -281,10 +282,23 @@ procedure eliminaCliente(
     id VARCHAR2 DEFAULT NULL
 ) is
 BEGIN
-    DELETE FROM CLIENTI WHERE IDCliente = id; 
-    gui.REINDIRIZZA (u_root || '.visualizzaClienti'); --operazione di uscita
+    DELETE FROM CLIENTI WHERE IDCLIENTE = id;
+    gui.REINDIRIZZA (u_root || '.visualizzaClienti');
     END eliminaCliente; 
- 
+
+    procedure visualizzaProfilo (
+        c_idSessione varchar default '-1',
+        id varchar2 default null
+    ) is
+    BEGIN
+
+            gui.apriPagina (titolo => 'Profilo di '||SessionHandler.GETUSERNAME (c_idSessione)||'', idSessione => c_idSessione);
+           --htp.prn (''||SESSIONHANDLER.GETRUOLO(c_idSessione)||'');
+           --htp.prn (''||SESSIONHANDLER.GETUSERNAME(c_idSessione)||'');
+           --htp.prn (''||SESSIONHANDLER.getIdUser(c_idSessione)||'');
+
+        END visualizzaProfilo;
+
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
 /* [IMPORTANTE] appena viene aggiornato il meccanismo delle sessioni:
@@ -321,7 +335,7 @@ BEGIN
         END IF;
 
         gui.APRIFORMFILTRO(); 
-            gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_idsessione', value => r_idsessione);
+            gui.aggiungiinput(tipo=> 'hidden', nome => 'r_IdSessione', value=>r_IdSessione);
             gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
             gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
             gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
@@ -352,7 +366,10 @@ BEGIN
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
+
+                gui.apriElementoPulsanti;
                 gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.chiudiElementoPulsanti;
 
             gui.CHIUDIRIGATABELLA;
         end LOOP; 
@@ -425,8 +442,8 @@ BEGIN
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkContabile', value => r_FkContabile);
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
 
-                    gui.AGGIUNGIRIGAFORM;
-                        gui.AGGIUNGIGRUPPOINPUT;
+
+                        gui.AGGIUNGIGRUPPOINPUT;    
                             gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
                             gui.ACAPO; 
                             gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
@@ -436,9 +453,7 @@ BEGIN
                             gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
                         gui.CHIUDIGRUPPOINPUT;
 
-                    gui.CHIUDIRIGAFORM;
 
-                    gui.AGGIUNGIRIGAFORM;
                         gui.AGGIUNGIGRUPPOINPUT;
                             gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
                             gui.ACAPO;
@@ -451,7 +466,7 @@ BEGIN
 
                     gui.CHIUDIRIGAFORM;
 
-                    gui.AGGIUNGIRIGAFORM;
+
                         gui.AGGIUNGIGRUPPOINPUT; 
                             gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
                         gui.CHIUDIGRUPPOINPUT; 
@@ -583,24 +598,22 @@ BEGIN
         gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessione);
         gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoBustaPaga');  
 
-            gui.AGGIUNGIRIGAFORM;  
+
                 gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
                 gui.ACAPO();
-                gui.AGGIUNGIGRUPPOINPUT; 
+                gui.AGGIUNGIGRUPPOINPUT;
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value => r_IdSessione); 
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');        
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
                     gui.aggiungiinput(tipo=>'date', nome=>'r_Data');
                 gui.CHIUDIGRUPPOINPUT;
-            gui.CHIUDIRIGAFORM;
 
-            gui.ACAPO();
 
-            gui.AGGIUNGIRIGAFORM;
+
                 gui.AGGIUNGIGRUPPOINPUT; 
                         gui.aggiungiBottoneSubmit (value => 'Inserisci'); 
                 gui.CHIUDIGRUPPOINPUT; 
-            gui.CHIUDIRIGAFORM; 
+
         gui.CHIUDIFORM;
 
         if(r_FkDipendente IS NOT NULL AND r_Importo > 0) THEN
@@ -709,19 +722,18 @@ BEGIN
         IF(sessionhandler.getruolo(r_IdSessione) = 'Cliente' ) THEN
             gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoRicarica');  
 
-                gui.AGGIUNGIRIGAFORM;   
+
                     gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
                     gui.AGGIUNGIGRUPPOINPUT; 
                         gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessione', value => r_IdSessione);
                         gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
                     gui.CHIUDIGRUPPOINPUT;
-                gui.CHIUDIRIGAFORM; 
 
-                gui.AGGIUNGIRIGAFORM;
+
                     gui.AGGIUNGIGRUPPOINPUT; 
                         gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
                     gui.CHIUDIGRUPPOINPUT; 
-                gui.CHIUDIRIGAFORM; 
+
             gui.CHIUDIFORM;
 
             IF(r_importo IS NOT NULL) THEN
@@ -804,7 +816,7 @@ BEGIN
 
    BEGIN
 
-   head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email',' ', ' '); 
+   head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email', ' ');
    gui.apriPagina (titolo => 'visualizza clienti', idSessione => c_idSess);  
 
   gui.APRIFORMFILTRO; 
@@ -834,16 +846,12 @@ BEGIN
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
-            gui.AggiungiPulsanteCancellazione (/*proceduraEliminazione => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||''*/);  --da implementare la procedura di eliminazione
-            gui.aggiungiPulsanteModifica (collegamento1 => u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
 
-            gui.aggiungiformhiddenrigatabella;
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_Cognome', value => clienti.Cognome);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_DataNascita', value => clienti.DataNascita);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_Nome', value => clienti.Nome);
-            gui.AGGIUNGIINPUT (tipo => 'hidden', nome => 'c_Email', value => clienti.Email);  
-            gui.CHIUDIFORMHIDDENRIGATABELLA; 
-
+            gui.APRIELEMENTOPULSANTI;
+            gui.AggiungiPulsanteCancellazione (proceduraEliminazione => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||'');
+            gui.aggiungiPulsanteModifica (collegamento1 =>  u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            gui.aggiungiPulsanteGenerale (testo => 'Profilo');
+            gui.chiudiElementoPulsanti;
     gui.ChiudiRigaTabella;
     end LOOP;
     gui.CHIUDITABELLA; 
