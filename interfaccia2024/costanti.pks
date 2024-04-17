@@ -3,22 +3,22 @@ SET DEFINE OFF;
 create or replace package costanti as
 
 
-  user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
+  user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/l_bindi.operazioniClienti.';
 
   tableSortScript CONSTANT VARCHAR2(32767) := '
   var lastSortedTH;
   var ordTH = true;
-      
+
   const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
-  const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+  const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
     )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 
   document.querySelectorAll("th").forEach(th => th.addEventListener("click", (() => {
     const table = th.closest("table");
     const l = th.innerText.length;
-    
+
     if(lastSortedTH == th) {
       ordTH ?
         th.innerText = th.innerText.substring(0, l-1) + "▴"
@@ -42,7 +42,7 @@ create or replace package costanti as
 
 -- Funzione Arcangelo;
 dropdownScript constant VARCHAR2(32767) := '
- 
+
  const updateHiddenInput = (inputName, checkbox, symbol = ";") => {
     if (!checkbox) throw new Error("Checkbox non trovata");
     if (!symbol) symbol = ";";
@@ -122,7 +122,7 @@ dropdownScript constant VARCHAR2(32767) := '
   function confermaEliminazione(url) {
       var conferma = confirm("Sei sicuro di voler eliminare?");
       if (conferma) {
-          
+
           inviaRichiesta(url);
       }
   }
@@ -139,7 +139,7 @@ dropdownScript constant VARCHAR2(32767) := '
             // Gestisci la risposta del server
             if (xhr.responseText === 'true') {
               alert("Eliminazione avvenuta con successo");
-              window.location.reload(); // Ricarica la pagina 
+              window.location.reload(); // Ricarica la pagina
             } else {
               alert("Eliminazione non eseguita. Si è verificato un errore.");
             }
@@ -253,7 +253,7 @@ dropdownScript constant VARCHAR2(32767) := '
     top:0px;
     left:0px;
     z-index:999; /*mi assicuro che la top bar sia sempre il primo elemento della pagina*/
-    
+
 
     a{
       outline:none;
@@ -336,7 +336,7 @@ dropdownScript constant VARCHAR2(32767) := '
   }
 
   /* Roba tabella */
-  body{ 
+  body{
     max-width: 100vw;
     margin: 0px;
     padding: 0px;
@@ -413,19 +413,19 @@ dropdownScript constant VARCHAR2(32767) := '
       }
 
       button{
-        background-color: #000000; 
+        background-color: #000000;
         color: white;
         padding: 5px;
         border: none;
         margin: 0px;
-        border-radius: 10px; 
+        border-radius: 10px;
         cursor: pointer;
         min-width: 30px;
       }
   }
 
   .inputTAB{
-    
+
     display: table;
     border-collapse: collapse;
     border-radius: 5px;
@@ -507,7 +507,7 @@ dropdownScript constant VARCHAR2(32767) := '
       outline: none;
       border: 1px solid rgba(203, 138, 17, 0.648);
       box-shadow: rgba(139, 96, 15, 0.648) 0px 0px 8px;
-        
+
   }
 
   .FilterButton{
@@ -527,7 +527,7 @@ dropdownScript constant VARCHAR2(32767) := '
       background-color: #f0d685;
       box-shadow: rgba(0, 0, 0, 0.533) 0px 0px 8px;
   }
-      
+
 
 
   .hidden{
@@ -549,10 +549,10 @@ dropdownScript constant VARCHAR2(32767) := '
 
   .form-submit{
       display: flex;
-      justify-content : flex-end; 
+      justify-content : flex-end;
   }
   .form-container {
-    position : relative; 
+    position : relative;
     max-width: 38em;
     padding: 1em 3em 2em 3em;
     margin: 0em auto;
@@ -653,8 +653,8 @@ dropdownScript constant VARCHAR2(32767) := '
         margin: 0px;
         border-radius: 5px 5px 5px 5px;
         background-color: #f0d685;
-        font-size : large; 
-        font-weight: bold;  
+        font-size : large;
+        font-weight: bold;
       }
 
   input[type=submit]:hover {
@@ -665,7 +665,7 @@ dropdownScript constant VARCHAR2(32767) := '
     background-color: #cfab3a;
     font-size: large;
   }
-} 
+}
 
     input:checked + label:after {
       opacity: 1;
@@ -678,7 +678,7 @@ dropdownScript constant VARCHAR2(32767) := '
 
     input:focus + .input-icon i {
       color: #f0d685;
-    }   
+    }
 
     input:focus + .input-icon:after {
       border-right-color: #f0d685;
@@ -691,9 +691,9 @@ dropdownScript constant VARCHAR2(32767) := '
 
   .form-row {
     zoom: 1;
-    margin-bottom: 10px; 
+    margin-bottom: 10px;
   }
-  .form-row:before,    
+  .form-row:before,
   .form-row:after {
     content: "";
     display: table;
@@ -718,7 +718,7 @@ dropdownScript constant VARCHAR2(32767) := '
   }
 
   .input-group-icon {
-    position: relative; 
+    position: relative;
   }
 
   .input-group-icon input {
@@ -770,7 +770,7 @@ dropdownScript constant VARCHAR2(32767) := '
   }
 
   .col-half {
-    float: left;  
+    float: left;
     width: 50%;
     margin-bottom: 10px;
   }
@@ -779,7 +779,7 @@ dropdownScript constant VARCHAR2(32767) := '
   }
   .col-third {
     padding-right: 10px;
-    float : left; 
+    float : left;
     width: calc(33.33% - 10px);
   }
   .col-third:last-of-type {
@@ -985,7 +985,7 @@ dropdownScript constant VARCHAR2(32767) := '
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     border: 1px solid #ddd;
 
-    
+
     option {
       width: 100%;
       padding: 1px;
@@ -1057,7 +1057,7 @@ dropdownScript constant VARCHAR2(32767) := '
     right: 0;
     transform: translateY(-100%);
   }
-  .button-tab {  
+  .button-tab {
     position: relative;
     text-decoration: none;
     background-color: black;
@@ -1085,11 +1085,11 @@ dropdownScript constant VARCHAR2(32767) := '
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    cursor: pointer; 
+    cursor: pointer;
   }
 
   .bottone-popup:hover {
-      cursor: pointer; 
+      cursor: pointer;
   }
 
   .bottone-popup:focus {
@@ -1124,11 +1124,11 @@ dropdownScript constant VARCHAR2(32767) := '
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    cursor: pointer; 
+    cursor: pointer;
   }
 
   .bottone-popup:hover {
-      cursor: pointer; 
+      cursor: pointer;
   }
 
   .bottone-popup:focus {
@@ -1179,7 +1179,7 @@ function mostraConferma(riga) {
     if (!riga.nextElementSibling || !riga.nextElementSibling.classList.contains('rigaConferma')) {
         // Crea la riga di conferma
         var nuovaRiga = document.createElement("tr");
-        nuovaRiga.classList.add('rigaConferma'); 
+        nuovaRiga.classList.add('rigaConferma');
         var nuovaCella = nuovaRiga.insertCell(0);
         nuovaCella.colSpan = riga.cells.length; // Imposta il colspan sulla base del numero di colonne nella riga(Non funziona)
         nuovaCella.innerHTML = "Sicuro di voler cancellare? <button onclick=\"confermaEliminazione(this.parentNode.parentNode)\">Sì</button> <button onclick=\"annullaEliminazione(this.parentNode.parentNode)\">No</button>";

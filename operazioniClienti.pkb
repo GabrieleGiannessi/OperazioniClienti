@@ -298,7 +298,7 @@ BEGIN
         r_Data       in varchar2 default null,
         r_Importo    in varchar2 default null,
         r_Bonus      in varchar2 default null,
-        r_PopUp      in varchar2  default null
+        r_PopUp      in varchar2 default null
     ) is
 
     head gui.StringArray; 
@@ -306,9 +306,9 @@ BEGIN
     BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
-    htp.prn('<script>   const newUrl = '||costanti.user_root||'"visualizzaBustePaga?r_IdSessione='||r_IdSessione||'"; 
-                        history.replaceState(null, null, newUrl); 
-    </script>'); 
+     htp.prn('<script>   const newUrl = "'||costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'";
+                        history.replaceState(null, null, newUrl);
+        </script>');
 
 
     head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile', ' ');
@@ -316,12 +316,12 @@ BEGIN
     
     /* Controllo che l'utente abbia i permessi necessari */
     IF(sessionhandler.getRuolo(r_IdSessione) = 'Contabile') THEN
-        IF (r_popUp = 'True') THEN
+        IF (r_PopUp = 'True') THEN
             gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
         END IF;
 
         gui.APRIFORMFILTRO(); 
-            gui.aggiungicampoformfiltro(tipo=> 'hidden', nome => 'r_IdSessione', value=>r_IdSessione);
+            gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_idsessione', value => r_idsessione);
             gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
             gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
             gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
@@ -330,7 +330,7 @@ BEGIN
             gui.aggiungicampoformfiltro('submit', '','','Filtra');
         gui.CHIUDIFORMFILTRO; 
 
-        gui.aCapo;
+        gui.aCapo(1);
 
         gui.APRITABELLA (elementi => head); 
 
@@ -383,26 +383,28 @@ BEGIN
         r_Data in varchar2 default null,
         r_Importo in varchar2 default null,
         r_Bonus in varchar default null,
-        r_popUpVisualizza in BOOLEAN default false,
         r_popUpImportoNegativo in varchar2 default null,
         r_popUpBonusNegativo in varchar2 default null,
-        new_Importo in varchar2 default null,
-        new_Bonus in varchar2 default null
+        new_Importo in varchar2 default null
     )
     IS
+    -- Se la data della busta paga è maggiore della data odierna
+    -- Modifica della data possibile soltanto per una data successiva a oggi
+    bonus_percent number := 0;
     head gui.StringArray;
     
     BEGIN 
 
         --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP 
-        htp.prn('<script>   const newUrl = '||costanti.user_root||'"modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_FkContabile='||r_FkContabile||'&r_Data='||r_Data||'&r_Importo='||r_Importo||'&r_Bonus='||r_Bonus||'"; 
+        htp.prn('<script>   const newUrl = '||costanti.user_root||'"modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_FkContabile='||r_FkContabile||'&r_Data='||r_Data||'&r_Importo='||r_Importo||'&r_Bonus='||r_Bonus||'";
                         history.replaceState(null, null, newUrl); 
         </script>');
 
         gui.apriPagina(titolo => 'modificaBustaPaga');
 
-        /* Controllo che l'utente sia un contabile e che sia il contabile che ha creato la busta paga che vuole modificare*/
-        IF(sessionhandler.getRuolo(r_IdSessione) = 'Contabile' and TO_NUMBER(r_FkContabile) = sessionhandler.getIdUser(r_IdSessione)) THEN
+        /* Controllo che l'utente sia un contabile e che possa essere modificata */
+        IF(/*SESSIONHANDLER.CHECKRUOLO(r_IdSessione, 'Contabile') AND*/ TO_DATE(r_Data, 'yyyy-mm-dd') > TRUNC(SYSDATE) )THEN
+
             /* Stampa del popup*/
             IF (r_popUpImportoNegativo = 'True') THEN
                 gui.AGGIUNGIPOPUP(False, 'Il valore del nuovo importo inserito è minore di zero.');
@@ -411,7 +413,8 @@ BEGIN
                 gui.AGGIUNGIPOPUP(False, 'Il valore del nuovo bonus inserito è minore di zero.');
             END IF;
 
-            gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga di '||r_FkDipendente);
+            gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga del dipendente '||r_FkDipendente, Dimensione=>'h1');
+
             /* Controllo che la busta paga esista */
             IF(existBustaPaga (r_FkDipendente, r_FkContabile, r_Data)) THEN
                 gui.AGGIUNGIFORM();
@@ -423,7 +426,7 @@ BEGIN
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
 
                     gui.AGGIUNGIRIGAFORM;
-                        gui.AGGIUNGIGRUPPOINPUT;    
+                        gui.AGGIUNGIGRUPPOINPUT;
                             gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
                             gui.ACAPO; 
                             gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
@@ -431,19 +434,21 @@ BEGIN
                             gui.ACAPO; 
                             gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');  
                             gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
-                        gui.CHIUDIGRUPPOINPUT; 
+                        gui.CHIUDIGRUPPOINPUT;
 
+                    gui.CHIUDIRIGAFORM;
 
+                    gui.AGGIUNGIRIGAFORM;
                         gui.AGGIUNGIGRUPPOINPUT;
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Bonus', dimensione => 'h2');
-                            gui.ACAPO; 
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Bonus: ', dimensione => 'h3');
-                            gui.AGGIUNGIPARAGRAFO (testo => r_Bonus);    
-                            gui.ACAPO; 
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Bonus: ', dimensione => 'h3');  
-                            gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill-trend-up', nome => 'new_Bonus', placeholder => 'Inserire nuovo bonus...'); 
+                            gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
+                            gui.ACAPO;
+                            gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia Data: ', dimensione => 'h3');
+                            gui.AGGIUNGIPARAGRAFO (testo => r_Data);
+                            gui.ACAPO;
+                            gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova Data: ', dimensione => 'h3');
+                            gui.AGGIUNGIINPUT(tipo=>'date', nome=>'data', minimo=>''||SYSDATE+1||'', massimo => ''||r_Data||'');
+                        gui.CHIUDIGRUPPOINPUT;
 
-                        gui.CHIUDIGRUPPOINPUT; 
                     gui.CHIUDIRIGAFORM;
 
                     gui.AGGIUNGIRIGAFORM;
@@ -451,27 +456,29 @@ BEGIN
                             gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
                         gui.CHIUDIGRUPPOINPUT; 
                     gui.CHIUDIRIGAFORM;
+                    gui.AGGIUNGIPARAGRAFO(Testo => 'Ultima modifica effettuata dal contabile: '||r_FkContabile);
                 gui.chiudiform; 
 
             END IF;
+            -- Recupero il bonus in percentuale da dipendenti
+            SELECT d.Bonus INTO bonus_percent
+            FROM DIPENDENTI d
+            WHERE d.MATRICOLA = r_FkDipendente;
 
-            IF (new_Importo > 0 AND new_Bonus >= 0) THEN
-
+            IF (new_Importo > 0 AND bonus_percent >= 0) THEN
+                -- Aggiornamento del contabile, dell'importo e del bonus (ricalcolato da dipendenti)
                 UPDATE BUSTEPAGA 
-                SET BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
-                    BUSTEPAGA.Bonus = TO_NUMBER(new_Bonus)
+                SET BUSTEPAGA.FK_CONTABILE = SESSIONHANDLER.GETIDUSER(r_IdSessione),
+                    BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
+                    BUSTEPAGA.Bonus = (TO_NUMBER(new_Importo)*bonus_percent)/100
                 WHERE BUSTEPAGA.Fk_Dipendente = TO_NUMBER(r_FkDipendente) AND BUSTEPAGA.Fk_Contabile = TO_NUMBER(r_FkContabile) AND TRUNC(BUSTEPAGA.Data) = TRUNC(TO_DATE(r_Data));
 
-                gui.REINDIRIZZA(costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'&r_popUp=True');
+                gui.REINDIRIZZA(costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'&r_PopUp=True');
 
             END IF;
 
-            IF (new_Importo < 0) THEN 
+            IF (new_Importo < 0) THEN
                 gui.REINDIRIZZA(costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_FkContabile='||r_FkContabile||'&r_Data='||r_Data||'&r_Importo='||r_Importo||'&r_Bonus='||r_Bonus||'&r_popUpImportoNegativo=True');
-            END IF;
-
-            IF (new_Bonus < 0) THEN
-                gui.REINDIRIZZA(costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_FkContabile='||r_FkContabile||'&r_Data='||r_Data||'&r_Importo='||r_Importo||'&r_Bonus='||r_Bonus||'&r_popUpBonusNegativo=True');
             END IF;
 
         ELSE
@@ -561,7 +568,8 @@ BEGIN
         r_IdSessione in varchar2, 
         r_FkDipendente in varchar2 default null,
         r_Importo in varchar2 default null,
-        r_bonus in varchar2 default null) IS
+        r_data in varchar2 default null
+    ) IS
 
     bonus_percent NUMBER := 0;
     
@@ -577,12 +585,16 @@ BEGIN
 
             gui.AGGIUNGIRIGAFORM;  
                 gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
+                gui.ACAPO();
                 gui.AGGIUNGIGRUPPOINPUT; 
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value => r_IdSessione); 
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');        
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
+                    gui.aggiungiinput(tipo=>'date', nome=>'r_Data');
                 gui.CHIUDIGRUPPOINPUT;
-            gui.CHIUDIRIGAFORM; 
+            gui.CHIUDIRIGAFORM;
+
+            gui.ACAPO();
 
             gui.AGGIUNGIRIGAFORM;
                 gui.AGGIUNGIGRUPPOINPUT; 
@@ -592,13 +604,11 @@ BEGIN
         gui.CHIUDIFORM;
 
         if(r_FkDipendente IS NOT NULL AND r_Importo > 0) THEN
-            IF(existDipendente(r_FkDipendente)) THEN 
-                /* Recupero il bonus percentuale in dipendenti */
+            IF(existDipendente(r_FkDipendente)) THEN
                 SELECT d.Bonus INTO bonus_percent FROM DIPENDENTI d WHERE d.Matricola = sessionhandler.getiduser(r_IdSessione);
-                /* Inserisco la busta paga calcolando il bonus */
                 INSERT INTO BUSTEPAGA (FK_Dipendente, FK_Contabile, Data, Importo, Bonus) VALUES 
-                (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessione), SYSDATE, TO_NUMBER(r_Importo), (TO_NUMBER(r_Importo)*bonus_percent)/100);
-                /* Popup di successo */
+                (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessione), TO_DATE(r_Data, 'yyyy-mm-dd'), TO_NUMBER(r_Importo), (TO_NUMBER(r_Importo)*bonus_percent)/100);
+
                 gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
             ELSE
                 gui.AggiungiPopup(False, 'Errori inserimento dati');
@@ -733,6 +743,53 @@ BEGIN
             gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina!');
         END IF;
     end inserimentoRicarica;
+
+    /*procedure dettagliBustePagaDipendente (
+        r_IdSessione varchar2 default null,
+        r_FkDipendente varchar2 default null,
+        r_DataInizio varchar2 default null,
+        r_DataFine varchar2 default null
+    )
+    IS
+        head gui.StringArray;
+    DECLARE
+        stip_medio_bonus number := 0;
+        stip_medio number := 0;
+        stip_max_bonus number := 0;
+        stip_min_bonus number := 0;
+
+    BEGIN
+
+        IF(existDipendente(r_FkDipendente)) THEN
+            -- Query che recupera lo stipendio+bonus medio del relativo dipendente.
+            SELECT AVG(b.IMPORTO + b.BONUS)
+            INTO stip_medio_bonus
+            FROM BUSTEPAGA b
+            WHERE b.FK_DIPENDENTE = r_FkDipendente
+                AND (r_DataInizio IS NULL OR r_DataFine IS NULL OR(b.DATA >= TO_DATE(r_DataInizio) AND b.Data <= TO_DATE(r_DataFine)));
+            -- Query che recupera lo stipendio medio del relativo dipendente.
+            SELECT AVG(b.IMPORTO)
+            INTO stip_medio
+            FROM BUSTEPAGA b
+            WHERE FK_Dipendente = r_FkDipendente;
+            -- Query che recupera lo stipendio+bonus massimo del relativo dipendente.
+            SELECT MAX(b.IMPORTO + b.BONUS)
+            INTO stip_max_bonus
+            FROM BUSTEPAGA b
+            WHERE FK_Dipendente = r_FkDipendente;
+            -- Query che recupera lo stipendio+bonus minimo del relativo dipendente.
+            SELECT MIN(b.IMPORTO + b.BONUS)
+            INTO stip_min_bonus
+            FROM BUSTEPAGA b
+            WHERE FK_Dipendente = r_FkDipendente;
+        ELSE
+            gui.AGGIUNGIPOPUP(False, 'Dipendente inesistente!');
+        END IF;
+
+
+
+    END dettagliBustePagaDIpendente;*/
+
 
   procedure visualizzaClienti(
     c_idSess VARCHAR default '-1', 

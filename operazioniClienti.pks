@@ -41,11 +41,9 @@ create or replace package operazioniclienti as
         r_Data in varchar2 default null,
         r_Importo in varchar2 default null,
         r_Bonus in varchar default null,
-        r_popUpVisualizza in BOOLEAN default false,
         r_popUpImportoNegativo in varchar2 default null,
         r_popUpBonusNegativo in varchar2 default null,
-        new_Importo in varchar2 default null,
-        new_Bonus in varchar2 default null
+        new_Importo in varchar2 default null
     );
 
     procedure visualizzabustepagadipendente (
@@ -56,9 +54,9 @@ create or replace package operazioniclienti as
     );
     procedure inserimentobustapaga (
         r_IdSessione in varchar2,
-        r_fkdipendente        in varchar2 default null,
-        r_importo             in varchar2 default null,
-        r_bonus               in varchar2 default null
+        r_FkDipendente in varchar2 default null,
+        r_Importo in varchar2 default null,
+        r_data in varchar2 default null
     );
 
     procedure visualizzaricarichecliente (
