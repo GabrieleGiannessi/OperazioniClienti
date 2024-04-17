@@ -18,7 +18,7 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
           
-
+    
            
            gui.APRIDIV (classe => 'col-half');
            gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
@@ -37,7 +37,7 @@ create or replace PACKAGE BODY operazioniClienti as
                     gui.CHIUDIDIV;
                 gui.CHIUDIGRUPPOINPUT; 
 
-            gui.CHIUDIGRUPPOINPUT;
+            gui.CHIUDIGRUPPOINPUT; 
 
             gui.APRIDIV (classe => 'col-half'); 
                 gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
@@ -50,13 +50,9 @@ create or replace PACKAGE BODY operazioniClienti as
                     gui.CHIUDIGRUPPOINPUT;  
             gui.CHIUDIDIV;
            
-
-         
             gui.AGGIUNGIGRUPPOINPUT; 
                     gui.aggiungiBottoneSubmit (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
-           
-
     gui.CHIUDIFORM; 
     END registrazioneCliente; 
 
@@ -73,38 +69,20 @@ create or replace PACKAGE BODY operazioniClienti as
 
     DataNascita DATE; 
     Sesso CHAR(1); 
-    /*CURSOR controllo IS 
-        SELECT * FROM CLIENTI c WHERE c.Nome = Nome AND c.Cognome = Cognome;  
-    
-    RigaControllo Controllo%ROWTYPE; 
-    ClienteEsistente EXCEPTION; 
-*/
+   
     begin
         gui.ApriPagina ('Registrazione');
         DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
         Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
-       -- OPEN controllo; 
-       -- FETCH controllo INTO RigaControllo;  
-
-       /* IF controllo%NOTFOUND 
-            THEN RAISE ClienteEsistente;
-
-        ELSE 
-        
-        INSERT INTO CLIENTI ( Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
-        VALUES ( Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
-        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
-        */
 
         INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
         VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
 
         gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
 
-        --END IF; 
 
     EXCEPTION
-    WHEN OTHERS /*ClienteEsistente*/ THEN
+    WHEN OTHERS THEN
         --visualizza popup di errore
         gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
     end inserisciDati;
@@ -368,7 +346,7 @@ BEGIN
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti; 
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
                 gui.chiudiElementoPulsanti; 
 
             gui.CHIUDIRIGATABELLA;
@@ -795,9 +773,8 @@ BEGIN
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
 
             gui.APRIELEMENTOPULSANTI; 
-            gui.AggiungiPulsanteCancellazione (proceduraEliminazione => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||'');  
-            gui.aggiungiPulsanteModifica (collegamento1 =>  u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
-            gui.aggiungiPulsanteGenerale (testo => 'Profilo');
+            gui.AggiungiPulsanteCancellazione (collegamento => u_root || '.eliminaCliente?id='||clienti.IDCLIENTE||'');  
+            gui.aggiungiPulsanteModifica (collegamento =>  u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
             gui.chiudiElementoPulsanti;
     gui.ChiudiRigaTabella;
     end LOOP;
