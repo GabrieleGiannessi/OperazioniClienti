@@ -89,15 +89,16 @@ create or replace package operazioniclienti as
 
     procedure inserimentoconvenzione;
     procedure inseriscidaticonvenzione (
-        p_nome          in convenzioni.nome%type,
-        p_ente          in convenzioni.ente%type,
-        p_sconto        in convenzioni.sconto%type,
-        p_codiceaccesso in convenzioni.codiceaccesso%type,
-        p_datainizio    in convenzioni.datainizio%type,
-        p_datafine      in convenzioni.datafine%type,
-        p_cumulabile    in convenzioni.cumulabile%type
+       -- r_IdSessioneManager varchar2,
+        r_nome          varchar2 default null,
+        r_ente          varchar2 default null,
+        r_sconto        varchar2 default null,
+        r_codiceAccesso varchar2 default null,
+        r_dataInizio    varchar2 default null,
+        r_dataFine      varchar2 default null,
+        r_cumulabile    varchar2 default null
     );
-
+    --procedure associaConvenzione;
     procedure visualizzazioneconvenzioni (
         datainizio varchar2 default null,
         datafine   varchar2 default null,
