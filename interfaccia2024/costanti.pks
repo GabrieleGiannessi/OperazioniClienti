@@ -1,6 +1,5 @@
 SET DEFINE OFF;
 create or replace PACKAGE costanti as
-create or replace PACKAGE costanti as
 
   user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
 
