@@ -6,7 +6,7 @@ create or replace PACKAGE BODY gui as
 		htp.prn('<head><meta http-equiv="refresh" content="0;url=' || indirizzo || '"></head>');
 	end Reindirizza;
 
-procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione int default -1,  scriptJS VARCHAR2 default '') is
+procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione varchar default null,  scriptJS VARCHAR2 default '') is
 begin
 	htp.htmlOpen;
 	htp.headOpen;

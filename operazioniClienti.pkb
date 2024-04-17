@@ -300,17 +300,13 @@ BEGIN
 
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
-/* [IMPORTANTE] appena viene aggiornato il meccanismo delle sessioni:
-    aggiungere il controllo che la modifica di una busta paga può essere
-    fatta soltanto dal contabile che la inserita.
-*/
     procedure visualizzaBustePaga(
-        r_IdSessione in varchar2,
-        r_Dipendente in varchar2 default null,
-        r_Contabile  in varchar2 default null,
-        r_Data       in varchar2 default null,
-        r_Importo    in varchar2 default null,
-        r_Bonus      in varchar2 default null,
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
         r_PopUp      in varchar2 default null
     ) is
 
@@ -328,7 +324,7 @@ BEGIN
     gui.apriPagina(titolo => 'VisualizzazioneBustePaga'); 
     
     /* Controllo che l'utente abbia i permessi necessari */
-    IF(sessionhandler.getRuolo(r_IdSessione) = 'Contabile') THEN
+    IF(sessionhandler.CHECKRUOLO(r_IdSessione, 'Contabile')) THEN
         IF (r_PopUp = 'True') THEN
             gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
         END IF;
@@ -352,9 +348,9 @@ BEGIN
             from bustepaga b
             where ( b.fk_dipendente = r_Dipendente or r_Dipendente is null )
                 and ( b.fk_contabile = r_Contabile or r_Contabile is null )
-                and ( ( trunc(b.data) = to_date(r_data,'YYYY-MM-DD') ) or r_Data is null )
-                and ( b.importo = to_number(r_Importo) or r_Importo is null )
-                and ( b.bonus = to_number(r_Bonus) or r_Bonus is null )
+                and ( trunc(b.data) = r_data or r_Data is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
         ) 
         LOOP
@@ -367,7 +363,7 @@ BEGIN
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||CHR(38)||'r_FkDipendente='||busta_paga.FK_DIPENDENTE||CHR(38)||'r_FkContabile='||busta_paga.FK_CONTABILE||CHR(38)||'r_Data='||busta_paga.Data||CHR(38)||'r_Importo='||busta_paga.Importo||CHR(38)||'r_Bonus='||busta_paga.Bonus);
                 gui.chiudiElementoPulsanti;
 
             gui.CHIUDIRIGATABELLA;
@@ -378,13 +374,14 @@ BEGIN
     end if;
     END visualizzaBustePaga; 
 
-    function existBustaPaga(r_FkDipendente in varchar2 default null, 
-        r_FkContabile in varchar2 default null,
-        r_Data in varchar2 default null) return boolean IS
-
-        count_b NUMBER;
+    function existBustaPaga(
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE,
+        r_FkContabile in BUSTEPAGA.FK_CONTABILE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE
+    ) return boolean IS
+        count_b NUMBER := 0;
     BEGIN
-        SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND b.FK_CONTABILE = r_FkContabile AND TRUNC(b.Data) = r_Data;
+        SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND b.FK_CONTABILE = r_FkContabile AND TRUNC(b.Data) = TRUNC(r_Data);
         IF(count_b=1) THEN
             return true;
         ELSE
@@ -393,12 +390,12 @@ BEGIN
     END existBustaPaga;
 
     procedure modificaBustaPaga (
-        r_IdSessione in varchar2,
-        r_FkDipendente in varchar2 default null, 
-        r_FkContabile in varchar2 default null,
-        r_Data in varchar2 default null,
-        r_Importo in varchar2 default null,
-        r_Bonus in varchar default null,
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
         r_popUpImportoNegativo in varchar2 default null,
         r_popUpBonusNegativo in varchar2 default null,
         new_Importo in varchar2 default null
@@ -416,10 +413,10 @@ BEGIN
                         history.replaceState(null, null, newUrl); 
         </script>');
 
-        gui.apriPagina(titolo => 'modificaBustaPaga');
+        gui.apriPagina(titolo => 'modificaBustaPaga', idSessione=>r_IdSessione);
 
         /* Controllo che l'utente sia un contabile e che possa essere modificata */
-        IF(/*SESSIONHANDLER.CHECKRUOLO(r_IdSessione, 'Contabile') AND*/ TO_DATE(r_Data, 'yyyy-mm-dd') > TRUNC(SYSDATE) )THEN
+        IF(SESSIONHANDLER.GETRUOLO(r_IdSessione) = 'Contabile' /*AND r_Data > TRUNC(SYSDATE)*/ )THEN
 
             /* Stampa del popup*/
             IF (r_popUpImportoNegativo = 'True') THEN
@@ -433,6 +430,7 @@ BEGIN
 
             /* Controllo che la busta paga esista */
             IF(existBustaPaga (r_FkDipendente, r_FkContabile, r_Data)) THEN
+                gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga del dipendente '||r_FkDipendente, Dimensione=>'h1');
                 gui.AGGIUNGIFORM();
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value=>r_IdSessione);
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Importo', value=>r_Importo);
@@ -441,38 +439,33 @@ BEGIN
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkContabile', value => r_FkContabile);
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
 
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Importo);
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
+                    gui.CHIUDIGRUPPOINPUT;
 
-                        gui.AGGIUNGIGRUPPOINPUT;    
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
-                            gui.ACAPO; 
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
-                            gui.AGGIUNGIPARAGRAFO (testo => r_Importo);    
-                            gui.ACAPO; 
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');  
-                            gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
-                        gui.CHIUDIGRUPPOINPUT;
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia Data: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Data);
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova Data: ', dimensione => 'h3');
+                        gui.AGGIUNGIINPUT(tipo=>'date', nome=>'data', minimo=>''||TRUNC(SYSDATE)+1||'', massimo => ''||r_Data||'');
+                    gui.CHIUDIGRUPPOINPUT;
 
-
-                        gui.AGGIUNGIGRUPPOINPUT;
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
-                            gui.ACAPO;
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia Data: ', dimensione => 'h3');
-                            gui.AGGIUNGIPARAGRAFO (testo => r_Data);
-                            gui.ACAPO;
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova Data: ', dimensione => 'h3');
-                            gui.AGGIUNGIINPUT(tipo=>'date', nome=>'data', minimo=>''||SYSDATE+1||'', massimo => ''||r_Data||'');
-                        gui.CHIUDIGRUPPOINPUT;
-
-                    gui.CHIUDIRIGAFORM;
-
-
-                        gui.AGGIUNGIGRUPPOINPUT; 
-                            gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica'); 
-                        gui.CHIUDIGRUPPOINPUT; 
-                    gui.CHIUDIRIGAFORM;
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica');
+                    gui.CHIUDIGRUPPOINPUT;
                     gui.AGGIUNGIPARAGRAFO(Testo => 'Ultima modifica effettuata dal contabile: '||r_FkContabile);
-                gui.chiudiform; 
-
+                gui.chiudiform;
+            ELSE
+                gui.AGGIUNGIPOPUP(False, 'Non entra nell if');
             END IF;
             -- Recupero il bonus in percentuale da dipendenti
             SELECT d.Bonus INTO bonus_percent
@@ -481,11 +474,11 @@ BEGIN
 
             IF (new_Importo > 0 AND bonus_percent >= 0) THEN
                 -- Aggiornamento del contabile, dell'importo e del bonus (ricalcolato da dipendenti)
-                UPDATE BUSTEPAGA 
+                UPDATE BUSTEPAGA
                 SET BUSTEPAGA.FK_CONTABILE = SESSIONHANDLER.GETIDUSER(r_IdSessione),
                     BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
                     BUSTEPAGA.Bonus = (TO_NUMBER(new_Importo)*bonus_percent)/100
-                WHERE BUSTEPAGA.Fk_Dipendente = TO_NUMBER(r_FkDipendente) AND BUSTEPAGA.Fk_Contabile = TO_NUMBER(r_FkContabile) AND TRUNC(BUSTEPAGA.Data) = TRUNC(TO_DATE(r_Data));
+                WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Fk_Contabile = r_FkContabile AND TRUNC(BUSTEPAGA.Data) = r_Data;
 
                 gui.REINDIRIZZA(costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'&r_PopUp=True');
 
@@ -499,13 +492,15 @@ BEGIN
             gui.AGGIUNGIPOPUP(False,'Non hai permessi necessari per accedere a questa pagina!');
         END IF;
 
+        gui.CHIUDIPAGINA();
+
     END modificaBustaPaga;
 
     procedure visualizzaBustePagaDipendente (
         r_IdSessione in varchar2,
-		r_Data       in varchar2 default null,
-		r_Importo    in varchar2 default null,
-		r_Bonus      in varchar2 default null
+        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
     ) is
 
     head gui.StringArray; 
@@ -515,7 +510,10 @@ BEGIN
     gui.apriPagina (titolo => 'visualizza buste paga dipendenti');
 
     /* Controllo i permessi di accesso */
-    IF(sessionhandler.getRuolo(r_IdSessione) = 'Autista' OR sessionhandler.getRuolo(r_IdSessione) = 'Operatore' OR sessionhandler.getRuolo(r_IdSessione) = 'Contabile' OR sessionhandler.getRuolo(r_IdSessione) = 'Manager') THEN
+    IF(sessionhandler.CHECKRUOLO(r_IdSessione, 'Autista')
+           OR sessionhandler.CHECKRUOLO(r_IdSessione, 'Operatore')
+           OR sessionhandler.CHECKRUOLO(r_IdSessione, 'Contabile')
+           OR sessionhandler.CHECKRUOLO(r_IdSessione, 'Manager') )THEN
 
         gui.APRIFORMFILTRO(); 
             gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_idsessione', value => r_idsessione);
@@ -534,9 +532,9 @@ BEGIN
             select data, importo, bonus
             from bustepaga b
             where ( b.fk_dipendente = sessionhandler.getiduser(r_IdSessione) )
-                and ( ( trunc(b.data) = to_date(r_Data,'YYYY-MM-DD')) or r_Data is null )
-                and ( b.importo = to_number(r_Importo) or r_Importo is null )
-                and ( b.bonus = to_number(r_Bonus) or r_Bonus is null )
+                and ( trunc(b.data) = r_Data or r_Data is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc) 
         LOOP
             gui.AGGIUNGIRIGATABELLA; 
@@ -555,7 +553,7 @@ BEGIN
     END visualizzaBustePagaDipendente;
 
 
-    function existDipendente(r_IdDipendente in varchar2 default null) return boolean IS 
+    function existDipendente(r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE default null) return boolean IS
         count_d NUMBER;
     BEGIN
         SELECT COUNT(*) INTO count_d FROM DIPENDENTI d WHERE d.Matricola = r_IdDipendente;
@@ -579,10 +577,10 @@ BEGIN
     END checkContabile;
 */
     procedure inserimentoBustaPaga(
-        r_IdSessione in varchar2, 
-        r_FkDipendente in varchar2 default null,
-        r_Importo in varchar2 default null,
-        r_data in varchar2 default null
+        r_IdSessione in varchar2,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null
     ) IS
 
     bonus_percent NUMBER := 0;
@@ -592,26 +590,23 @@ BEGIN
     BEGIN
         
     /* Controllo i permessi di accesso */
-    IF(sessionhandler.getRuolo(r_IdSessione) = 'Contabile') THEN
+    IF(sessionhandler.CHECKRUOLO(r_IdSessione, 'Contabile')) THEN
 
         gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => r_IdSessione);
-        gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoBustaPaga');  
+        gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoBustaPaga');
 
+            gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
+            gui.ACAPO();
+            gui.AGGIUNGIGRUPPOINPUT;
+                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value => r_IdSessione);
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
+                gui.aggiungiinput(tipo=>'date', nome=>'r_Data');
+            gui.CHIUDIGRUPPOINPUT;
 
-                gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
-                gui.ACAPO();
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value => r_IdSessione); 
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');        
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
-                    gui.aggiungiinput(tipo=>'date', nome=>'r_Data');
-                gui.CHIUDIGRUPPOINPUT;
-
-
-
-                gui.AGGIUNGIGRUPPOINPUT; 
-                        gui.aggiungiBottoneSubmit (value => 'Inserisci'); 
-                gui.CHIUDIGRUPPOINPUT; 
+            gui.AGGIUNGIGRUPPOINPUT;
+                    gui.aggiungiBottoneSubmit (value => 'Inserisci');
+            gui.CHIUDIGRUPPOINPUT;
 
         gui.CHIUDIFORM;
 
@@ -619,7 +614,7 @@ BEGIN
             IF(existDipendente(r_FkDipendente)) THEN
                 SELECT d.Bonus INTO bonus_percent FROM DIPENDENTI d WHERE d.Matricola = sessionhandler.getiduser(r_IdSessione);
                 INSERT INTO BUSTEPAGA (FK_Dipendente, FK_Contabile, Data, Importo, Bonus) VALUES 
-                (TO_NUMBER(r_FkDipendente), sessionhandler.getiduser(r_IdSessione), TO_DATE(r_Data, 'yyyy-mm-dd'), TO_NUMBER(r_Importo), (TO_NUMBER(r_Importo)*bonus_percent)/100);
+                (r_FkDipendente, sessionhandler.getiduser(r_IdSessione), r_Data, r_Importo, ((r_Importo*bonus_percent)/100));
 
                 gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
             ELSE
@@ -634,8 +629,8 @@ BEGIN
  
     procedure visualizzaRicaricheCliente (
         r_IdSessione in varchar2,
-		r_Data       in varchar2 default null,
-		r_Importo    in varchar2 default null,
+		r_Data       in RICARICHE.DATA%TYPE default null,
+		r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     ) is
 
@@ -660,7 +655,7 @@ BEGIN
 
 
     /* Controllo i permessi di accesso */
-    IF(sessionhandler.getruolo(r_IdSessione) = 'Cliente') THEN
+    IF(sessionhandler.CHECKRUOLO(r_IdSessione, 'Cliente')) THEN
 
         gui.APRIFORMFILTRO(); 
             gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessione', value => r_IdSessione);
@@ -677,8 +672,8 @@ BEGIN
                 select idricarica, importo,data
                 from ricariche r
                 where ( r.fk_cliente = sessionhandler.getiduser(r_IdSessione) )
-                    and ( ( trunc(r.data) = to_date(r_Data,'YYYY-MM-DD') ) or r_Data is null )
-                    and ( r.importo = to_number(r_Importo) or r_Importo is null )
+                    and ( trunc(r.data) = r_Data  or r_Data is null )
+                    and ( r.importo = r_Importo or r_Importo is null )
                 order by data desc
             ) 
         LOOP
@@ -699,7 +694,7 @@ BEGIN
 
     procedure inserimentoRicarica (
         r_IdSessione in varchar2,
-        r_Importo in varchar2 default null,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     )IS
 
@@ -718,27 +713,23 @@ BEGIN
         END IF;
 
         /* Controllo i permessi di accesso */
-        IF(sessionhandler.getruolo(r_IdSessione) = 'Cliente' ) THEN
-            gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoRicarica');  
+        IF(sessionhandler.CHECKRUOLO(r_IdSessione, 'Cliente') ) THEN
+            gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoRicarica');
+                gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
+                gui.AGGIUNGIGRUPPOINPUT;
+                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessione', value => r_IdSessione);
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
+                gui.CHIUDIGRUPPOINPUT;
 
-                    
-                    gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
-                    gui.AGGIUNGIGRUPPOINPUT; 
-                        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessione', value => r_IdSessione);
-                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
-                    gui.CHIUDIGRUPPOINPUT;
-                   
-           
-                    gui.AGGIUNGIGRUPPOINPUT; 
-                        gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
-                    gui.CHIUDIGRUPPOINPUT; 
-                  
+                gui.AGGIUNGIGRUPPOINPUT;
+                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci');
+                gui.CHIUDIGRUPPOINPUT;
             gui.CHIUDIFORM;
 
             IF(r_importo IS NOT NULL) THEN
                 IF (r_importo>0) THEN 
                     /* Inserimento nuova ricarica */
-                    INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(r_IdSessione), SYSDATE, TO_NUMBER(r_Importo));
+                    INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(r_IdSessione), SYSDATE, r_Importo);
                     /* Aggiornamento del Saldo */
                     UPDATE CLIENTI SET Saldo = (SELECT c.Saldo FROM CLIENTI c WHERE c.IDCLIENTE = sessionhandler.getiduser(r_IdSessione)) + r_Importo 
                     WHERE IDcliente = sessionhandler.getiduser(r_IdSessione);

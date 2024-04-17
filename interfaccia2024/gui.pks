@@ -6,7 +6,7 @@ create or replace package gui as
 	emptyarray stringarray;
 	procedure apripagina (
 		titolo     varchar2 default 'Senza titolo',
-		idsessione int default -1,
+		idsessione varchar default null,
 		scriptjs   varchar2 default ''
 	);
 
