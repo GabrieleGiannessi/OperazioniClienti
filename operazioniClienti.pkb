@@ -8,7 +8,7 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.APRIPAGINA(titolo => 'Registrazione');
     gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');  
 
-
+          
             gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
             gui.AGGIUNGIGRUPPOINPUT; 
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');        
@@ -17,9 +17,9 @@ create or replace PACKAGE BODY operazioniClienti as
                 gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
                 gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
+          
 
-
-
+           
            gui.APRIDIV (classe => 'col-half');
            gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
 
@@ -49,13 +49,13 @@ create or replace PACKAGE BODY operazioniClienti as
                         gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina'); 
                     gui.CHIUDIGRUPPOINPUT;  
             gui.CHIUDIDIV;
+           
 
-
-
+         
             gui.AGGIUNGIGRUPPOINPUT; 
                     gui.aggiungiBottoneSubmit (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
-
+           
 
     gui.CHIUDIFORM; 
     END registrazioneCliente; 
@@ -110,34 +110,32 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserisciDati;
 
 --form per la insert della convenzione
-PROCEDURE inserimentoConvenzione AS
+PROCEDURE inserimentoConvenzione IS
 BEGIN
-    -- Apertura della pagina HTML per l'inserimento della convenzione
-    gui.ApriPagina(titolo => 'Inserimento Convenzione');
-    gui.AggiungiForm(url => 'a_cucchiara.operazioniConvenzioni.inseriscidatiConvenzione');
-
+    gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
+    gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');
     -- Inserimento dei campi del modulo
-
+    gui.AGGIUNGIGRUPPOINPUT;
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
     gui.AggiungiGruppoInput;
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'Nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'Ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'Sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'CodiceAccesso', placeholder => 'Codice Accesso');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
 
 
-
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataInizio', placeholder => 'Data Inizio');
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'DataFine', placeholder => 'Data Fine');
-    gui.ApriSelectFormFiltro(nome => 'Cumulabile', placeholder => 'Cumulabile');
+    gui.AGGIUNGIGRUPPOINPUT;
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
+    gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
+    gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
 
 
     -- Bottone di submit per inviare il modulo
-
+    gui.AGGIUNGIGRUPPOINPUT;
     gui.AggiungiGruppoInput;
     gui.AggiungiBottoneSubmit(value => 'Inserisci');
     gui.ChiudiGruppoInput;
@@ -147,27 +145,28 @@ BEGIN
     gui.ChiudiForm;
 
     -- Chiusura della pagina HTML
-    gui.ChiudiPagina;
+  --  gui.ChiudiPagina;
 END inserimentoConvenzione;
 
---procedura per la insert convenzione nel form
+--procedura per la insert convenzione nel form (adesso funziona, bisogna settare le sessioni e i relativi controlli)
 procedure inseriscidatiConvenzione (
-    p_nome IN CONVENZIONI.nome%TYPE,
-    p_ente IN CONVENZIONI.ente%TYPE,
-    p_sconto IN CONVENZIONI.sconto%TYPE,
-    p_codiceAccesso IN CONVENZIONI.codiceAccesso%TYPE,
-    p_dataInizio IN CONVENZIONI.dataInizio%TYPE,
-    p_dataFine IN CONVENZIONI.dataFine%TYPE,
-    p_cumulabile IN CONVENZIONI.cumulabile%TYPE
-) AS
+      --  r_IdSessioneManager varchar2,
+        r_nome          varchar2 default null,
+        r_ente          varchar2 default null,
+        r_sconto        varchar2 default null,
+        r_codiceAccesso varchar2 default null,
+        r_dataInizio    varchar2 default null,
+        r_dataFine      varchar2 default null,
+        r_cumulabile    varchar2 default null
+) IS
 BEGIN
 
     -- Apre una pagina di registrazione
     gui.ApriPagina('Inserimento Convenzione');
 
     -- Inserimento dei dati nella tabella CONVENZIONI
-    INSERT INTO CONVENZIONI (IDconvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
-    VALUES (seq_IDconvenzione.nextval, p_nome, p_ente, p_sconto, p_codiceAccesso, p_dataInizio, p_dataFine, p_cumulabile);
+    INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+    VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
 
     -- Messaggio di conferma dell'inserimento
     gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
@@ -344,7 +343,7 @@ BEGIN
             gui.aggiungicampoformfiltro('submit', '','','Filtra');
         gui.CHIUDIFORMFILTRO; 
 
-        gui.aCapo(1);
+        gui.aCapo;
 
         gui.APRITABELLA (elementi => head); 
 
@@ -722,18 +721,18 @@ BEGIN
         IF(sessionhandler.getruolo(r_IdSessione) = 'Cliente' ) THEN
             gui.AGGIUNGIFORM (url => costanti.user_root||'inserimentoRicarica');  
 
-
+                    
                     gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
                     gui.AGGIUNGIGRUPPOINPUT; 
                         gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'r_IdSessione', value => r_IdSessione);
                         gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');   
                     gui.CHIUDIGRUPPOINPUT;
-
-
+                   
+           
                     gui.AGGIUNGIGRUPPOINPUT; 
                         gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci'); 
                     gui.CHIUDIGRUPPOINPUT; 
-
+                  
             gui.CHIUDIFORM;
 
             IF(r_importo IS NOT NULL) THEN
@@ -916,5 +915,4 @@ END inserimentoContabile;
 
 
 end operazioniClienti;
-
 
