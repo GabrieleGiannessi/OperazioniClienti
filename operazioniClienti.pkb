@@ -351,7 +351,7 @@ BEGIN
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento1 => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||CHR(38)||'r_FkDipendente='||busta_paga.FK_DIPENDENTE||CHR(38)||'r_FkContabile='||busta_paga.FK_CONTABILE||CHR(38)||'r_Data='||busta_paga.Data||CHR(38)||'r_Importo='||busta_paga.Importo||CHR(38)||'r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||CHR(38)||'r_FkDipendente='||busta_paga.FK_DIPENDENTE||CHR(38)||'r_FkContabile='||busta_paga.FK_CONTABILE||CHR(38)||'r_Data='||busta_paga.Data||CHR(38)||'r_Importo='||busta_paga.Importo||CHR(38)||'r_Bonus='||busta_paga.Bonus);
                 gui.chiudiElementoPulsanti;
 
             gui.CHIUDIRIGATABELLA;
@@ -418,7 +418,7 @@ BEGIN
 
             /* Controllo che la busta paga esista */
             IF(existBustaPaga (r_FkDipendente, r_FkContabile, r_Data)) THEN
-                gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga del dipendente '||r_FkDipendente, Dimensione=>'h1');
+
                 gui.AGGIUNGIFORM();
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value=>r_IdSessione);
                     gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Importo', value=>r_Importo);
@@ -436,7 +436,6 @@ BEGIN
                         gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');
                         gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
                     gui.CHIUDIGRUPPOINPUT;
-
                     gui.AGGIUNGIGRUPPOINPUT;
                         gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
                         gui.ACAPO;
@@ -444,7 +443,8 @@ BEGIN
                         gui.AGGIUNGIPARAGRAFO (testo => r_Data);
                         gui.ACAPO;
                         gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova Data: ', dimensione => 'h3');
-                        gui.AGGIUNGIINPUT(tipo=>'date', nome=>'data', minimo=>''||TRUNC(SYSDATE)+1||'', massimo => ''||r_Data||'');
+                        -- Da ricontrollare con nuova GUI
+                        gui.AGGIUNGIINPUT(tipo=>'date', nome=>'data', minimo=>''||TO_CHAR(SYSDATE,'yyyy-mm-dd')||'', massimo => ''||TO_CHAR(r_Data,'yyyy-mm-dd')||'');
                     gui.CHIUDIGRUPPOINPUT;
 
                     gui.AGGIUNGIGRUPPOINPUT;
@@ -456,7 +456,8 @@ BEGIN
                 gui.AGGIUNGIPOPUP(False, 'Non entra nell if');
             END IF;
             -- Recupero il bonus in percentuale da dipendenti
-            SELECT d.Bonus INTO bonus_percent
+            htp.prn('CIao');
+            SELECT d.BONUS INTO bonus_percent
             FROM DIPENDENTI d
             WHERE d.MATRICOLA = r_FkDipendente;
 
@@ -466,7 +467,7 @@ BEGIN
                 SET BUSTEPAGA.FK_CONTABILE = SESSIONHANDLER.GETIDUSER(r_IdSessione),
                     BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
                     BUSTEPAGA.Bonus = (TO_NUMBER(new_Importo)*bonus_percent)/100
-                WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Fk_Contabile = r_FkContabile AND TRUNC(BUSTEPAGA.Data) = r_Data;
+                WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Fk_Contabile = r_FkContabile AND BUSTEPAGA.Data = r_Data;
 
                 gui.REINDIRIZZA(costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'&r_PopUp=True');
 
