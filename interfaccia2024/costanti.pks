@@ -1,7 +1,7 @@
 SET DEFINE OFF;
 create or replace PACKAGE costanti as
 
-  user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
+user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/d_commiso.';
 
   tableSortScript CONSTANT VARCHAR2(32767) := '
   var lastSortedTH;
@@ -125,7 +125,7 @@ function mostraConferma(riga, url) {
         var nuovaCella = nuovaRiga.insertCell(0);
         nuovaCella.colSpan = riga.cells.length; //Non funziona
         
-        nuovaCella.innerHTML = "Sicuro di voler cancellare? " + 
+        nuovaCella.innerHTML = "Confermi? " + 
                                 "<button onclick=\"apriURL('" + url + "')\">Sì</button> " + 
                                 "<button onclick=\"annullaEliminazione(this.parentNode.parentNode)\">No</button>";
         
@@ -520,6 +520,7 @@ body{
     text-align:center;
   }
 
+  
 //prova per profilo 
   .flex-container {
     display: flex;
@@ -543,11 +544,7 @@ body{
     h2{
       color : black; 
     }
-
-   input[type="submit"] {
-    width : 100% ; 
-   }
-}
+  }
 
 .left h2,
 .right h2 {
@@ -656,19 +653,19 @@ body{
       opacity: 0;
     }
 
-    input[type="submit"]{
+    input[type=submit]{
         height: 100%;
         width: 30%;
         margin: 0px;
         border-radius: 5px 5px 5px 5px;
         background-color: #f0d685;
         font-size : large; 
-        font-weight: bold; 
+        font-weight: bold;  
       }
 
-  input[type="submit"]:hover {
+  input[type=submit]:hover {
     height: 100%;
-    width: 35%;
+    width: 30%;
     margin: 0px;
     border-radius: 5px 5px 5px 5px;
     background-color: #cfab3a;
@@ -695,7 +692,6 @@ body{
 
     h2, h4{
       color: #f0d685;
-       
     }
   }
 
@@ -1209,6 +1205,28 @@ body{
   .datatable-table > tbody > tr > td{
     vertical-align: baseline !important;
     padding: 0px !important;
+  }
+
+  .datatable-table > thead > tr > th{
+    vertical-align: middle !important;
+    padding: 0px !important;
+    border-bottom: inherit;
+    text-align:center;
+  }
+
+  .datatable-sorter::before {
+    border-bottom: 4px solid #000;
+    border-top: 0px solid transparent;
+    transform: rotate(180deg);
+    bottom: 15px;
+    right: 2px;
+  }
+
+  .datatable-sorter::after {
+    /*border-bottom: 4px solid #000;*/
+    border-top: 4px solid transparent;
+    top: 12px;
+    right: 2px;
   }
 
 ';
