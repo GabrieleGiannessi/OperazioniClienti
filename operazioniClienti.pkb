@@ -152,11 +152,13 @@ EXCEPTION
     WHEN OTHERS THEN
         -- Gestione dell'eccezione e stampa dell'errore
         gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
+
 END inseriscidatiConvenzione;   
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente(
-    id VARCHAR2 DEFAULT NULL,
+    idSess VARCHAR DEFAULT NULL,
+    cl_id VARCHAR2 DEFAULT NULL, 
     cl_Email VARCHAR2 DEFAULT NULL,
     cl_Password VARCHAR2 DEFAULT NULL,
     cl_Telefono VARCHAR2 DEFAULT NULL
@@ -165,59 +167,91 @@ END inseriscidatiConvenzione;
     current_email CLIENTI.Email%TYPE := NULL;
     current_telefono CLIENTI.Ntelefono%TYPE := NULL;
     current_password CLIENTI.Password%TYPE := NULL; 
+    popup BOOLEAN := false; 
+    c INTEGER := 0;
 
-    BEGIN
-    
-    SELECT Email, Ntelefono, Password
-    INTO current_email, current_telefono, current_password
-    FROM CLIENTI
-    WHERE IDcliente = id;
+    BEGIN    
+    gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
 
-    gui.APRIPAGINA(titolo => 'Modifica dati cliente');
+    --accedo alla pagina (se sono cliente o operatore)
+    if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore')) then 
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
+        return;
+    end if;  
 
-    IF cl_Email <> current_email THEN
+    --un cliente non può accedere alla pagina modifica di un altro cliente
+    if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then 
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti'); 
+        return;
+    end if;
+
+        SELECT Email, Ntelefono, Password
+            INTO current_email, current_telefono, current_password
+                FROM CLIENTI
+                    WHERE IDCLIENTE  = cl_id;
+     
         -- Aggiornamento dell'email
+    IF cl_Email IS NOT NULL AND cl_Email <> current_email THEN
         UPDATE CLIENTI
         SET Email = cl_Email
-        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
+        WHERE IDcliente = cl_id; 
+        popup := true; 
+        c := c + 1;
 
-        gui.AGGIUNGIPOPUP (True , 'Email modificata!');
-        gui.aCapo;
     END IF;
 
-    IF cl_Password <> current_password THEN
-        -- Aggiornamento della password
-        UPDATE CLIENTI
-        SET Password = cl_Password
-        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
-
-        gui.AGGIUNGIPOPUP (True , 'Password modificata!');
-        gui.aCapo;  
+    --aggiornamento password
+    IF cl_Password IS NOT NULL AND cl_Password <> current_password THEN
+            UPDATE CLIENTI
+                SET Password = cl_Password
+                    WHERE IDcliente = cl_id; 
+        popup := true; 
+        c := c + 1;
     END IF;
 
-    IF cl_Telefono <> current_telefono THEN
         -- Aggiornamento del telefono
+    IF cl_Telefono IS NOT NULL AND cl_Telefono <> current_telefono THEN
         UPDATE CLIENTI
         SET Ntelefono = cl_Telefono
-        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
+        WHERE IDcliente = cl_id; 
 
-        gui.AGGIUNGIPOPUP (True , 'Numero di telefono modificato!');
-        gui.aCapo; 
-        
+        popup := true; 
+        c := c + 1;     
     END IF;
+
+    --logica popup di successo
+    if popup AND c>1 then
+        gui.AGGIUNGIPOPUP (True , 'Campi modificati');
+        gui.aCapo;
+        else 
+        if popup AND c=1 then 
+        gui.AGGIUNGIPOPUP (True , 'Campo modificato');
+        gui.aCapo;
+        end if;
+    end if;
 
     --ri-aggiorno i valori da visualizzare nella schermata 
     SELECT Email, Ntelefono, Password
     INTO current_email, current_telefono, current_password
     FROM CLIENTI
-    WHERE IDcliente = id;
+    WHERE IDcliente = cl_id;
 
-    gui.AGGIUNGIFORM;  
-        
 
-    gui.aggiungiInput (tipo => 'hidden', nome => 'id', value => id); 
+    gui.AGGIUNGIFORM;     
 
-    gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+    gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
+    gui.aggiungiInput (tipo => 'hidden', nome => 'cl_id', value => cl_id); 
+
+    gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
+    if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then 
+    gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
+    end if; 
+
+    -- se chi accede alla pagina è un operatore visualizzo il bottone per tornare alla tabella
+    if SESSIONHANDLER.checkRuolo(idSess, 'Operatore') then 
+        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?c_idSess='||idSess||''); 
+        gui.aCapo(2); 
+    end if; 
 
     gui.AGGIUNGIGRUPPOINPUT;      
     gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
@@ -241,13 +275,9 @@ END inseriscidatiConvenzione;
     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
     gui.CHIUDIGRUPPOINPUT;
        
-
-     
     gui.AGGIUNGIGRUPPOINPUT;
-            gui.aggiungiBottoneSubmit (value => 'Modifica'); 
+                gui.aggiungiBottoneSubmit (value => 'Modifica');
     gui.CHIUDIGRUPPOINPUT; 
-       
-
     gui.CHIUDIFORM; 
 
     EXCEPTION 
@@ -255,6 +285,7 @@ END inseriscidatiConvenzione;
     gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!'); 
 END modificaCliente;
 
+-- non si può fare
 procedure eliminaCliente(
     c_email VARCHAR2 DEFAULT NULL
 ) is
@@ -272,13 +303,89 @@ BEGIN
     procedure visualizzaProfilo (
         c_idSessione varchar default '-1', 
         id varchar2 default null 
-    ) is
-    BEGIN
+    ) is 
+    c_Nome varchar2(20); 
+    c_Cognome varchar2(20); 
+    c_DataNascita date;     
+    c_Telefono int;
+    c_Email varchar2(50);  
+    c_Sesso char(1); 
+    c_Password varchar2(20); 
+    c_saldo int; 
 
-            gui.apriPagina (titolo => 'Profilo di '||SessionHandler.GETUSERNAME (c_idSessione)||'', idSessione => c_idSessione);  
-           --htp.prn (''||SESSIONHANDLER.GETRUOLO(c_idSessione)||'');
-           --htp.prn (''||SESSIONHANDLER.GETUSERNAME(c_idSessione)||'');
-           --htp.prn (''||SESSIONHANDLER.getIdUser(c_idSessione)||'');
+    BEGIN
+            --prelevo i dati di cui ho bisogno tramite l'id
+            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita, 
+            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = SessionHandler.getIDuser (c_idSessione); 
+
+            gui.apriPagina (titolo => 'Profilo', idSessione => c_idSessione); 
+ 
+            gui.aggiungiForm; 
+                --devo aggiungere i dati del cliente tramite sessionHandler 
+                
+                gui.aggiungiIntestazione (testo => 'Profilo di '); 
+                gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (c_idSessione)); 
+
+                gui.aCapo(4); 
+
+                gui.apriDiv (classe => 'flex-container'); 
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Nome', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');  
+                                gui.aggiungiIntestazione (testo => c_Nome, dimensione => 'h2');
+                            gui.chiudiDiv; 
+
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Cognome', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => c_Cognome, dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Data di nascita', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => ''||c_DataNascita||'', dimensione => 'h2');
+                            gui.chiudiDiv; 
+
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Telefono', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => ''||c_Telefono||'', dimensione => 'h2');
+                            gui.chiudiDiv; 
+
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Email', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => c_Email, dimensione => 'h2');
+                            gui.chiudiDiv; 
+
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Convenzione associata', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => ' ', dimensione => 'h2');
+                            gui.chiudiDiv; 
+
+                            gui.aCapo(3);
+
+                             gui.aggiungiGruppoInput;
+                                gui.apriDiv (classe => 'flex-container'); 
+                                    gui.apriDiv (classe => 'left'); 
+                                        gui.bottoneAggiungi(testo => 'Associa convenzione', url => '#'); 
+                                    gui.chiudiDiv; 
+                                gui.apriDiv (classe => 'right');   
+                                    gui.bottoneAggiungi(testo => 'Modifica dati', url => '#'); 
+                                gui.chiudiDiv;
+                            gui.chiudiDiv; 
+
+                gui.chiudiGruppoInput; 
+            gui.chiudiForm; 
+
 
         END visualizzaProfilo;  
  
@@ -780,8 +887,10 @@ BEGIN
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
 
             gui.APRIELEMENTOPULSANTI; 
-            gui.AggiungiPulsanteCancellazione (collegamento => ''''|| u_root || '.eliminaCliente?email='||clienti.Email||'''');  
-            gui.aggiungiPulsanteModifica (collegamento =>  u_root || '.modificaCliente?id='||clienti.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            gui.AggiungiPulsanteCancellazione (collegamento => ''''|| u_root || '.eliminaCliente?email='||clienti.Email||''''); 
+            gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaCliente?idSess='||c_idSess||'&cl_id='||clientI.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            
+
             gui.chiudiElementoPulsanti;
     gui.ChiudiRigaTabella;
     end LOOP;

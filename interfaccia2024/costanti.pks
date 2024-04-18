@@ -520,6 +520,40 @@ body{
     text-align:center;
   }
 
+//prova per profilo 
+  .flex-container {
+    display: flex;
+}
+
+.left {
+    width : 50%; 
+    height : 70px;
+    flex: 1;  
+    float : left; 
+    justify-content: start; 
+}
+
+.right {
+    width : 50%;
+    height : 70px; 
+    flex: 1; 
+    float : right; 
+    text-align: right; /* Allinea il testo a destra */
+
+    h2{
+      color : black; 
+    }
+
+   input[type="submit"] {
+    width : 100% ; 
+   }
+}
+
+.left h2,
+.right h2 {
+  margin:0; 
+}
+
   /*Roba per form
       URL : https://codepen.io/arefeh_htmi/pen/mdPYZKJ */
 
@@ -622,19 +656,19 @@ body{
       opacity: 0;
     }
 
-    input[type=submit]{
+    input[type="submit"]{
         height: 100%;
         width: 30%;
         margin: 0px;
         border-radius: 5px 5px 5px 5px;
         background-color: #f0d685;
         font-size : large; 
-        font-weight: bold;  
+        font-weight: bold; 
       }
 
-  input[type=submit]:hover {
+  input[type="submit"]:hover {
     height: 100%;
-    width: 30%;
+    width: 35%;
     margin: 0px;
     border-radius: 5px 5px 5px 5px;
     background-color: #cfab3a;
@@ -661,6 +695,7 @@ body{
 
     h2, h4{
       color: #f0d685;
+       
     }
   }
 

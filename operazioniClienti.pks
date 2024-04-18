@@ -1,8 +1,6 @@
 create or replace package operazioniclienti as
-
-    u_user CONSTANT VARCHAR(100):='http://131.114.73.203:8080/apex/g_giannessi'; 
-    u_root CONSTANT VARCHAR(100):=u_user||'.operazioniClienti';
-  
+    u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
+    u_root constant varchar(100) := u_user || '.operazioniClienti';
     procedure registrazionecliente;
 
     procedure inseriscidati (
@@ -18,7 +16,8 @@ create or replace package operazioniclienti as
     );
 
     procedure modificacliente (
-        id          varchar2 default null,
+        idsess      varchar default null,  -- identifica chi sta facendo l'accesso
+        cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
         cl_email    varchar2 default null,
         cl_password varchar2 default null,
         cl_telefono varchar2 default null
@@ -35,17 +34,17 @@ create or replace package operazioniclienti as
     );
 
     procedure modificabustapaga (
-        r_IdSessione in varchar2,
-        r_FkDipendente in varchar2 default null, 
-        r_FkContabile in varchar2 default null,
-        r_Data in varchar2 default null,
-        r_Importo in varchar2 default null,
-        r_Bonus in varchar default null,
-        r_popUpVisualizza in BOOLEAN default false,
-        r_popUpImportoNegativo in varchar2 default null,
-        r_popUpBonusNegativo in varchar2 default null,
-        new_Importo in varchar2 default null,
-        new_Bonus in varchar2 default null
+        r_idsessione           in varchar2,
+        r_fkdipendente         in varchar2 default null,
+        r_fkcontabile          in varchar2 default null,
+        r_data                 in varchar2 default null,
+        r_importo              in varchar2 default null,
+        r_bonus                in varchar default null,
+        r_popupvisualizza      in boolean default false,
+        r_popupimportonegativo in varchar2 default null,
+        r_popupbonusnegativo   in varchar2 default null,
+        new_importo            in varchar2 default null,
+        new_bonus              in varchar2 default null
     );
 
     procedure visualizzabustepagadipendente (
@@ -55,36 +54,36 @@ create or replace package operazioniclienti as
         r_bonus      in varchar2 default null
     );
     procedure inserimentobustapaga (
-        r_IdSessione in varchar2,
-        r_fkdipendente        in varchar2 default null,
-        r_importo             in varchar2 default null,
-        r_bonus               in varchar2 default null
+        r_idsessione   in varchar2,
+        r_fkdipendente in varchar2 default null,
+        r_importo      in varchar2 default null,
+        r_bonus        in varchar2 default null
     );
 
     procedure visualizzaricarichecliente (
-        r_IdSessione in varchar2,
-		r_Data       in varchar2 default null,
-		r_Importo    in varchar2 default null,
-        r_PopUp in varchar2 default null
+        r_idsessione in varchar2,
+        r_data       in varchar2 default null,
+        r_importo    in varchar2 default null,
+        r_popup      in varchar2 default null
     );
     procedure inserimentoricarica (
-        r_IdSessione in varchar2,
-        r_Importo in varchar2 default null,
-        r_PopUp in varchar2 default null
+        r_idsessione in varchar2,
+        r_importo    in varchar2 default null,
+        r_popup      in varchar2 default null
     );
 
     procedure visualizzaclienti (
-        c_idSess VARCHAR default '-1', 
-        c_nome          varchar2 default null,
-        c_cognome       varchar2 default null,
-        c_datanascita   varchar2 default null,
-        sesso       varchar2 default null
+        c_idsess      varchar default '-1',
+        c_nome        varchar2 default null,
+        c_cognome     varchar2 default null,
+        c_datanascita varchar2 default null,
+        sesso         varchar2 default null
     );
 
-    procedure visualizzaProfilo (
-        c_idSessione varchar default '-1', 
-        id varchar2 default null
-    ); 
+    procedure visualizzaprofilo (
+        c_idsessione varchar default '-1',
+        id           varchar2 default null
+    );
 
     procedure inserimentoconvenzione;
     procedure inseriscidaticonvenzione (
@@ -92,9 +91,9 @@ create or replace package operazioniclienti as
         r_nome          varchar2 default null,
         r_ente          varchar2 default null,
         r_sconto        varchar2 default null,
-        r_codiceAccesso varchar2 default null,
-        r_dataInizio    varchar2 default null,
-        r_dataFine      varchar2 default null,
+        r_codiceaccesso varchar2 default null,
+        r_datainizio    varchar2 default null,
+        r_datafine      varchar2 default null,
         r_cumulabile    varchar2 default null
     );
     --procedure associaConvenzione;
@@ -120,8 +119,8 @@ create or replace package operazioniclienti as
         r_data         in varchar2 default null
     ) return boolean;
 
-    procedure eliminaCliente (
+    procedure eliminacliente (
         c_email varchar2 default null
-    ); 
+    );
 
 end operazioniclienti;
