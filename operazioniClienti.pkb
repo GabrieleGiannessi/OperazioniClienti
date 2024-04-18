@@ -326,6 +326,8 @@ BEGIN
                 gui.aggiungiIntestazione (testo => 'Profilo di '); 
                 gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (c_idSessione)); 
 
+                gui.bottoneAggiungi (testo => 'Inserisci convenzione', url => '#'); 
+
                 gui.aCapo(4); 
 
                 gui.apriDiv (classe => 'flex-container'); 
@@ -371,19 +373,9 @@ BEGIN
                                 gui.aggiungiIntestazione (testo => ' ', dimensione => 'h2');
                             gui.chiudiDiv; 
 
-                            gui.aCapo(3);
-
+                           -- gui.aCapo(3);
                              gui.aggiungiGruppoInput;
-                                gui.apriDiv (classe => 'flex-container'); 
-                                    gui.apriDiv (classe => 'left'); 
-                                        gui.bottoneAggiungi(testo => 'Associa convenzione', url => '#'); 
-                                    gui.chiudiDiv; 
-                                gui.apriDiv (classe => 'right');   
-                                    gui.bottoneAggiungi(testo => 'Modifica dati', url => '#'); 
-                                gui.chiudiDiv;
-                            gui.chiudiDiv; 
-
-                gui.chiudiGruppoInput; 
+                             gui.chiudiGruppoInput; 
             gui.chiudiForm; 
 
 
