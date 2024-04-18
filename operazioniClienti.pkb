@@ -378,8 +378,7 @@ procedure modificaBustaPaga (
     r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
     r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
     r_Data in BUSTEPAGA.DATA%TYPE default null,
-    r_popUpImportoNegativo in varchar2 default null,
-    r_popUpBonusNegativo in varchar2 default null,
+    r_PopUp in varchar2 default null,
     new_Importo in varchar2 default null,
     new_Data in varchar2 default null
 )
@@ -399,28 +398,30 @@ BEGIN
     </script>');
 
     gui.apriPagina(titolo => 'modificaBustaPaga', idSessione=>r_IdSessione);
-
+    SAVEPOINT sp1;
     /* Controllo che l'utente sia un contabile e che la busta paga possa essere modificata */
     IF(SESSIONHANDLER.GETRUOLO(r_IdSessione) = 'Contabile' AND r_Data > TRUNC(SYSDATE) )THEN
 
-        /* Stampa del popup*/
-        IF (r_popUpImportoNegativo = 'True') THEN
-            gui.AGGIUNGIPOPUP(False, 'Il valore del nuovo importo inserito è minore di zero.');
-        END IF;
-        IF (r_popUpBonusNegativo = 'True') THEN
-            gui.AGGIUNGIPOPUP(False, 'Il valore del nuovo bonus inserito è minore di zero.');
+        IF(r_PopUp IS NOT NULL) THEN
+            IF(r_PopUp = 'importoNegativo') THEN
+                gui.AGGIUNGIPOPUP(False, 'Errore: importo non può essere negativo. Modifica non effettuata!');
+            END IF;
+            IF(r_PopUp = 'dubBusta') THEN
+                gui.AGGIUNGIPOPUP(False, 'Errore: due buste paga nello stesso mese. Modifica non effettuata!');
+            END IF;
+            IF(r_PopUp = 'noDataFound') THEN
+                gui.AGGIUNGIPOPUP(False, 'Errore: busta paga che si vuole modificare non esiste. Modifica non effettuata!');
+            END IF;
         END IF;
 
         gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga del dipendente '||r_FkDipendente, Dimensione=>'h1');
 
-        /* Controllo che la busta paga esista */
+        -- Controllo che la busta paga esista
         IF(existBustaPaga (r_FkDipendente,  r_Data)) THEN
-
             -- Recupero vecchio Importo e vecchio contabile
             SELECT b.FK_CONTABILE, b.IMPORTO INTO old_contabile, old_importo
             FROM BUSTEPAGA b
             WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
-
             -- Creo il form
             gui.AGGIUNGIFORM();
                 gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_IdSessione', value=>r_IdSessione);
@@ -455,7 +456,6 @@ BEGIN
             gui.AGGIUNGIPOPUP(False, 'Non entra nell if');
         END IF;
         -- Recupero il bonus in percentuale da dipendenti
-        htp.prn('CIao');
         SELECT d.BONUS INTO bonus_percent
         FROM DIPENDENTI d
         WHERE d.MATRICOLA = r_FkDipendente;
@@ -468,13 +468,13 @@ BEGIN
                 BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
                 BUSTEPAGA.Bonus = (TO_NUMBER(new_Importo)*bonus_percent)/100
             WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Data = r_Data;
-
-            gui.REINDIRIZZA(costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'&r_PopUp=True');
-
+            -- Commit
+            COMMIT;
+            gui.REINDIRIZZA(costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'&r_popUp=True');
         END IF;
 
         IF (new_Importo < 0) THEN
-            gui.REINDIRIZZA(costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUpImportoNegativo=True');
+            gui.REINDIRIZZA(costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
         END IF;
 
     ELSE
@@ -482,6 +482,11 @@ BEGIN
     END IF;
 
     gui.CHIUDIPAGINA();
+
+    EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        ROLLBACK  TO sp1;
+        gui.REINDIRIZZA(costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
 
 END modificaBustaPaga;
 
@@ -696,7 +701,7 @@ BEGIN
                     history.replaceState(null, null, newUrl);
     </script>');
 
-    gui.APRIPAGINA(titolo => 'inserimentoRicarica',idSessione=>r_IdSessione);
+    gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>r_IdSessione);
 
     IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
             gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');

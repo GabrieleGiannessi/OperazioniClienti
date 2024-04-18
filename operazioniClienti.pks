@@ -35,13 +35,12 @@ create or replace package operazioniclienti as
     );
 
     procedure modificabustapaga (
-            r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-    r_Data in BUSTEPAGA.DATA%TYPE default null,
-    r_popUpImportoNegativo in varchar2 default null,
-    r_popUpBonusNegativo in varchar2 default null,
-    new_Importo in varchar2 default null,
-    new_Data in varchar2 default null
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data in BUSTEPAGA.DATA%TYPE default null,
+        r_PopUp in varchar2 default null,
+        new_Importo in varchar2 default null,
+        new_Data in varchar2 default null
     );
 
     procedure visualizzabustepagadipendente (
