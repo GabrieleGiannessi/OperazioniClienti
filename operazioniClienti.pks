@@ -28,45 +28,43 @@ create or replace package operazioniclienti as
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
         r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
         r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
         r_PopUp      in varchar2 default null
     );
 
     procedure modificabustapaga (
-         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data       in BUSTEPAGA.DATA%TYPE default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
-        r_popUpImportoNegativo in varchar2 default null,
-        r_popUpBonusNegativo in varchar2 default null,
-        new_Importo in varchar2 default null
+            r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+    r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+    r_Data in BUSTEPAGA.DATA%TYPE default null,
+    r_popUpImportoNegativo in varchar2 default null,
+    r_popUpBonusNegativo in varchar2 default null,
+    new_Importo in varchar2 default null,
+    new_Data in varchar2 default null
     );
 
     procedure visualizzabustepagadipendente (
-        r_IdSessione in varchar2,
-        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
         r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
     );
     procedure inserimentobustapaga (
-        r_IdSessione in varchar2,
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Data       in BUSTEPAGA.DATA%TYPE default null,
+        r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null
     );
 
     procedure visualizzaricarichecliente (
-        r_IdSessione in varchar2,
-		r_Data       in RICARICHE.DATA%TYPE default null,
-		r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
     procedure inserimentoricarica (
-        r_IdSessione in varchar2,
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
@@ -114,7 +112,6 @@ create or replace package operazioniclienti as
 
     function existbustapaga (
         r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE,
-        r_FkContabile in BUSTEPAGA.FK_CONTABILE%TYPE,
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
 
