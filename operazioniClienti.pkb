@@ -97,16 +97,15 @@ PROCEDURE inserimentoConvenzione(
 ) IS
 BEGIN
 
-    --if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-    --    gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
-    --    gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
-    --return;  
-    --end if; 
+    if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+        gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
+    return;  
+    end if; 
 
     gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
     gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');  
     -- Inserimento dei campi del modulo
-    gui.AGGIUNGIGRUPPOINPUT;
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
     gui.aCapo();
     gui.AggiungiGruppoInput;
@@ -119,14 +118,14 @@ BEGIN
     
 
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.aggiungiIntestazione (testo => 'Data inizio', dimensione => 'h2');
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
-    gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2');
-    gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
-    gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
-    gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
-    gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
-    gui.ChiudiSelectFormFiltro;
+        gui.aggiungiIntestazione (testo => 'Data inizio', dimensione => 'h2');
+        gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
+        gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2');
+        gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
+        gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
+        gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
+        gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
+        gui.ChiudiSelectFormFiltro;
     gui.chiudiGruppoInput;
 
     -- Bottone di submit per inviare il modulo
@@ -137,6 +136,7 @@ BEGIN
 
     -- Chiusura del modulo
         gui.ChiudiForm;
+        gui.aCapo(2);
     gui.ChiudiPagina;
         
 
@@ -282,31 +282,34 @@ END inseriscidatiConvenzione;
     
 
     gui.AGGIUNGIGRUPPOINPUT;      
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
-    gui.AGGIUNGIPARAGRAFO (testo => current_email);     
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');  
-    gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
+        gui.AGGIUNGIPARAGRAFO (testo => current_email);     
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');  
+        gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
     gui.CHIUDIGRUPPOINPUT; 
 
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');     
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');  
-    gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false); 
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');     
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');  
+        gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false); 
     gui.CHIUDIGRUPPOINPUT; 
 
     gui.AGGIUNGIGRUPPOINPUT; 
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
-    gui.AGGIUNGIPARAGRAFO (testo => current_telefono);     
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
-    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
+        gui.AGGIUNGIPARAGRAFO (testo => current_telefono);     
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
+        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
     gui.CHIUDIGRUPPOINPUT;
 
     gui.AGGIUNGIGRUPPOINPUT;
                 gui.aggiungiBottoneSubmit (value => 'Modifica');
     gui.CHIUDIGRUPPOINPUT;
+
     gui.CHIUDIFORM; 
+    gui.aCapo(2); 
+    gui.chiudiPagina; 
 
     EXCEPTION 
     WHEN OTHERS THEN
@@ -316,7 +319,7 @@ END modificaCliente;
 -- non si può fare
 procedure eliminaCliente(
     c_id VARCHAR2 DEFAULT NULL
-) is
+) is    
 BEGIN
     gui.apriPagina ('PaginaEliminaCliente'); 
 
@@ -432,7 +435,7 @@ BEGIN
                                 gui.aggiungiIntestazione (testo => 'Saldo', dimensione => 'h2');
                             gui.chiudiDiv; 
                             gui.apriDiv (classe => 'right');   
-                                gui.aggiungiIntestazione (testo => c_Saldo, dimensione => 'h2');
+                                gui.aggiungiIntestazione (testo => c_Saldo || '€', dimensione => 'h2');
                             gui.chiudiDiv; 
                             end if; 
 
@@ -442,8 +445,8 @@ BEGIN
                             gui.apriDiv (classe => 'right');
                                 gui.aggiungiIntestazione (testo => ' ', dimensione => 'h2');
                             gui.chiudiDiv;
-
-                             gui.chiudiGruppoInput; 
+                        gui.chiudiDiv; 
+                    gui.chiudiGruppoInput; 
 
                             if (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
                                 gui.aggiungiGruppoInput;               
@@ -463,13 +466,14 @@ BEGIN
                             if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then 
                              gui.aCapo(2);
                                 gui.aggiungiGruppoInput;               
-                                    gui.bottoneAggiungi (url => u_root || '.visualizzaClienti?idSess='||idSess||'', testo => 'Torna indietro');                  
-                             gui.chiudiGruppoInput;
+                                        gui.bottoneAggiungi (url => u_root || '.visualizzaClienti?idSess='||idSess||'', testo => 'Torna indietro');                  
+                                 gui.chiudiGruppoInput;
                             end if; 
                             
                             
-            gui.chiudiForm; 
-        --gui.ChiudiPagina;
+            gui.chiudiForm;
+            gui.aCapo(3); 
+        gui.ChiudiPagina;
 
         END visualizzaProfilo;  
  
