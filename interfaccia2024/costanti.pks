@@ -6,17 +6,17 @@ create or replace PACKAGE costanti as
   tableSortScript CONSTANT VARCHAR2(32767) := '
   var lastSortedTH;
   var ordTH = true;
-
+      
   const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
 
-  const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+  const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
     )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 
   document.querySelectorAll("th").forEach(th => th.addEventListener("click", (() => {
     const table = th.closest("table");
     const l = th.innerText.length;
-
+    
     if(lastSortedTH == th) {
       ordTH ?
         th.innerText = th.innerText.substring(0, l-1) + "▴"
@@ -121,14 +121,14 @@ function mostraConferma(riga, url) {
     // Controlla se la riga di conferma è già presente altrimenti la crea
     if (!riga.nextElementSibling || !riga.nextElementSibling.classList.contains('rigaConferma')) {
         var nuovaRiga = document.createElement("tr");
-        nuovaRiga.classList.add('rigaConferma');
+        nuovaRiga.classList.add('rigaConferma'); 
         var nuovaCella = nuovaRiga.insertCell(0);
         nuovaCella.colSpan = riga.cells.length; //Non funziona
-
-        nuovaCella.innerHTML = "Sicuro di voler cancellare? " +
-                                "<button onclick=\"apriURL('" + url + "')\">Sì</button> " +
+        
+        nuovaCella.innerHTML = "Confermi? " +
+                                "<button onclick=\"apriURL('" + url + "')\">Sì</button> " + 
                                 "<button onclick=\"annullaEliminazione(this.parentNode.parentNode)\">No</button>";
-
+        
         // Inserisci la nuova riga dopo la riga corrente
         riga.parentNode.insertBefore(nuovaRiga, riga.nextSibling);
     }
@@ -230,7 +230,7 @@ function nascondiPopup() {
   padding: 1px 0px 1px 0px;
   top:0px;
   left:0px;
-  z-index:999; /*mi assicuro che la top bar sia sempre il primo elemento della pagina*/
+  z-index:999; /*mi assicuro che la top bar sia sempre il primo elemento della pagina*/   
 }
 
 a{
@@ -312,7 +312,7 @@ a{
   }
 
 /* Roba tabella */
-body{
+body{ 
   max-width: 100vw;
   margin: 0px;
   padding: 0px;
@@ -389,19 +389,19 @@ body{
       }
 
     button{
-      background-color: #000000;
+      background-color: #000000; 
       color: white;
       padding: 5px;
       border: none;
       margin: 0px;
-      border-radius: 10px;
+      border-radius: 10px; 
       cursor: pointer;
       min-width: 30px;
     }
 }
 
 .inputTAB{
-
+  
   display: table;
   border-collapse: collapse;
   border-radius: 5px;
@@ -519,6 +519,37 @@ body{
     margin:0px;
     text-align:center;
   }
+
+
+//prova per profilo
+  .flex-container {
+    display: flex;
+}
+
+.left {
+    width : 50%;
+    height : 70px;
+    flex: 1;
+    float : left;
+    justify-content: start;
+}
+
+.right {
+    width : 50%;
+    height : 70px;
+    flex: 1;
+    float : right;
+    text-align: right; /* Allinea il testo a destra */
+
+    h2{
+      color : black;
+    }
+  }
+
+.left h2,
+.right h2 {
+  margin:0;
+}
 
   /*Roba per form
       URL : https://codepen.io/arefeh_htmi/pen/mdPYZKJ */
@@ -1083,7 +1114,7 @@ body{
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  cursor: pointer;
+  cursor: pointer; 
 }
 
   .bottone-popup:hover {
@@ -1174,6 +1205,32 @@ body{
   .datatable-table > tbody > tr > td{
     vertical-align: baseline !important;
     padding: 0px !important;
+  }
+
+  .datatable-table > thead > tr > th{
+    vertical-align: middle !important;
+    padding: 0px !important;
+    border-bottom: inherit;
+    text-align:center;
+  }
+
+  .datatable-sorter::before {
+    border-bottom: 4px solid #000;
+    border-top: 0px solid transparent;
+    transform: rotate(180deg);
+    bottom: 15px;
+    right: 2px;
+  }
+
+  .datatable-sorter::after {
+    /*border-bottom: 4px solid #000;*/
+    border-top: 4px solid transparent;
+    top: 12px;
+    right: 2px;
+  }
+
+  .datatable-top, .datatable-bottom {
+    padding: 2px 5px;
   }
 
 ';

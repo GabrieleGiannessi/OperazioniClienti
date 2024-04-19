@@ -1,8 +1,6 @@
 create or replace package operazioniclienti as
-
-    u_user CONSTANT VARCHAR(100):='http://131.114.73.203:8080/apex/g_giannessi'; 
-    u_root CONSTANT VARCHAR(100):=u_user||'.operazioniClienti';
-  
+    u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
+    u_root constant varchar(100) := u_user || '.operazioniClienti';
     procedure registrazionecliente;
 
     procedure inseriscidati (
@@ -18,7 +16,8 @@ create or replace package operazioniclienti as
     );
 
     procedure modificacliente (
-        id          varchar2 default null,
+        idsess      varchar default null,  -- identifica chi sta facendo l'accesso
+        cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
         cl_email    varchar2 default null,
         cl_password varchar2 default null,
         cl_telefono varchar2 default null
@@ -69,17 +68,17 @@ create or replace package operazioniclienti as
     );
 
     procedure visualizzaclienti (
-        c_idSess VARCHAR default '-1', 
-        c_nome          varchar2 default null,
-        c_cognome       varchar2 default null,
-        c_datanascita   varchar2 default null,
-        sesso       varchar2 default null
+        c_idsess      varchar default '-1',
+        c_nome        varchar2 default null,
+        c_cognome     varchar2 default null,
+        c_datanascita varchar2 default null,
+        sesso         varchar2 default null
     );
 
-    procedure visualizzaProfilo (
-        c_idSessione varchar default '-1', 
-        id varchar2 default null
-    ); 
+    procedure visualizzaprofilo (
+        c_idsessione varchar default '-1',
+        id           varchar2 default null
+    );
 
     procedure inserimentoconvenzione;
     procedure inseriscidaticonvenzione (
@@ -87,9 +86,9 @@ create or replace package operazioniclienti as
         r_nome          varchar2 default null,
         r_ente          varchar2 default null,
         r_sconto        varchar2 default null,
-        r_codiceAccesso varchar2 default null,
-        r_dataInizio    varchar2 default null,
-        r_dataFine      varchar2 default null,
+        r_codiceaccesso varchar2 default null,
+        r_datainizio    varchar2 default null,
+        r_datafine      varchar2 default null,
         r_cumulabile    varchar2 default null
     );
     --procedure associaConvenzione;
@@ -114,8 +113,8 @@ create or replace package operazioniclienti as
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
 
-    procedure eliminaCliente (
+    procedure eliminacliente (
         c_email varchar2 default null
-    ); 
+    );
 
 end operazioniclienti;

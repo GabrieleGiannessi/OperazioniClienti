@@ -1,60 +1,61 @@
-SET DEFINE OFF;
+SET DEFINE OFF; 
 
 create or replace PACKAGE BODY operazioniClienti as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
-    BEGIN
+    BEGIN   
     gui.APRIPAGINA(titolo => 'Registrazione');
-    gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');
+    gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');  
 
-
-            gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
+          
+            gui.aggiungiIntestazione(testo => 'Registrazione');
+            gui.acapo;
             gui.AGGIUNGIGRUPPOINPUT;
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');
-                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');
-                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password');
-                gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
+                gui.aggiungiIntestazione(testo => 'Informazioni personali', dimensione => 'h2');
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');        
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');        
+                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');   
+                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password'); 
+                gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono'); 
             gui.CHIUDIGRUPPOINPUT;
-
-
-
-           gui.APRIDIV (classe => 'col-half');
-           gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4');
-
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.APRIDIV (classe => 'col-third');
-                        gui.AGGIUNGIINPUT (placeholder => 'DD', nome => 'Day', classe => '');
-                    gui.CHIUDIDIV;
-
-                    gui.APRIDIV (classe => 'col-third');
-                        gui.AGGIUNGIINPUT (placeholder => 'MM', nome => 'Month', classe => '');
-                    gui.CHIUDIDIV;
-
-                    gui.APRIDIV (classe => 'col-third');
-                        gui.AGGIUNGIINPUT (placeholder => 'YYYY', nome => 'Year', classe => '');
-                    gui.CHIUDIDIV;
-                gui.CHIUDIGRUPPOINPUT;
-
-            gui.CHIUDIGRUPPOINPUT;
-
+          
+    
+           gui.aggiungiGruppoInput;
             gui.APRIDIV (classe => 'col-half');
-                gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
+                gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4');
 
-                    gui.AGGIUNGIGRUPPOINPUT;
+                    gui.APRIDIV (classe => 'col-third');
+                        gui.AGGIUNGIINPUT (placeholder => 'DD', nome => 'Day', classe => ''); 
+                    gui.CHIUDIDIV;
+
+                    gui.APRIDIV (classe => 'col-third');
+                        gui.AGGIUNGIINPUT (placeholder => 'MM', nome => 'Month', classe => ''); 
+                    gui.CHIUDIDIV;
+
+                    gui.APRIDIV (classe => 'col-third');
+                        gui.AGGIUNGIINPUT (placeholder => 'YYYY', nome => 'Year', classe => ''); 
+                    gui.CHIUDIDIV;
+                gui.chiudiDiv;
+
+                    gui.APRIDIV (classe => 'col-half');
+                        gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
+
+                    gui.AGGIUNGIGRUPPOINPUT; 
                         gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-male', tipo => 'radio', value => 'M');
-                        gui.AGGIUNGILABEL (target => 'gender-male', testo => 'Maschio');
+                        gui.AGGIUNGILABEL (target => 'gender-male', testo => 'Maschio');  
                         gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-female', tipo => 'radio', value => 'F');
-                        gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina');
-                    gui.CHIUDIGRUPPOINPUT;
-            gui.CHIUDIDIV;
+                        gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina'); 
+                    gui.CHIUDIGRUPPOINPUT;  
+                gui.CHIUDIDIV;
 
-            gui.AGGIUNGIGRUPPOINPUT;
-                    gui.aggiungiBottoneSubmit (value => 'Registra');
-            gui.CHIUDIGRUPPOINPUT;
-    gui.CHIUDIFORM;
-    END registrazioneCliente;
+           gui.CHIUDIGRUPPOINPUT;
+           
+            gui.AGGIUNGIGRUPPOINPUT; 
+                    gui.aggiungiBottoneSubmit (value => 'Registra'); 
+            gui.CHIUDIGRUPPOINPUT; 
+    gui.CHIUDIFORM; 
+    END registrazioneCliente; 
 
 --inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
     procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
@@ -62,28 +63,29 @@ create or replace PACKAGE BODY operazioniClienti as
     Email VARCHAR2 DEFAULT NULL,
     Password VARCHAR2 DEFAULT NULL,
     Telefono VARCHAR2 DEFAULT NULL,
-    Day VARCHAR2 DEFAULT NULL,
+    Day VARCHAR2 DEFAULT NULL,   
     Month VARCHAR2 DEFAULT NULL,
     Year VARCHAR2 DEFAULT NULL,
     Gender VARCHAR2 DEFAULT NULL) IS
 
-    DataNascita DATE;
-    Sesso CHAR(1);
-
+    DataNascita DATE; 
+    Sesso CHAR(1); 
+   
     begin
-        gui.ApriPagina ('Registrazione');
         DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY');
         Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
 
-        INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo)
-        VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0);
+        INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
+        VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
 
-        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+        --se l'inserimento va a buon fine, apro la pagina di login
 
+        gui.HomePage (p_registrazione => true);
 
     EXCEPTION
     WHEN OTHERS THEN
         --visualizza popup di errore
+        gui.ApriPagina ('Errore');
         gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
     end inserisciDati;
 
@@ -91,33 +93,36 @@ create or replace PACKAGE BODY operazioniClienti as
 PROCEDURE inserimentoConvenzione IS
 BEGIN
     gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
-    gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');
+    gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');  
     -- Inserimento dei campi del modulo
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
+    gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
+    gui.aCapo();
     gui.AggiungiGruppoInput;
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
+     gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
+    gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
-
+    
 
     gui.AGGIUNGIGRUPPOINPUT;
+    gui.aggiungiIntestazione (testo => 'Data inizio', dimensione => 'h2');
     gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
+    gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2');
     gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
     gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
-
+    gui.chiudiGruppoInput;
 
     -- Bottone di submit per inviare il modulo
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.AggiungiGruppoInput;
     gui.AggiungiBottoneSubmit(value => 'Inserisci');
     gui.ChiudiGruppoInput;
-
+    
 
     -- Chiusura del modulo
     gui.ChiudiForm;
@@ -152,11 +157,13 @@ EXCEPTION
     WHEN OTHERS THEN
         -- Gestione dell'eccezione e stampa dell'errore
         gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
+
 END inseriscidatiConvenzione;
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente(
-    id VARCHAR2 DEFAULT NULL,
+    idSess VARCHAR DEFAULT NULL,
+    cl_id VARCHAR2 DEFAULT NULL,
     cl_Email VARCHAR2 DEFAULT NULL,
     cl_Password VARCHAR2 DEFAULT NULL,
     cl_Telefono VARCHAR2 DEFAULT NULL
@@ -165,123 +172,225 @@ END inseriscidatiConvenzione;
     current_email CLIENTI.Email%TYPE := NULL;
     current_telefono CLIENTI.Ntelefono%TYPE := NULL;
     current_password CLIENTI.Password%TYPE := NULL;
+    popup BOOLEAN := false;
+    c INTEGER := 0;
 
     BEGIN
+    gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
 
-    SELECT Email, Ntelefono, Password
-    INTO current_email, current_telefono, current_password
-    FROM CLIENTI
-    WHERE IDcliente = id;
+    --accedo alla pagina (se sono cliente o operatore)
+    if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore')) then
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+        return;
+    end if;
 
-    gui.APRIPAGINA(titolo => 'Modifica dati cliente');
+    --un cliente non può accedere alla pagina modifica di un altro cliente
+    if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti');
+        return;
+    end if;
 
-    IF cl_Email <> current_email THEN
+        SELECT Email, Ntelefono, Password
+            INTO current_email, current_telefono, current_password
+                FROM CLIENTI
+                    WHERE IDCLIENTE  = cl_id;
+
         -- Aggiornamento dell'email
+    IF cl_Email IS NOT NULL AND cl_Email <> current_email THEN
         UPDATE CLIENTI
         SET Email = cl_Email
-        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
+        WHERE IDcliente = cl_id;
+        popup := true;
+        c := c + 1;
 
-        gui.AGGIUNGIPOPUP (True , 'Email modificata!');
-        gui.aCapo;
     END IF;
 
-    IF cl_Password <> current_password THEN
-        -- Aggiornamento della password
-        UPDATE CLIENTI
-        SET Password = cl_Password
-        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
-
-        gui.AGGIUNGIPOPUP (True , 'Password modificata!');
-        gui.aCapo;
+    --aggiornamento password
+    IF cl_Password IS NOT NULL AND cl_Password <> current_password THEN
+            UPDATE CLIENTI
+                SET Password = cl_Password
+                    WHERE IDcliente = cl_id;
+        popup := true;
+        c := c + 1;
     END IF;
 
-    IF cl_Telefono <> current_telefono THEN
         -- Aggiornamento del telefono
+    IF cl_Telefono IS NOT NULL AND cl_Telefono <> current_telefono THEN
         UPDATE CLIENTI
         SET Ntelefono = cl_Telefono
-        WHERE IDcliente = id; --sono certo che esista l'id del cliente in quanto è presente nella tabella di visualizzazione
+        WHERE IDcliente = cl_id;
 
-        gui.AGGIUNGIPOPUP (True , 'Numero di telefono modificato!');
-        gui.aCapo;
-
+        popup := true;
+        c := c + 1;
     END IF;
 
-    --ri-aggiorno i valori da visualizzare nella schermata
+    --logica popup di successo
+    if popup AND c>1 then
+        gui.AGGIUNGIPOPUP (True , 'Campi modificati');
+        gui.aCapo;
+        else
+        if popup AND c=1 then
+        gui.AGGIUNGIPOPUP (True , 'Campo modificato');
+        gui.aCapo;
+        end if;
+    end if;
+
+    --ri-aggiorno i valori da visualizzare nella schermata 
     SELECT Email, Ntelefono, Password
     INTO current_email, current_telefono, current_password
     FROM CLIENTI
-    WHERE IDcliente = id;
+    WHERE IDcliente = cl_id;
+
 
     gui.AGGIUNGIFORM;
 
+    gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
+    gui.aggiungiInput (tipo => 'hidden', nome => 'cl_id', value => cl_id);
 
-    gui.aggiungiInput (tipo => 'hidden', nome => 'id', value => id);
+    gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
+    if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
+    gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
+    end if;
 
-    gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+    -- se chi accede alla pagina è un operatore visualizzo il bottone per tornare alla tabella
+    if SESSIONHANDLER.checkRuolo(idSess, 'Operatore') then
+        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?c_idSess='||idSess||'');
+        gui.aCapo(2);
+    end if;
 
-    gui.AGGIUNGIGRUPPOINPUT;
+    gui.AGGIUNGIGRUPPOINPUT;      
     gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
     gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
-    gui.AGGIUNGIPARAGRAFO (testo => current_email);
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');
+    gui.AGGIUNGIPARAGRAFO (testo => current_email);     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');  
     gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
-    gui.CHIUDIGRUPPOINPUT;
+    gui.CHIUDIGRUPPOINPUT; 
 
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');
-    gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false);
-    gui.CHIUDIGRUPPOINPUT;
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');  
+    gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false); 
+    gui.CHIUDIGRUPPOINPUT; 
 
-    gui.AGGIUNGIGRUPPOINPUT;
+    gui.AGGIUNGIGRUPPOINPUT; 
     gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
     gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
-    gui.AGGIUNGIPARAGRAFO (testo => current_telefono);
-    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3');
-    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false);
+    gui.AGGIUNGIPARAGRAFO (testo => current_telefono);     
+    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3'); 
+    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false); 
     gui.CHIUDIGRUPPOINPUT;
-
-
 
     gui.AGGIUNGIGRUPPOINPUT;
-            gui.aggiungiBottoneSubmit (value => 'Modifica');
+                gui.aggiungiBottoneSubmit (value => 'Modifica');
     gui.CHIUDIGRUPPOINPUT;
+    gui.CHIUDIFORM; 
 
-
-    gui.CHIUDIFORM;
-
-    EXCEPTION
+    EXCEPTION 
     WHEN OTHERS THEN
-    gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!');
+    gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!'); 
 END modificaCliente;
 
+-- non si può fare
 procedure eliminaCliente(
     c_email VARCHAR2 DEFAULT NULL
 ) is
 BEGIN
-    gui.apriPagina ('PaginaEliminaCliente');
+    gui.apriPagina ('PaginaEliminaCliente'); 
 
-    DELETE FROM CLIENTI WHERE Email = c_email;
-    gui.aggiungiPopup (True, 'Ciaooooo');
+    DELETE FROM CLIENTI WHERE Email = c_email; 
+    gui.aggiungiPopup (True, 'Ciaooooo'); 
 
     EXCEPTION
-    WHEN OTHERS THEN
-        gui.aggiungiPopup (False, 'Rimozione del cliente non andata a buon fine!');
-    END eliminaCliente;
+    WHEN OTHERS THEN 
+        gui.aggiungiPopup (False, 'Rimozione del cliente non andata a buon fine!');    
+    END eliminaCliente; 
 
     procedure visualizzaProfilo (
-        c_idSessione varchar default '-1',
-        id varchar2 default null
+        c_idSessione varchar default '-1', 
+        id varchar2 default null 
     ) is
+    c_Nome varchar2(20);
+    c_Cognome varchar2(20);
+    c_DataNascita date;
+    c_Telefono int;
+    c_Email varchar2(50);
+    c_Sesso char(1);
+    c_Password varchar2(20);
+    c_saldo int;
+
     BEGIN
+            --prelevo i dati di cui ho bisogno tramite l'id
+            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita,
+            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = SessionHandler.getIDuser (c_idSessione);
 
-            gui.apriPagina (titolo => 'Profilo di '||SessionHandler.GETUSERNAME (c_idSessione)||'', idSessione => c_idSessione);
-           --htp.prn (''||SESSIONHANDLER.GETRUOLO(c_idSessione)||'');
-           --htp.prn (''||SESSIONHANDLER.GETUSERNAME(c_idSessione)||'');
-           --htp.prn (''||SESSIONHANDLER.getIdUser(c_idSessione)||'');
+            gui.apriPagina (titolo => 'Profilo', idSessione => c_idSessione);
 
-        END visualizzaProfilo;
+            gui.aggiungiForm;
+                --devo aggiungere i dati del cliente tramite sessionHandler
 
+                gui.aggiungiIntestazione (testo => 'Profilo di ');
+                gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (c_idSessione));
+
+                gui.bottoneAggiungi (testo => 'Associa convenzione', url => '#');
+
+                gui.aCapo(4);
+
+                gui.aggiungiGruppoInput;
+                gui.apriDiv (classe => 'flex-container');
+                            gui.apriDiv (classe => 'left');
+                                gui.aggiungiIntestazione (testo => 'Nome', dimensione => 'h2');
+                            gui.chiudiDiv;
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => c_Nome, dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            gui.apriDiv (classe => 'left');
+                                gui.aggiungiIntestazione (testo => 'Cognome', dimensione => 'h2');
+                            gui.chiudiDiv;
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => c_Cognome, dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            gui.apriDiv (classe => 'left');
+                                gui.aggiungiIntestazione (testo => 'Data di nascita', dimensione => 'h2');
+                            gui.chiudiDiv;
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => ''||c_DataNascita||'', dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            gui.apriDiv (classe => 'left');
+                                gui.aggiungiIntestazione (testo => 'Telefono', dimensione => 'h2');
+                            gui.chiudiDiv;
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => ''||c_Telefono||'', dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            gui.apriDiv (classe => 'left');
+                                gui.aggiungiIntestazione (testo => 'Email', dimensione => 'h2');
+                            gui.chiudiDiv;
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => c_Email, dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            gui.apriDiv (classe => 'left');
+                                gui.aggiungiIntestazione (testo => 'Convenzione associata', dimensione => 'h2');
+                            gui.chiudiDiv;
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => ' ', dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                           -- gui.aCapo(3);
+                             gui.chiudiGruppoInput;
+
+                             gui.aggiungiGruppoInput;
+                                gui.aggiungiBottoneSubmit (value => 'Modifica dati');
+                             gui.chiudiGruppoInput;
+
+            gui.chiudiForm;
+
+
+        END visualizzaProfilo;  
+ 
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
 procedure visualizzaBustePaga(
@@ -294,9 +403,10 @@ procedure visualizzaBustePaga(
     r_PopUp      in varchar2 default null
 ) is
 
-head gui.StringArray;
+    head gui.StringArray; 
 
-BEGIN
+    BEGIN
+
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
      htp.prn('<script>   const newUrl = "'||costanti.user_root||'visualizzaBustePaga?r_IdSessione='||r_IdSessione||'";
                         history.replaceState(null, null, newUrl);
@@ -312,7 +422,7 @@ BEGIN
             gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
         END IF;
 
-        gui.APRIFORMFILTRO();
+        gui.APRIFORMFILTRO(); 
             gui.aggiungiinput(tipo=> 'hidden', nome => 'r_IdSessione', value=>r_IdSessione);
             gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
             gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
@@ -320,11 +430,11 @@ BEGIN
             gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
             gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
             gui.aggiungicampoformfiltro('submit', '','','Filtra');
-        gui.CHIUDIFORMFILTRO;
+        gui.CHIUDIFORMFILTRO; 
 
         gui.aCapo;
 
-        gui.APRITABELLA (elementi => head);
+        gui.APRITABELLA (elementi => head); 
 
         for busta_paga IN (
             select *
@@ -335,19 +445,19 @@ BEGIN
                 and ( b.importo = r_Importo or r_Importo is null )
                 and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
-        )
+        ) 
         LOOP
-            gui.AGGIUNGIRIGATABELLA;
+            gui.AGGIUNGIRIGATABELLA; 
 
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE); 
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Importo);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Bonus);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
-                gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||CHR(38)||'r_FkDipendente='||busta_paga.FK_DIPENDENTE||CHR(38)||'r_Data='||busta_paga.Data);
-                gui.chiudiElementoPulsanti;
+                gui.apriElementoPulsanti; 
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => costanti.user_root||'modificaBustaPaga?r_IdSessione='||r_IdSessione||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.chiudiElementoPulsanti; 
 
             gui.CHIUDIRIGATABELLA;
         END LOOP;
@@ -791,43 +901,43 @@ end inserimentoRicarica;
 
 
   procedure visualizzaClienti(
-    c_idSess VARCHAR default '-1',
+    c_idSess VARCHAR default '-1', 
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
     Sesso VARCHAR2 default NULL
   ) IS
 
-   head gui.StringArray; --parametri per headers della tabella
+   head gui.StringArray; --parametri per headers della tabella 
 
    BEGIN
 
    head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email', ' ');
    gui.apriPagina (titolo => 'visualizza clienti', idSessione => c_idSess);
 
-  gui.APRIFORMFILTRO;
+  gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.apriSelectFormFiltro ('Sesso', 'Sesso');
+        gui.apriSelectFormFiltro ('Sesso', 'Sesso'); 
         gui.aggiungiOpzioneSelect ('', true, '');
         gui.aggiungiOpzioneSelect ('M', true, 'Maschio');
         gui.aggiungiOpzioneSelect ('F', true , 'Femmina');
-        gui.chiudiSelectFormFiltro;
+        gui.chiudiSelectFormFiltro; 
 		gui.aggiungicampoformfiltro(tipo => 'submit', value => 'Filtra', placeholder => 'filtra');
-    gui.CHIUDIFORMFILTRO;
-    gui.aCapo(2);
+    gui.CHIUDIFORMFILTRO; 
+    gui.aCapo(2); 
 
     gui.APRITABELLA (elementi => head);
-
+   
    for clienti IN
    (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM CLIENTI
         where ( CLIENTI.NOME = c_Nome or c_Nome is null )
 		and ( ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR trunc( CLIENTI.DATANASCITA) < to_date(c_DataNascita,'YYYY-MM-DD')) or c_DataNascita is null )
 		and ( CLIENTI.COGNOME = c_Cognome or c_Cognome is null )
         and ( CLIENTI.SESSO = Sesso or Sesso is null )
-    )
-   LOOP
+    ) 
+   LOOP 
     gui.AGGIUNGIRIGATABELLA;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
@@ -842,22 +952,22 @@ end inserimentoRicarica;
             gui.chiudiElementoPulsanti;
     gui.ChiudiRigaTabella;
     end LOOP;
-    gui.CHIUDITABELLA;
+    gui.CHIUDITABELLA; 
 
-END visualizzaClienti;
+END visualizzaClienti; 
 
 procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
     DataFine VARCHAR2 DEFAULT NULL,
     Ente VARCHAR2 DEFAULT NULL
-    /*cumulabile*/) is
+    /*cumulabile*/) is 
 
-    head gui.StringArray;
+    head gui.StringArray; 
 
 BEGIN
 
-   head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile');
+   head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
    gui.apriPagina (titolo => 'visualizza Convenzioni');
-   gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/);
+   gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/); 
 
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio');
    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');
@@ -868,9 +978,9 @@ BEGIN
    gui.APRITABELLA (head);
 
    for convenzioni IN
-   (SELECT IDConvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile FROM CONVENZIONI)
+   (SELECT IDConvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile FROM CONVENZIONI) 
    LOOP
-    gui.AGGIUNGIRIGATABELLA;
+    gui.AGGIUNGIRIGATABELLA; 
 
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.IDConvenzione);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Nome);
@@ -882,18 +992,18 @@ BEGIN
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Cumulabile);
 
     gui.ChiudiRigaTabella;
-    end LOOP;
+    end LOOP; 
 
-    gui.ChiudiTabella;
+    gui.ChiudiTabella; 
 
-END visualizzazioneConvenzioni;
+END visualizzazioneConvenzioni; 
 
 
 /* DA RIVEDERE CON L'ALTRO GRUPPO */
 procedure inserimentoContabile (
     r_IdSessioneManager varchar2 default null,
     r_FkDipendente varchar2 default null
-)
+) 
 IS
 BEGIN
 
