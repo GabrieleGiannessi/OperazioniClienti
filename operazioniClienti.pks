@@ -94,12 +94,20 @@ create or replace package operazioniclienti as
 		r_datafine      varchar2 default null,
 		r_cumulabile    varchar2 default null
 	);
-    --procedure associaConvenzione;
+
 	procedure visualizzazioneconvenzioni (
 		datainizio varchar2 default null,
 		datafine   varchar2 default null,
 		ente       varchar2 default null
 	);
+
+	procedure associaConvenzione (
+		idSess varchar default null
+	); 
+	procedure modificaConvenzione (
+		idSess varchar default null
+	); 
+
 	procedure inserimentocontabile (
 		r_idsessionemanager varchar2 default null,
 		r_fkdipendente      varchar2 default null
