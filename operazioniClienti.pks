@@ -1,5 +1,5 @@
 create or replace package operazioniclienti as
-    u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
+    u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/a_cucchiara';
     u_root constant varchar(100) := u_user || '.operazioniClienti';
     procedure registrazionecliente;
 
@@ -96,7 +96,12 @@ create or replace package operazioniclienti as
         r_datafine      varchar2 default null,
         r_cumulabile    varchar2 default null
     );
-    --procedure associaConvenzione;
+    procedure associaConvenzione(
+        r_idSessioneCliente varchar2,
+        r_fkCliente varchar2 default null,
+        r_fkConvenzione varchar2 default null,
+        r_codiceAccesso varchar2 default null
+        );
     procedure visualizzazioneconvenzioni (
         datainizio varchar2 default null,
         datafine   varchar2 default null,
@@ -106,6 +111,10 @@ create or replace package operazioniclienti as
         r_idsessionemanager varchar2 default null,
         r_fkdipendente      varchar2 default null
     );
+
+    function checkConv(
+        r_codice in varchar2 default null
+    )return boolean;
 
     function existdipendente (
         r_iddipendente in varchar2 default null

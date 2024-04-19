@@ -148,8 +148,8 @@ BEGIN
     gui.ApriPagina('Inserimento Convenzione');
 
     -- Inserimento dei dati nella tabella CONVENZIONI
-    INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
-    VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
+    INSERT INTO CONVENZIONI (IDCONVENZIONE,Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+    VALUES (SEQ_IDCONVENZIONE.nextval,r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
 
     -- Messaggio di conferma dell'inserimento
     gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
@@ -159,6 +159,64 @@ EXCEPTION
         gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
 
 END inseriscidatiConvenzione;   
+
+--procedura per l'associazione di un cliente ad una convenzione 
+function checkConv(
+    r_codice in varchar2 default null) return boolean IS
+     count_conv number;
+     BEGIN
+        SELECT COUNT(*) INTO count_conv
+        FROM CONVENZIONI 
+        WHERE CODICEACCESSO = r_codice;
+
+       if (count_conv = 1) then 
+            return true;
+       else 
+            return false;
+       end if;
+     end checkConv;    
+             
+ procedure associaConvenzione(
+        r_idSessioneCliente varchar2,
+        r_fkCliente varchar2 default null,
+        r_fkConvenzione varchar2 default null,
+        r_codiceAccesso varchar2 default null
+ ) IS
+    
+    current_Convenzione  CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+
+    BEGIN
+        gui.APRIPAGINA(titolo => 'Associa Convenzione'/*, idSessione => r_idSessioneCliente*/);
+        gui.AGGIUNGIFORM(url => u_root || '.associaConvenzione');
+        gui.AGGIUNGIGRUPPOINPUT;
+            gui.AGGIUNGIINTESTAZIONE(testo => 'Inserisci codice Convenzione');
+            gui.aCapo;
+        gui.AGGIUNGIGRUPPOINPUT;
+            gui.AGGIUNGICAMPOFORM(tipo => 'text', nome => 'r_codiceAcesso', placeholder => 'Codice Acesso');   
+        gui.CHIUDIGRUPPOINPUT;
+
+      --bottone associa
+      gui.AGGIUNGIGRUPPOINPUT;
+      gui.AGGIUNGIBOTTONESUBMIT(value => 'Associa');
+      gui.CHIUDIGRUPPOINPUT;  
+    gui.CHIUDIFORM;
+
+--RICERCA CONVENZIONE-- (la procedura si impalla in questo if)
+    if r_codiceAccesso is not null then 
+        gui.AGGIUNGIPOPUP(TRUE,'sono qui!!!');
+        /*select c.IDCONVENZIONE 
+            INTO  current_Convenzione
+        from CONVENZIONI c
+        where c.CODICEACCESSO = TO_NUMBER(r_codiceAccesso);
+        --controllo
+           if current_Convenzione IS NULL THEN
+            gui.AGGIUNGIPOPUP(FALSE, 'error');
+            return;
+            end if;*/
+     end if;
+ 
+    END associaConvenzione;
+    
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente(
