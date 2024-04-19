@@ -661,6 +661,7 @@ end chiudiElementoPulsanti;
 		n_ruolo int;
 	begin
 		gui.apriPagina('Home', idSessione);
+
 			if p_registrazione then --se la registrazione è andta a buon fine visualizzo il popup
 				gui.aggiungiPopup (True, 'Registrazione avvenuta!'); 
 				gui.acapo;
@@ -704,11 +705,11 @@ end chiudiElementoPulsanti;
 							gui.AGGIUNGILABEL (target => 'cliente', testo => 'Cliente');
 							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'autista', tipo => 'radio', value => '02', selected => true);
 							gui.AGGIUNGILABEL (target => 'autista', testo => 'Autista');
-							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'operatore', tipo => 'radio', value => 'O1');
+							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'operatore', tipo => 'radio', value => '01');
 							gui.AGGIUNGILABEL (target => 'operatore', testo => 'Operatore');
-							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'menager', tipo => 'radio', value => 'O3');
-							gui.AGGIUNGILABEL (target => 'menager', testo => 'Manager');
-							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'contabile', tipo => 'radio', value => 'O4');
+							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'menager', tipo => 'radio', value => '03');
+							gui.AGGIUNGILABEL (target => 'manager', testo => 'Manager');
+							gui.AGGIUNGIINPUT (nome => 'tipo_utente', ident => 'contabile', tipo => 'radio', value => '04');
 							gui.AGGIUNGILABEL (target => 'contabile', testo => 'Contabile');
 						gui.CHIUDIGRUPPOINPUT;  
 						gui.chiudiDiv;
