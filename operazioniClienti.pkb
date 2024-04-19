@@ -171,7 +171,62 @@ EXCEPTION
         -- Gestione dell'eccezione e stampa dell'errore
         gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
 
-END inseriscidatiConvenzione;
+    END inseriscidatiConvenzione;
+
+    procedure associaConvenzione (
+		idSess varchar default null
+	) IS
+    BEGIN
+        gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
+
+        --controllo che l'utente sia un cliente
+        if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!'); 
+            return;
+        end if; 
+
+        gui.aggiungiForm;
+            gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h1');
+
+        gui.chiudiForm; 
+
+        gui.aCapo(3); 
+        gui.chiudiPagina; 
+    
+        END associaConvenzione; 
+	procedure modificaConvenzione (
+		idSess varchar default null
+	) IS 
+    BEGIN
+        gui.apriPagina (titolo => 'Modifica convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
+
+        --controllo che l'utente sia un cliente
+        if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!'); 
+            return;
+        end if; 
+
+        gui.aggiungiForm;  
+        
+        gui.aggiungiIntestazione (testo => 'Modifica convenzione'); 
+        gui.aCapo(2); 
+
+        gui.AGGIUNGIINTESTAZIONE (testo => 'Parametri ', dimensione => 'h2');  
+        gui.acapo; 
+             gui.AGGIUNGICAMPOFORM (tipo => 'nome', classeIcona => 'fa fa-envelope', nome => 'nome', placeholder => 'Nome della convenzione',ident => 'nome',  required => true);
+             
+        
+        
+
+       
+        gui.ChiudiForm;
+
+            
+         
+
+        gui.aCapo(3); 
+        gui.chiudiPagina; 
+        END modificaConvenzione; 
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
     procedure modificaCliente(
