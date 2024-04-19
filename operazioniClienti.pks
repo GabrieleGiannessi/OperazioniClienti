@@ -104,7 +104,8 @@ create or replace package operazioniclienti as
 	);
 
 	procedure associaConvenzione (
-		idSess varchar default null
+		idSess varchar default null,
+		c_Nome varchar2 default null
 	); 
 
 	procedure modificaConvenzione (

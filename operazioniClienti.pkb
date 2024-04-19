@@ -174,8 +174,11 @@ EXCEPTION
     END inseriscidatiConvenzione;
 
     procedure associaConvenzione (
-		idSess varchar default null
-	) IS
+		idSess varchar default null, --CLIENTE
+        c_Nome varchar2 default null
+	) IS 
+        data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
+        id_convenzione CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
     BEGIN
         gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
 
@@ -185,9 +188,41 @@ EXCEPTION
             return;
         end if; 
 
-        gui.aggiungiForm;
-            gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h1');
+        --controllo sulla convenzione
+        if c_Nome IS NOT NULL then 
+            SELECT IDCONVENZIONE,DATAFINE INTO id_convenzione, data_fine FROM CONVENZIONI WHERE NOME = c_Nome; 
+            if SQL%ROWCOUNT > 0 then --convenzione trovata
 
+                --controllo convenzione scaduta 
+                if data_fine < SYSDATE then
+                    gui.aggiungiPopup (False, 'Convenzione scaduta'); 
+                    return;  
+                end if;  
+
+                INSERT INTO CONVENZIONICLIENTI (FK_CLIENTE, FK_CONVENZIONE) VALUES (SESSIONHANDLER.GETIDUSER(idSess), id_convenzione);
+                gui.aggiungiPopup (True, 'Convenzione associata'); 
+                gui.aCapo(2); 
+            end if;
+        end if; 
+
+        gui.aggiungiForm;
+            gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
+            gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h2');
+            gui.aggiungiGruppoInput; 
+                gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||''); 
+            gui.chiudiGruppoInput; 
+       
+            gui.acapo(2);
+
+            gui.aggiungiGruppoInput;
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-check', nome => 'c_nome', placeholder => 'Nome',ident => 'c_nome',  required => true);
+            gui.chiudiGruppoInput; 
+
+            gui.acapo();
+            gui.aggiungiGruppoInput;
+                gui.aggiungiBottoneSubmit (value => 'Associa'); 
+            gui.chiudiGruppoInput;
+            
         gui.chiudiForm; 
 
         gui.aCapo(3); 
@@ -311,7 +346,7 @@ EXCEPTION
             gui.aggiungiGruppoInput; 
                 gui.aggiungiBottoneSubmit (value => 'Modifica'); 
             gui.chiudiGruppoInput; 
-       
+
         gui.ChiudiForm;
         gui.aCapo(3); 
         gui.chiudiPagina; 
@@ -583,7 +618,7 @@ END modificaCliente;
                             gui.aCapo(2);
 
                               gui.aggiungiGruppoInput;               
-                                    gui.bottoneAggiungi (url => '#' /*procedura di Antonino*/, testo => 'Associa convenzione');                  
+                                    gui.bottoneAggiungi (url => u_root || '.associaConvenzione?idSess='||idSess||'', testo => 'Associa convenzione');                  
                              gui.chiudiGruppoInput; 
 
                              gui.aCapo(2);
