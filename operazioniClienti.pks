@@ -23,54 +23,49 @@ create or replace package operazioniclienti as
 		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi 
 	);
 
-	procedure visualizzabustepaga (
-		r_idsessione varchar2,
-		r_dipendente in varchar2 default null,
-		r_contabile  in varchar2 default null,
-		r_data       in varchar2 default null,
-		r_importo    in varchar2 default null,
-		r_bonus      in varchar2 default null,
-		r_popup      in varchar2 default null
-	);
+    procedure visualizzabustepaga (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
+        r_PopUp      in varchar2 default null
+    );
 
-	procedure modificabustapaga (
-		r_idsessione           in varchar2,
-		r_fkdipendente         in varchar2 default null,
-		r_fkcontabile          in varchar2 default null,
-		r_data                 in varchar2 default null,
-		r_importo              in varchar2 default null,
-		r_bonus                in varchar default null,
-		r_popupvisualizza      in boolean default false,
-		r_popupimportonegativo in varchar2 default null,
-		r_popupbonusnegativo   in varchar2 default null,
-		new_importo            in varchar2 default null,
-		new_bonus              in varchar2 default null
-	);
+    procedure modificabustapaga (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data in BUSTEPAGA.DATA%TYPE default null,
+        r_PopUp in varchar2 default null,
+        new_Importo in varchar2 default null,
+        new_Data in varchar2 default null
+    );
 
-	procedure visualizzabustepagadipendente (
-		r_idsessione in varchar2,
-		r_data       in varchar2 default null,
-		r_importo    in varchar2 default null,
-		r_bonus      in varchar2 default null
-	);
-	procedure inserimentobustapaga (
-		r_idsessione   in varchar2,
-		r_fkdipendente in varchar2 default null,
-		r_importo      in varchar2 default null,
-		r_bonus        in varchar2 default null
-	);
+    procedure visualizzabustepagadipendente (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
+    );
+    procedure inserimentobustapaga (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null
+    );
 
-	procedure visualizzaricarichecliente (
-		r_idsessione in varchar2,
-		r_data       in varchar2 default null,
-		r_importo    in varchar2 default null,
-		r_popup      in varchar2 default null
-	);
-	procedure inserimentoricarica (
-		r_idsessione in varchar2,
-		r_importo    in varchar2 default null,
-		r_popup      in varchar2 default null
-	);
+    procedure visualizzaricarichecliente (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    );
+    procedure inserimentoricarica (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    );
 
 	procedure visualizzaclienti (
 		idsess        varchar default null,
@@ -110,17 +105,16 @@ create or replace package operazioniclienti as
 		r_fkdipendente      varchar2 default null
 	);
 
-	function existdipendente (
-		r_iddipendente in varchar2 default null
-	) return boolean;
+    function existdipendente (
+        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE default null
+    ) return boolean;
 
 	--function checkContabile(r_IdContabile in varchar2 default null) return boolean;
 
-	function existbustapaga (
-		r_fkdipendente in varchar2 default null,
-		r_fkcontabile  in varchar2 default null,
-		r_data         in varchar2 default null
-	) return boolean;
+    function existbustapaga (
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE
+    ) return boolean;
 
 	procedure eliminacliente (
 		c_id varchar2 default null
