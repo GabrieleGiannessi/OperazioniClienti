@@ -461,22 +461,6 @@ EXCEPTION
     gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!'); 
 END modificaCliente;
 
--- non si può fare
-procedure eliminaCliente(
-    c_id VARCHAR2 DEFAULT NULL
-) is    
-BEGIN
-    gui.apriPagina ('PaginaEliminaCliente'); 
-
-
-    DELETE FROM CLIENTI WHERE IDCLIENTE = to_number(c_id); 
-    gui.aggiungiPopup (True, 'Ciaooooo'); 
-
-    EXCEPTION
-    WHEN OTHERS THEN 
-        gui.aggiungiPopup (False, 'Rimozione del cliente non andata a buon fine!');    
-    END eliminaCliente; 
-
     procedure visualizzaProfilo (
         idSess varchar default '-1', 
         id varchar2 default null
@@ -498,8 +482,6 @@ BEGIN
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
             return;
         end if; 
-
-
 
         if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
             --prelevo i dati di cui ho bisogno tramite dalla sessione
@@ -1136,7 +1118,7 @@ end inserimentoRicarica;
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
-    Sesso VARCHAR2 default NULL
+    c_Sesso VARCHAR2 default NULL
   ) IS
 
    head gui.StringArray; --parametri per headers della tabella 
@@ -1154,13 +1136,14 @@ end inserimentoRicarica;
     gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
 
     gui.APRIFORMFILTRO; 
+        gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess'); 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.apriSelectFormFiltro ('Sesso', 'Sesso'); 
+        gui.apriSelectFormFiltro ('c_Sesso', 'Sesso'); 
         gui.aggiungiOpzioneSelect ('', true, '');
-        gui.aggiungiOpzioneSelect ('M', true, 'Maschio');
-        gui.aggiungiOpzioneSelect ('F', true , 'Femmina');
+        gui.aggiungiOpzioneSelect ('M', false , 'Maschio');
+        gui.aggiungiOpzioneSelect ('F', false , 'Femmina');
         gui.chiudiSelectFormFiltro; 
 		gui.aggiungicampoformfiltro(tipo => 'submit', value => 'Filtra', placeholder => 'filtra');
     gui.CHIUDIFORMFILTRO; 
@@ -1173,7 +1156,7 @@ end inserimentoRicarica;
         where ( CLIENTI.NOME = c_Nome or c_Nome is null )
 		and ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR c_DataNascita is null)
 		and ( CLIENTI.COGNOME = c_Cognome or c_Cognome is null )
-        and ( CLIENTI.SESSO = Sesso or Sesso is null )
+        and ( CLIENTI.SESSO = c_Sesso or c_Sesso is null )
     )
    LOOP 
     gui.AGGIUNGIRIGATABELLA;
@@ -1184,8 +1167,7 @@ end inserimentoRicarica;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
 
-            gui.APRIELEMENTOPULSANTI; 
-            gui.AggiungiPulsanteCancellazione (collegamento => ''''|| u_root || '.eliminaCliente?email='||clienti.Email||''''); 
+            gui.APRIELEMENTOPULSANTI;  
             gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaCliente?idSess='||idSess||'&cl_id='||clientI.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
             gui.aggiungiPulsanteGenerale (collegamento => ''''|| u_root || '.visualizzaProfilo?idSess='||idSess||'&id='||clienti.IDCLIENTE||'''', testo => 'Profilo');      
 

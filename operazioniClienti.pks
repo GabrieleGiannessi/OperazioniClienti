@@ -72,7 +72,7 @@ create or replace package operazioniclienti as
 		c_nome        varchar2 default null,
 		c_cognome     varchar2 default null,
 		c_datanascita varchar2 default null,
-		sesso         varchar2 default null
+		c_sesso         varchar2 default null
 	);
 
 	procedure visualizzaprofilo (
@@ -131,9 +131,5 @@ create or replace package operazioniclienti as
         r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE,
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
-
-	procedure eliminacliente (
-		c_id varchar2 default null
-	);
 
 end operazioniclienti;
