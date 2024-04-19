@@ -194,38 +194,128 @@ EXCEPTION
         gui.chiudiPagina; 
     
         END associaConvenzione; 
+
 	procedure modificaConvenzione (
-		idSess varchar default null
+		idSess varchar default null,
+        c_id varchar2, 
+        c_sconto varchar2 default null, 
+        c_dataInizio varchar2 default null, 
+        c_dataFine varchar2 default null,
+        c_cumulabile varchar2 default null
 	) IS 
+    current_sconto CONVENZIONI.SCONTO%TYPE := NULL;
+    d_inizio CONVENZIONI.DATAINIZIO%TYPE := NULL; 
+    d_fine CONVENZIONI.DATAFINE%TYPE := NULL;
+    error_check boolean := false; 
+    c int := 0; 
+    current_cumulabile int;
+      
     BEGIN
         gui.apriPagina (titolo => 'Modifica convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
 
-        --controllo che l'utente sia un cliente
+        --controllo che l'utente sia un manager
         if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
             gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!'); 
             return;
         end if; 
 
+        --controlliamo che la convenzione sia modificabile (per essere modificabile non deve essere stata ancora pubblicata o essere scaduta)
+        if c_id IS NOT NULL then 
+            SELECT Sconto, DataInizio, DataFine, Cumulabile INTO current_sconto, d_inizio, d_fine, current_cumulabile FROM CONVENZIONI WHERE 
+                IDCONVENZIONE = c_id; 
+                if (d_fine < SYSDATE OR d_inizio < SYSDATE) then 
+                    gui.aggiungiPopup (FALSE, 'Convenzione scaduta o già pubblicata!'); 
+                    return;
+                end if; 
+        end if; 
+
+        --gestione delle modifiche
+
+        if c_sconto IS NOT NULL AND c_sconto <> current_sconto then 
+            IF 0 < c_sconto AND c_sconto < 100 THEN 
+            UPDATE CONVENZIONI
+                SET SCONTO = c_Sconto
+                WHERE IDConvenzione = c_id;
+                c := c+1;
+                else 
+                error_check:=true; 
+                end if; 
+        end if; 
+
+        if c_dataInizio IS NOT NULL AND C_dataInizio <> d_inizio then 
+            if c_dataInizio > SYSDATE+1 then 
+            UPDATE CONVENZIONI
+            SET DATAINIZIO = c_dataInizio
+            WHERE IDConvenzione = c_id;
+            c := c+1;
+            else
+                error_check:=true; 
+            end if; 
+            
+        end if; 
+
+        if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
+            if  c_DataFine > SYSDATE+1 then 
+            UPDATE CONVENZIONI
+                SET DATAFINE = c_dataFine
+                WHERE IDConvenzione = c_id;
+                c := c+1;
+            else 
+            error_check:=true; 
+            end if; 
+        end if; 
+
+            IF error_check THEN
+                gui.aggiungiPopup (FALSE, 'Modifiche non accettate, controllare i parametri');  
+            ELSE 
+                IF c > 1 THEN 
+                    gui.aggiungiPopup (TRUE, 'Campi modificati');  
+                ELSE 
+                    IF c = 1 THEN 
+                        gui.aggiungiPopup (TRUE, 'Campo modificato');  
+                    END IF;
+                END IF; 
+            END IF;
+
+
+        gui.aCapo(2);
         gui.aggiungiForm;  
         
         gui.aggiungiIntestazione (testo => 'Modifica convenzione'); 
         gui.aCapo(2); 
-
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Parametri ', dimensione => 'h2');  
+  
         gui.acapo; 
-             gui.AGGIUNGICAMPOFORM (tipo => 'nome', classeIcona => 'fa fa-envelope', nome => 'nome', placeholder => 'Nome della convenzione',ident => 'nome',  required => true);
-             
-        
-        
 
+        gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess); 
+        gui.aggiungiInput (tipo => 'hidden', nome => 'c_id', value => c_id); 
+
+             gui.aggiungiGruppoInput; 
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'c_sconto', placeholder => 'Sconto',ident => 'c_sconto',  required => false);
+                 gui.AGGIUNGIINTESTAZIONE (testo => 'Data di inizio', dimensione => 'h2');
+                gui.AGGIUNGICAMPOFORM (tipo => 'date', classeIcona => 'fa fa-envelope', nome => 'c_dataInizio', placeholder => 'Data di inizio convenzione',ident => 'c_dataInizio',  required => false);
+                 gui.AGGIUNGIINTESTAZIONE (testo => 'Data di scadenza', dimensione => 'h2');
+                gui.AGGIUNGICAMPOFORM (tipo => 'date', classeIcona => 'fa fa-envelope', nome => 'c_dataFine', placeholder => 'Data di fine convenzione',ident => 'c_dataFine',  required => false);
+             gui.chiudiGruppoInput; 
+
+             gui.aggiungiIntestazione(testo => 'Cumulabile', dimensione => 'h2');
+					gui.apriDiv(classe => 'row');
+						gui.AGGIUNGIGRUPPOINPUT; 
+							gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'si', tipo => 'radio', value => '1');
+							gui.AGGIUNGILABEL (target => 'si', testo => 'si');
+							gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'no', tipo => 'radio', value => '0'); 
+							gui.AGGIUNGILABEL (target => 'no', testo => 'no');
+                            gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'default', tipo => 'radio', value => current_cumulabile, selected => true); --valore di default non cumulabile (cambiare con valore originale della convenzione)
+						gui.CHIUDIGRUPPOINPUT;  
+			        gui.chiudiDiv;
+    
+            gui.aggiungiGruppoInput; 
+                gui.aggiungiBottoneSubmit (value => 'Modifica'); 
+            gui.chiudiGruppoInput; 
        
         gui.ChiudiForm;
-
-            
-         
-
         gui.aCapo(3); 
         gui.chiudiPagina; 
+
         END modificaConvenzione; 
 
 --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
@@ -1081,10 +1171,10 @@ end inserimentoRicarica;
    for clienti IN
    (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM CLIENTI
         where ( CLIENTI.NOME = c_Nome or c_Nome is null )
-		and ( ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR trunc( CLIENTI.DATANASCITA) < to_date(c_DataNascita,'YYYY-MM-DD')) or c_DataNascita is null )
+		and ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR c_DataNascita is null)
 		and ( CLIENTI.COGNOME = c_Cognome or c_Cognome is null )
         and ( CLIENTI.SESSO = Sesso or Sesso is null )
-    ) 
+    )
    LOOP 
     gui.AGGIUNGIRIGATABELLA;
             gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
@@ -1106,50 +1196,84 @@ end inserimentoRicarica;
      gui.CHIUDITABELLA; 
     gui.ChiudiPagina;
         
-
 END visualizzaClienti; 
 
-procedure visualizzazioneConvenzioni (DataInizio VARCHAR2 DEFAULT NULL,
-    DataFine VARCHAR2 DEFAULT NULL,
-    Ente VARCHAR2 DEFAULT NULL
-    /*cumulabile*/) is 
+procedure visualizzaConvenzioni (
+    idSess varchar DEFAULT NULL, 
+    c_DataInizio VARCHAR2 DEFAULT NULL,
+    c_DataFine VARCHAR2 DEFAULT NULL,
+    c_Ente VARCHAR2 DEFAULT NULL,
+    c_Cumulabile VARCHAR2 DEFAULT NULL) is 
 
     head gui.StringArray; 
 
 BEGIN
 
-   head := gui.StringArray ('IDConvenzione', 'Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile'); 
-   gui.apriPagina (titolo => 'visualizza Convenzioni');
-   gui.APRIFORMFILTRO(/*root||'.visualizzazioneConvenzioni'*/); 
+    gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess, scriptjs => costanti.tablesortscript);
 
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataInizio', placeholder => 'Data-inizio');
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'DataFine', placeholder => 'Data-fine');
-   gui.AggiungiCampoFormFiltro(tipo =>'submit', value => 'Filtra');
+    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Operatore') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina'); 
+        return; 
+    end if; 
+
+   if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+        head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile',' ');
+        else 
+        head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile', ' ');
+   end if; 
+   
+   gui.APRIFORMFILTRO; 
+   gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess'); 
+   gui.AGGIUNGICAMPOFORMFILTRO (tipo => 'date', nome => 'c_DataInizio', placeholder => 'Data-inizio');
+   gui.AGGIUNGICAMPOFORMFILTRO (tipo => 'date', nome => 'c_DataFine', placeholder => 'Data-fine');
+   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'c_Ente', placeholder => 'Ente');
+   gui.apriSelectFormFiltro ('c_Cumulabile', 'Cumulabile'); 
+        gui.aggiungiOpzioneSelect ('', true, '');
+        gui.aggiungiOpzioneSelect ('1', false , 'Si');
+        gui.aggiungiOpzioneSelect ('0', false , 'No');
+        gui.chiudiSelectFormFiltro; 
+   gui.AggiungiCampoFormFiltro(tipo =>'submit', value => 'Filtra', placeholder => 'Filtra');
    gui.CHIUDIFORMFILTRO;
-   gui.aCapo;
+   gui.aCapo(2);
 
    gui.APRITABELLA (head);
 
    for convenzioni IN
-   (SELECT IDConvenzione, Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile FROM CONVENZIONI) 
+   (SELECT * FROM CONVENZIONI where 
+		 ( trunc(CONVENZIONI.DATAINIZIO) = to_date(c_DataInizio,'YYYY-MM-DD') OR c_DataInizio is null)
+        and ( trunc(CONVENZIONI.DATAFINE) = to_date(c_DataFine,'YYYY-MM-DD') OR c_DataFine is null)
+		and ( CONVENZIONI.ENTE = c_Ente or c_Ente is null )
+        and ( CONVENZIONI.CUMULABILE = to_number(c_Cumulabile) or c_Cumulabile is null )
+   )
    LOOP
     gui.AGGIUNGIRIGATABELLA; 
 
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.IDConvenzione);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Nome);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Ente);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Sconto);
+
+                if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then 
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.CodiceAccesso);
+                end if; 
+                
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataInizio);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataFine);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Cumulabile);
+
+                if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+                gui.apriElementoPulsanti; 
+                    gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaConvenzione?idSess='||idSess||'&c_id='||convenzioni.IDCONVENZIONE||'');
+                gui.chiudiElementoPulsanti; 
+                end if;
 
     gui.ChiudiRigaTabella;
     end LOOP; 
 
     gui.ChiudiTabella; 
+    gui.aCapo(2);
+    gui.chiudiPagina;
 
-END visualizzazioneConvenzioni; 
+END visualizzaConvenzioni; 
 
 
 /* DA RIVEDERE CON L'ALTRO GRUPPO */

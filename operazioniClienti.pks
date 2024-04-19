@@ -95,17 +95,25 @@ create or replace package operazioniclienti as
 		r_cumulabile    varchar2 default null
 	);
 
-	procedure visualizzazioneconvenzioni (
-		datainizio varchar2 default null,
-		datafine   varchar2 default null,
-		ente       varchar2 default null
+	procedure visualizzaconvenzioni (
+		idSess varchar DEFAULT NULL, 
+		c_datainizio varchar2 default null,
+		c_datafine   varchar2 default null,
+		c_ente       varchar2 default null,
+		c_cumulabile VARCHAR2 DEFAULT NULL
 	);
 
 	procedure associaConvenzione (
 		idSess varchar default null
 	); 
+
 	procedure modificaConvenzione (
-		idSess varchar default null
+		idSess varchar default null,
+        c_id varchar2, 
+        c_sconto varchar2 default null, 
+        c_dataInizio varchar2 default null, 
+        c_dataFine varchar2 default null,
+        c_cumulabile varchar2 default null
 	); 
 
 	procedure inserimentocontabile (
