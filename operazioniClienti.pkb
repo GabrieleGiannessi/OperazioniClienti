@@ -54,7 +54,9 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.AGGIUNGIGRUPPOINPUT; 
                     gui.aggiungiBottoneSubmit (value => 'Registra'); 
             gui.CHIUDIGRUPPOINPUT; 
-    gui.CHIUDIFORM; 
+        gui.CHIUDIFORM; 
+    gui.ChiudiPagina;
+        
     END registrazioneCliente; 
 
 --inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
@@ -90,8 +92,17 @@ create or replace PACKAGE BODY operazioniClienti as
     end inserisciDati;
 
 --form per la insert della convenzione
-PROCEDURE inserimentoConvenzione IS
+PROCEDURE inserimentoConvenzione(
+    idSess varchar 
+) IS
 BEGIN
+
+    --if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+    --    gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
+    --    gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
+    --return;  
+    --end if; 
+
     gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
     gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');  
     -- Inserimento dei campi del modulo
@@ -125,7 +136,9 @@ BEGIN
     
 
     -- Chiusura del modulo
-    gui.ChiudiForm;
+        gui.ChiudiForm;
+    gui.ChiudiPagina;
+        
 
     -- Chiusura della pagina HTML
   --  gui.ChiudiPagina;
@@ -179,7 +192,7 @@ END inseriscidatiConvenzione;
     gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
 
     --accedo alla pagina (se sono cliente o operatore)
-    if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore')) then 
+    if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Manager')) then 
         gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
         return;
     end if;  
@@ -247,16 +260,26 @@ END inseriscidatiConvenzione;
     gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
     gui.aggiungiInput (tipo => 'hidden', nome => 'cl_id', value => cl_id); 
 
-    gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
+
     if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then 
+    gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
     gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
+    else if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then 
+            gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
+        end if; 
     end if; 
 
     -- se chi accede alla pagina è un operatore visualizzo il bottone per tornare alla tabella
-    if SESSIONHANDLER.checkRuolo(idSess, 'Operatore') then 
-        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?c_idSess='||idSess||''); 
+    if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then 
+        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?idSess='||idSess||''); 
         gui.aCapo(2); 
+        else 
+        if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then 
+        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||''); 
+        gui.aCapo(2); 
+        end if; 
     end if; 
+    
 
     gui.AGGIUNGIGRUPPOINPUT;      
     gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
@@ -292,12 +315,13 @@ END modificaCliente;
 
 -- non si può fare
 procedure eliminaCliente(
-    c_email VARCHAR2 DEFAULT NULL
+    c_id VARCHAR2 DEFAULT NULL
 ) is
 BEGIN
     gui.apriPagina ('PaginaEliminaCliente'); 
 
-    DELETE FROM CLIENTI WHERE Email = c_email; 
+
+    DELETE FROM CLIENTI WHERE IDCLIENTE = to_number(c_id); 
     gui.aggiungiPopup (True, 'Ciaooooo'); 
 
     EXCEPTION
@@ -306,9 +330,10 @@ BEGIN
     END eliminaCliente; 
 
     procedure visualizzaProfilo (
-        c_idSessione varchar default '-1', 
-        id varchar2 default null 
-    ) is 
+        idSess varchar default '-1', 
+        id varchar2 default null
+    ) is
+
     c_Nome varchar2(20); 
     c_Cognome varchar2(20); 
     c_DataNascita date;     
@@ -319,20 +344,39 @@ BEGIN
     c_saldo int; 
 
     BEGIN
-            --prelevo i dati di cui ho bisogno tramite l'id
-            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita, 
-            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = SessionHandler.getIDuser (c_idSessione); 
+         gui.apriPagina (titolo => 'Profilo', idSessione => idSess); 
 
-            gui.apriPagina (titolo => 'Profilo', idSessione => c_idSessione); 
+        if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then 
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
+            return;
+        end if; 
+
+
+
+        if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+            --prelevo i dati di cui ho bisogno tramite dalla sessione
+            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita, 
+            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = SessionHandler.getIDuser (idSess); 
+        end if; 
+
+        if (SESSIONHANDLER.checkRuolo (idSess, 'Manager') AND id IS NOT NULL) then
+            --prelevo le informazioni relative all'id del cliente passato per parametro al manager
+            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita, 
+            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = id; 
+        end if; 
  
             gui.aggiungiForm; 
                 --devo aggiungere i dati del cliente tramite sessionHandler 
                 
                 gui.aggiungiIntestazione (testo => 'Profilo di '); 
-                gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (c_idSessione)); 
-
-                gui.bottoneAggiungi (testo => 'Associa convenzione', url => '#'); 
-
+                if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then 
+                gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (idSess)); 
+                else 
+                    if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then 
+                     gui.aggiungiIntestazione (testo => c_Nome); --già salvato il nome del cliente in precedenza
+                    end if; 
+                end if; 
+    
                 gui.aCapo(4); 
 
                 gui.aggiungiGruppoInput;
@@ -370,7 +414,27 @@ BEGIN
                             gui.chiudiDiv; 
                             gui.apriDiv (classe => 'right');   
                                 gui.aggiungiIntestazione (testo => c_Email, dimensione => 'h2');
+                            gui.chiudiDiv;
+
+                            --se chi entra nella pagina è Cliente, si visualizza la password
+                            if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+                                gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Password', dimensione => 'h2');
                             gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => c_Password, dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            end if; 
+
+                            --il Manager può visualizzare il saldo del cliente
+                            if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+                                gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'Saldo', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');   
+                                gui.aggiungiIntestazione (testo => c_Saldo, dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            end if; 
 
                             gui.apriDiv (classe => 'left'); 
                                 gui.aggiungiIntestazione (testo => 'Convenzione associata', dimensione => 'h2');
@@ -379,15 +443,33 @@ BEGIN
                                 gui.aggiungiIntestazione (testo => ' ', dimensione => 'h2');
                             gui.chiudiDiv; 
 
-                           -- gui.aCapo(3);
                              gui.chiudiGruppoInput; 
 
-                             gui.aggiungiGruppoInput; 
-                                gui.aggiungiBottoneSubmit (value => 'Modifica dati'); 
+                            if (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
+                                gui.aggiungiGruppoInput;               
+                                    gui.bottoneAggiungi (url => u_root || '.ModificaCliente?idSess='||idSess||'&cl_id='||SESSIONHANDLER.getIDUser(idSess)||'', testo => 'Modifica');                  
                              gui.chiudiGruppoInput; 
 
+                            gui.aCapo(2);
+
+                              gui.aggiungiGruppoInput;               
+                                    gui.bottoneAggiungi (url => '#' /*procedura di Antonino*/, testo => 'Associa convenzione');                  
+                             gui.chiudiGruppoInput; 
+
+                             gui.aCapo(2);
+
+                            end if; 
+
+                            if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then 
+                             gui.aCapo(2);
+                                gui.aggiungiGruppoInput;               
+                                    gui.bottoneAggiungi (url => u_root || '.visualizzaClienti?idSess='||idSess||'', testo => 'Torna indietro');                  
+                             gui.chiudiGruppoInput;
+                            end if; 
+                            
+                            
             gui.chiudiForm; 
-
+        --gui.ChiudiPagina;
 
         END visualizzaProfilo;  
  
@@ -843,7 +925,7 @@ BEGIN
     end inserimentoRicarica;
 
   procedure visualizzaClienti(
-    c_idSess VARCHAR default '-1', 
+    idSess VARCHAR default NULL, 
     c_Nome VARCHAR2 default NULL,
     c_Cognome VARCHAR2 default NULL,
     c_DataNascita VARCHAR2 default NULL,
@@ -855,9 +937,16 @@ BEGIN
    BEGIN
 
    head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email', ' '); 
-   gui.apriPagina (titolo => 'visualizza clienti', idSessione => c_idSess);  
 
-  gui.APRIFORMFILTRO; 
+    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then 
+        gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess); 
+        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina'); 
+        return; 
+    end if;     
+
+    gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
+
+    gui.APRIFORMFILTRO; 
         gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
 		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
 		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
@@ -890,13 +979,16 @@ BEGIN
 
             gui.APRIELEMENTOPULSANTI; 
             gui.AggiungiPulsanteCancellazione (collegamento => ''''|| u_root || '.eliminaCliente?email='||clienti.Email||''''); 
-            gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaCliente?idSess='||c_idSess||'&cl_id='||clientI.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
-            
+            gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaCliente?idSess='||idSess||'&cl_id='||clientI.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
+            gui.aggiungiPulsanteGenerale (collegamento => ''''|| u_root || '.visualizzaProfilo?idSess='||idSess||'&id='||clienti.IDCLIENTE||'''', testo => 'Profilo');      
 
             gui.chiudiElementoPulsanti;
     gui.ChiudiRigaTabella;
     end LOOP;
-    gui.CHIUDITABELLA; 
+   
+     gui.CHIUDITABELLA; 
+    gui.ChiudiPagina;
+        
 
 END visualizzaClienti; 
 
