@@ -9,8 +9,10 @@ create or replace PACKAGE BODY operazioniClienti as
     gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');  
 
           
-            gui.aggiungiIntestazione(testo => 'Registrazione', dimensione => 'h2');
+            gui.aggiungiIntestazione(testo => 'Registrazione');
+            gui.acapo; 
             gui.AGGIUNGIGRUPPOINPUT; 
+                gui.aggiungiIntestazione(testo => 'Informazioni personali', dimensione => 'h2');
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');        
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');        
                 gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');   
@@ -19,11 +21,10 @@ create or replace PACKAGE BODY operazioniClienti as
             gui.CHIUDIGRUPPOINPUT;
           
     
-           
-           gui.APRIDIV (classe => 'col-half');
-           gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
+           gui.aggiungiGruppoInput; 
+            gui.APRIDIV (classe => 'col-half');
+                gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4'); 
 
-                gui.AGGIUNGIGRUPPOINPUT; 
                     gui.APRIDIV (classe => 'col-third');
                         gui.AGGIUNGIINPUT (placeholder => 'DD', nome => 'Day', classe => ''); 
                     gui.CHIUDIDIV;
@@ -35,12 +36,10 @@ create or replace PACKAGE BODY operazioniClienti as
                     gui.APRIDIV (classe => 'col-third');
                         gui.AGGIUNGIINPUT (placeholder => 'YYYY', nome => 'Year', classe => ''); 
                     gui.CHIUDIDIV;
-                gui.CHIUDIGRUPPOINPUT; 
+                gui.chiudiDiv;
 
-            gui.CHIUDIGRUPPOINPUT; 
-
-            gui.APRIDIV (classe => 'col-half'); 
-                gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
+                    gui.APRIDIV (classe => 'col-half'); 
+                        gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
 
                     gui.AGGIUNGIGRUPPOINPUT; 
                         gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-male', tipo => 'radio', value => 'M');
@@ -48,7 +47,9 @@ create or replace PACKAGE BODY operazioniClienti as
                         gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-female', tipo => 'radio', value => 'F');
                         gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina'); 
                     gui.CHIUDIGRUPPOINPUT;  
-            gui.CHIUDIDIV;
+                gui.CHIUDIDIV;
+             
+           gui.CHIUDIGRUPPOINPUT; 
            
             gui.AGGIUNGIGRUPPOINPUT; 
                     gui.aggiungiBottoneSubmit (value => 'Registra'); 
@@ -71,19 +72,20 @@ create or replace PACKAGE BODY operazioniClienti as
     Sesso CHAR(1); 
    
     begin
-        gui.ApriPagina ('Registrazione');
         DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY'); 
         Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
 
         INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo) 
         VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0); 
 
-        gui.AggiungiPopup(True, 'Registrazione avvenuta con successo!');
+        --se l'inserimento va a buon fine, apro la pagina di login
 
+        gui.HomePage (p_registrazione => true); 
 
     EXCEPTION
     WHEN OTHERS THEN
         --visualizza popup di errore
+        gui.ApriPagina ('Errore');
         gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
     end inserisciDati;
 
@@ -94,29 +96,32 @@ BEGIN
     gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');  
     -- Inserimento dei campi del modulo
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.aggiungiIntestazione(testo => 'Inserimento Convenzione', dimensione => 'h2');
+    gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
+    gui.aCapo(); 
     gui.AggiungiGruppoInput;
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', nome => 'r_ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
+     gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
+    gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
+    gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
+    gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
+    gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
     gui.ChiudiGruppoInput;
     
 
     gui.AGGIUNGIGRUPPOINPUT;
+    gui.aggiungiIntestazione (testo => 'Data inizio', dimensione => 'h2'); 
     gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
+    gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2'); 
     gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
     gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
     gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
     gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
     gui.ChiudiSelectFormFiltro;
-    
+    gui.chiudiGruppoInput; 
 
     -- Bottone di submit per inviare il modulo
     gui.AGGIUNGIGRUPPOINPUT;
-    gui.AggiungiGruppoInput;
     gui.AggiungiBottoneSubmit(value => 'Inserisci');
-    gui.ChiudiGruppoInput;
+    gui.ChiudiGruppoInput;  
     
 
     -- Chiusura del modulo
@@ -326,10 +331,11 @@ BEGIN
                 gui.aggiungiIntestazione (testo => 'Profilo di '); 
                 gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (c_idSessione)); 
 
-                gui.bottoneAggiungi (testo => 'Inserisci convenzione', url => '#'); 
+                gui.bottoneAggiungi (testo => 'Associa convenzione', url => '#'); 
 
                 gui.aCapo(4); 
 
+                gui.aggiungiGruppoInput;
                 gui.apriDiv (classe => 'flex-container'); 
                             gui.apriDiv (classe => 'left'); 
                                 gui.aggiungiIntestazione (testo => 'Nome', dimensione => 'h2');
@@ -374,8 +380,12 @@ BEGIN
                             gui.chiudiDiv; 
 
                            -- gui.aCapo(3);
-                             gui.aggiungiGruppoInput;
                              gui.chiudiGruppoInput; 
+
+                             gui.aggiungiGruppoInput; 
+                                gui.aggiungiBottoneSubmit (value => 'Modifica dati'); 
+                             gui.chiudiGruppoInput; 
+
             gui.chiudiForm; 
 
 
