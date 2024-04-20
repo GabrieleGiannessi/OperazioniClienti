@@ -75,9 +75,9 @@ create or replace package Gruppo3 as
     );
 
 	--procedure clienti
-	procedure registrazionecliente;
+	--procedure registrazionecliente;
 
-	procedure inseriscidati (
+	/*procedure inseriscidati (
 		nome     varchar2 default null,
 		cognome  varchar2 default null,
 		email    varchar2 default null,
@@ -95,7 +95,7 @@ create or replace package Gruppo3 as
 		cl_email    varchar2 default null,
 		cl_password varchar2 default null,
 		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi
-	);
+	);*/
 
 	procedure visualizzaclienti (
 		idsess        varchar default null,
