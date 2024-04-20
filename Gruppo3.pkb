@@ -191,7 +191,7 @@ EXCEPTION
         end if;
 
         --controllo sulla convenzione
-        if  c_Nome IS NOT NULL then
+        if  TRUNC(c_Nome) IS NOT NULL then
             SELECT IDCONVENZIONE,DATAFINE INTO id_convenzione, data_fine FROM CONVENZIONI WHERE NOME = c_Nome;
             if SQL%ROWCOUNT > 0 then --convenzione trovata
 
