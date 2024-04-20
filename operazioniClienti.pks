@@ -1,6 +1,6 @@
 create or replace package gruppo3 as
 	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.operazioniClienti';
+	u_root constant varchar(100) := u_user || '.gruppo3';
 
     procedure visualizzabustepaga (
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
@@ -124,7 +124,7 @@ create or replace package gruppo3 as
 
 	procedure dettagliConvenzioni (
 		idSess varchar default null,
-		nome_convenzione varchar2 default null
+		c_nome CONVENZIONI.NOME%TYPE default null
 	); 
 
 	---------------------------------------------
