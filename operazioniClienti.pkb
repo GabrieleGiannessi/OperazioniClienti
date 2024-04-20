@@ -240,6 +240,11 @@ EXCEPTION
 
         gui.aCapo(3); 
         gui.chiudiPagina; 
+
+        EXCEPTION 
+        WHEN OTHERS then 
+            gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+            gui.chiudiPagina; 
     
         END associaConvenzione; 
 
