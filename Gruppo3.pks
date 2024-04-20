@@ -1,6 +1,6 @@
 create or replace package Gruppo3 as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.Gruppo3';
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
+	u_root constant varchar(100) := u_user || '.Gruppo3.';
 
     procedure visualizzabustepaga (
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
@@ -41,6 +41,12 @@ create or replace package Gruppo3 as
         r_dataFine in varchar2 default null
     );
 
+	procedure dettagliRicaricheClienti(
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_DataInizio in varchar2 default null,
+        r_DataFine in varchar2 default null
+    );
+
     procedure visualizzaricarichecliente (
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
@@ -54,9 +60,9 @@ create or replace package Gruppo3 as
     );
 
 	--procedure clienti
-	procedure registrazionecliente;
+	--procedure registrazionecliente;
 
-	procedure inseriscidati (
+	/*procedure inseriscidati (
 		nome     varchar2 default null,
 		cognome  varchar2 default null,
 		email    varchar2 default null,
@@ -74,7 +80,7 @@ create or replace package Gruppo3 as
 		cl_email    varchar2 default null,
 		cl_password varchar2 default null,
 		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi
-	);
+	);*/
 
 	procedure visualizzaclienti (
 		idsess        varchar default null,
