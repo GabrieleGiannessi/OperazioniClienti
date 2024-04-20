@@ -168,14 +168,14 @@ begin
 				'Statistiche convenzioni'
 			),
 			proceduresNames => gui.StringArray (
-				'gruppo3.registrazioneCliente',
-				'gruppo3.visualizzaClienti?idSess=' || idSessione || '',
-				'gruppo3.modificaCliente?idSess=' || idSessione || '&cl_id=' || SESSIONHANDLER.getIDUser(idSessione) ||'', 
-				'gruppo3.visualizzaProfilo?idSess=' || idSessione || '&id=' || SESSIONHANDLER.getIDUser(idSessione) || '',
-				'gruppo3.visualizzaConvenzioni?idSess=' || idSessione || '', 
-				'gruppo3.associaConvenzione?idSess=' || idSessione || '',
-				'gruppo3.inserisciConvenzione?' || idSessione || '',
-				'gruppo3.dettagliConvenzioni?idSess=' || idSessione || ''
+				'.registrazioneCliente',
+				'.visualizzaClienti?idSess=' || idSessione || '',
+				'.modificaCliente?idSess=' || idSessione || '&cl_id=' || SESSIONHANDLER.getIDUser(idSessione) ||'', 
+				'.visualizzaProfilo?idSess=' || idSessione || '&id=' || SESSIONHANDLER.getIDUser(idSessione) || '',
+				'.visualizzaConvenzioni?idSess=' || idSessione || '', 
+				'.associaConvenzione?idSess=' || idSessione || '',
+				'.inserisciConvenzione?' || idSessione || '',
+				'.dettagliConvenzioni?idSess=' || idSessione || ''
 			)
 		);
 
