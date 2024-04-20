@@ -3,7 +3,7 @@ create or replace package Gruppo3 as
 	u_root constant varchar(100) := u_user || '.Gruppo3.';
 
     procedure visualizzabustepaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
         r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
         r_Data       in varchar2 default null,
@@ -13,7 +13,7 @@ create or replace package Gruppo3 as
     );
 
     procedure modificabustapaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE,
         r_Data in BUSTEPAGA.DATA%TYPE,
         r_PopUp in varchar2 default null,
@@ -22,13 +22,13 @@ create or replace package Gruppo3 as
     );
 
     procedure visualizzabustepagadipendente (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
         r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
     );
     procedure inserimentobustapaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
         r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
@@ -36,25 +36,25 @@ create or replace package Gruppo3 as
     );
 
 	procedure dettagliStipendiPersonale(
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_dataInizio in varchar2 default null,
         r_dataFine in varchar2 default null
     );
 
 	procedure dettagliRicaricheClienti(
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_DataInizio in varchar2 default null,
         r_DataFine in varchar2 default null
     );
 
     procedure visualizzaricarichecliente (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
     procedure inserimentoricarica (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
@@ -103,7 +103,7 @@ create or replace package Gruppo3 as
 	);
 
 	procedure inseriscidaticonvenzione (
-       -- r_IdSessioneManager varchar2,
+       -- idSessManager varchar2,
 		r_nome          varchar2 default null,
 		r_ente          varchar2 default null,
 		r_sconto        varchar2 default null,
@@ -142,7 +142,7 @@ create or replace package Gruppo3 as
 
 	---------------------------------------------
 	procedure inserimentocontabile (
-		r_idsessionemanager varchar2 default null,
+		idSessmanager varchar2 default null,
 		r_fkdipendente      varchar2 default null
 	);
 
