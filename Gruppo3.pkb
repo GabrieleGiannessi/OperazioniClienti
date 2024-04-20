@@ -174,74 +174,79 @@ EXCEPTION
 
     END inseriscidatiConvenzione;
 
-procedure associaConvenzione (
-idSess varchar default null, --CLIENTE
-c_Nome varchar2 default null
-) IS
-data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
-id_convenzione CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
-c_check CONVENZIONICLIENTI.FK_CLIENTE%TYPE := NULL; --uso questa variabile per il controllo sulla convenzione già associata
-BEGIN
-gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
+    procedure associaConvenzione (
+		idSess varchar default null, --CLIENTE
+        c_Nome varchar2 default null
+	) IS 
+        data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
+        id_convenzione CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+        c_check CONVENZIONICLIENTI.FK_CLIENTE%TYPE := NULL; --uso questa variabile per il controllo sulla convenzione già associata
+    BEGIN
+        gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
 
---controllo che l'utente sia un cliente
-if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
-    gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
-    return;
-end if;
+        --controllo che l'utente sia un cliente
+        if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!'); 
+            return;
+        end if; 
 
 
 
---controllo sulla convenzione
-if c_Nome IS NOT NULL then
-    SELECT IDCONVENZIONE,DATAFINE INTO id_convenzione, data_fine FROM CONVENZIONI WHERE NOME = c_Nome;
-    if SQL%ROWCOUNT > 0 then --convenzione trovata
+        --controllo sulla convenzione
+        if c_Nome IS NOT NULL then 
+            SELECT IDCONVENZIONE,DATAFINE INTO id_convenzione, data_fine FROM CONVENZIONI WHERE NOME = c_Nome; 
+            if SQL%ROWCOUNT > 0 then --convenzione trovata
 
-    --controllo che la convenzione non sia già associata al cliente
-    SELECT FK_CLIENTE INTO c_check FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess) AND FK_CONVENZIONE = id_convenzione;
-     if SQL%ROWCOUNT > 0 then
-        gui.aggiungiPopup (False, 'Convenzione già associata');
-        gui.aCapo(2);
+            --controllo che la convenzione non sia già associata al cliente
+            SELECT FK_CLIENTE INTO c_check FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess) AND FK_CONVENZIONE = id_convenzione;
+             if SQL%ROWCOUNT > 0 then
+                gui.aggiungiPopup (False, 'Convenzione già associata');
+                gui.aCapo(2);
 
-     else
-        --controllo convenzione scaduta
-        if data_fine < SYSDATE then
-            gui.aggiungiPopup (False, 'Convenzione scaduta');
-            gui.aCapo(2);
+             else
+                --controllo convenzione scaduta
+                if data_fine < SYSDATE then
+                    gui.aggiungiPopup (False, 'Convenzione scaduta'); 
+                    gui.aCapo(2);
 
-        end if;
+                end if;  
 
-        INSERT INTO CONVENZIONICLIENTI (FK_CLIENTE, FK_CONVENZIONE) VALUES (SESSIONHANDLER.GETIDUSER(idSess), id_convenzione);
-        gui.aggiungiPopup (True, 'Convenzione associata');
-        gui.aCapo(2);
-        end if;
-     end if;
-end if;
+                INSERT INTO CONVENZIONICLIENTI (FK_CLIENTE, FK_CONVENZIONE) VALUES (SESSIONHANDLER.GETIDUSER(idSess), id_convenzione);
+                gui.aggiungiPopup (True, 'Convenzione associata'); 
+                gui.aCapo(2); 
+                end if;
+             end if;
+        end if; 
 
-gui.aggiungiForm;
-    gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-    gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h2');
-    gui.aggiungiGruppoInput;
-        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
-    gui.chiudiGruppoInput;
+        gui.aggiungiForm;
+            gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
+            gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h2');
+            gui.aggiungiGruppoInput; 
+                gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||''); 
+            gui.chiudiGruppoInput; 
+       
+            gui.acapo(2);
 
-    gui.acapo(2);
+            gui.aggiungiGruppoInput;
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-check', nome => 'c_nome', placeholder => 'Nome',ident => 'c_nome',  required => true);
+            gui.chiudiGruppoInput; 
 
-    gui.aggiungiGruppoInput;
-        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-check', nome => 'c_nome', placeholder => 'Nome',ident => 'c_nome',  required => true);
-    gui.chiudiGruppoInput;
+            gui.acapo();
+            gui.aggiungiGruppoInput;
+                gui.aggiungiBottoneSubmit (value => 'Associa'); 
+            gui.chiudiGruppoInput;
+            
+        gui.chiudiForm; 
 
-    gui.acapo();
-    gui.aggiungiGruppoInput;
-        gui.aggiungiBottoneSubmit (value => 'Associa');
-    gui.chiudiGruppoInput;
+        gui.aCapo(3); 
+        gui.chiudiPagina; 
 
-gui.chiudiForm;
+        EXCEPTION
+        WHEN OTHERS then
+            gui.aggiungiPopup (False, 'Convenzione non trovata');
+            gui.chiudiPagina;
 
-gui.aCapo(3);
-gui.chiudiPagina;
-
-END associaConvenzione;
+        END associaConvenzione; 
 
 	procedure modificaConvenzione (
 		idSess varchar default null,
@@ -525,7 +530,6 @@ END modificaCliente;
     c_Sesso char(1);
     c_Password varchar2(20);
     c_saldo int;
-    nome_convenzione CONVENZIONI.NOME%TYPE := null;
 
     BEGIN
          gui.apriPagina (titolo => 'Profilo', idSessione => idSess); 
@@ -977,7 +981,7 @@ dup_Val_Dipendenti EXCEPTION;
 BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-    htp.prn('<script>   const newUrl = "'||costanti.URL||'inserimentoBustaPaga?r_IdSessione='||r_IdSessione||'";
+    htp.prn('<script>   const newUrl = "'||costanti.user_root||'inserimentoBustaPaga?r_IdSessione='||r_IdSessione||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
@@ -1184,7 +1188,7 @@ BEGIN
     WHEN OTHERS THEN
         IF SQLCODE = -2290 THEN
             ROLLBACK TO sp1;
-            gui.REINDIRIZZA(costanti.URL||'inserimentoRicarica?r_IdSessione='||r_IdSessione||'&r_PopUp=ImportoNegativo');
+            gui.REINDIRIZZA(costanti.user_root||'inserimentoRicarica?r_IdSessione='||r_IdSessione||'&r_PopUp=ImportoNegativo');
         END IF;
 end inserimentoRicarica;
 
@@ -1523,8 +1527,13 @@ END visualizzaConvenzioni;
 
 procedure dettagliConvenzioni (
 		idSess varchar default null,
-        nome_convenzione varchar2 default null
+        c_nome CONVENZIONI.NOME%TYPE default null
 	) IS
+    c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
+    c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+    num_clienti int := 0;
+    totale_clienti int := 0;
+    percentage decimal (10,2) := 0;
     BEGIN
         gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess);
 
@@ -1534,7 +1543,24 @@ procedure dettagliConvenzioni (
             return;
         END IF;
 
-        --controlli sull'esistenza di convenzione?nome_convenzione
+
+        if c_nome is not NULL THEN
+            SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
+            if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
+
+                --prelevo i dati
+                SELECT COUNT(IDCLIENTE) INTO totale_clienti FROM CLIENTI;
+                if totale_clienti <> 0 then
+                    SELECT COUNT(FK_CLIENTE) INTO num_clienti FROM CONVENZIONICLIENTI WHERE FK_CONVENZIONE = c_id;
+                    percentage := (num_clienti / totale_clienti) * 100.0;
+                end if;
+
+                else
+                gui.aggiungiPopup (False, 'Convenzione non esistente');
+                gui.aCapo(2);
+                c_check:=false;
+            end if;
+        END IF;
 
         gui.aggiungiForm;
             gui.aggiungiIntestazione (testo => 'Dettagli statistici');
@@ -1547,23 +1573,24 @@ procedure dettagliConvenzioni (
             --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
             gui.apriFormFiltro;
                 gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
-                gui.aggiungiCampoFormFiltro (nome => 'nome_convenzione', placeholder => 'Nome convenzione');
+                gui.aggiungiCampoFormFiltro (nome => 'c_nome', placeholder => 'Nome convenzione');
                 gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
             gui.chiudiFormFiltro;
             gui.aCapo(2);
 
 
-            if nome_convenzione IS NOT NULL then
+            if c_nome IS NOT NULL AND c_check then
             --visualizzo i dati
             gui.aggiungiGruppoInput;
                 gui.aggiungiIntestazione( testo => 'Dati su clienti', dimensione => 'h1');
-                gui.aCapo();
+
+                gui.aCapo(2);
                 gui.apridiv (classe => 'flex-container');
                     gui.apridiv (classe => 'left');
                         gui.aggiungiIntestazione( testo => 'Clienti che la usano', dimensione => 'h2');
                     gui.chiudiDiv;
                     gui.apridiv (classe => 'right');
-                        gui.aggiungiIntestazione( testo => ''||123||'', dimensione => 'h2');
+                        gui.aggiungiIntestazione( testo => ''||num_clienti||'', dimensione => 'h2');
                     gui.chiudiDiv;
 
                     gui.aCapo(2);
@@ -1572,8 +1599,35 @@ procedure dettagliConvenzioni (
                         gui.aggiungiIntestazione( testo => 'In percentuale', dimensione => 'h2');
                     gui.chiudiDiv;
                     gui.apridiv (classe => 'right');
-                        gui.aggiungiIntestazione( testo => '', dimensione => 'h2');
+                        gui.aggiungiIntestazione( testo => ''||percentage||'%', dimensione => 'h2');
                     gui.chiudiDiv;
+
+                    --tabella che visualizza le prime tre convenzioni più utilizzate
+
+                    gui.aggiungiIntestazione( testo => 'Top 3 convenzioni più usate', dimensione => 'h2');
+                    gui.aCapo;
+                    gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale', 'Numero clienti'));
+                    for convenzione in (
+                        SELECT c.IDconvenzione,
+                                        c.Nome,
+                                        COUNT(ci.FK_Convenzione) AS NumeroClientiUtilizzatori
+                                        FROM CONVENZIONI c
+                                        JOIN CONVENZIONICLIENTI ci ON c.IDconvenzione = ci.FK_Convenzione
+                                        GROUP BY c.IDconvenzione, c.Nome, c.Ente
+                                        ORDER BY COUNT(ci.FK_Convenzione) DESC
+                                        FETCH FIRST 3 ROWS ONLY
+
+                    ) LOOP
+                    gui.AggiungiRigaTabella;
+
+                        gui.aggiungiElementoTabella (elemento => convenzione.Nome);
+                        gui.aggiungiElementoTabella (elemento => ''||(convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0||'%');
+                        gui.aggiungiElementoTabella (elemento => convenzione.NumeroClientiUtilizzatori);
+
+                    gui.chiudiRigaTabella;
+                    END LOOP;
+                    gui.chiudiTabella;
+
                 gui.chiudiDiv; --flex-container
             gui.chiudiGruppoInput;
             end if;
@@ -1583,9 +1637,9 @@ procedure dettagliConvenzioni (
         gui.aCapo(2);
         gui.chiudiPagina;
 
-
-
-
+        EXCEPTION
+            when NO_DATA_FOUND THEN
+            gui.aggiungiPopup (False, 'Convenzione non esistente');
         END dettagliConvenzioni;
 
 
