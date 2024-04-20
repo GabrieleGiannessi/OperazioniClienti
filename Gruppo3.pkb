@@ -104,13 +104,14 @@ BEGIN
     return;
     end if;
 
-    gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
+    gui.APRIPAGINA(titolo => 'Inserimento Convenzione', idSessione => idSess);
     gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');
     -- Inserimento dei campi del modulo
     gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
     gui.aCapo();
     gui.AggiungiGruppoInput;
      gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
+    gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
     gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
     gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
     gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
@@ -123,10 +124,9 @@ BEGIN
         gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
         gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2');
         gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
-        gui.ApriSelectFormFiltro(nome => 'r_cumulabile', placeholder => 'Cumulabile');
-        gui.AggiungiOpzioneSelect(value => '0', selected => false, testo => 'No');
-        gui.AggiungiOpzioneSelect(value => '1', selected => false, testo => 'Sì');
-        gui.ChiudiSelectFormFiltro;
+        gui.aggiungiIntestazione (testo => 'Cumulabile', dimensione => 'h2');
+        gui.aggiungiSelezioneSingola (elementi => gui.StringArray ('Si', 'No'), valoreEffettivo => gui.StringArray('1','0'), ident => 'r_cumulabile', optionSelected => '0'); 
+        
     gui.chiudiGruppoInput;
 
     -- Bottone di submit per inviare il modulo
@@ -147,7 +147,7 @@ END inserimentoConvenzione;
 
 --procedura per la insert convenzione nel form (adesso funziona, bisogna settare le sessioni e i relativi controlli)
 procedure inseriscidatiConvenzione (
-      --  idSessManager varchar2,
+        idSess          varchar2,
         r_nome          varchar2 default null,
         r_ente          varchar2 default null,
         r_sconto        varchar2 default null,
@@ -159,7 +159,7 @@ procedure inseriscidatiConvenzione (
 BEGIN
 
     -- Apre una pagina di registrazione
-    gui.ApriPagina('Inserimento Convenzione');
+    gui.ApriPagina('Inserimento Convenzione', idSessione => idSess);
 
     -- Inserimento dei dati nella tabella CONVENZIONI
     INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
@@ -269,7 +269,7 @@ EXCEPTION
         --controllo che l'utente sia un manager
         if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
             gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
-            return;
+            --return;
         end if;
 
         --controlliamo che la convenzione sia modificabile (per essere modificabile non deve essere stata ancora pubblicata o essere scaduta)
@@ -277,8 +277,8 @@ EXCEPTION
             SELECT Sconto, DataInizio, DataFine, Cumulabile INTO current_sconto, d_inizio, d_fine, current_cumulabile FROM CONVENZIONI WHERE
                 IDCONVENZIONE = c_id;
                 if (d_fine < SYSDATE OR d_inizio < SYSDATE) then
-                    gui.aggiungiPopup (FALSE, 'Convenzione scaduta o già pubblicata!');
-                    gui.acapo(2);
+                    gui.aggiungiPopup (FALSE, 'Convenzione scaduta o già pubblicata, perciò non modificabile!');
+                    return; 
                 end if;
         end if;
 
@@ -981,7 +981,7 @@ dup_Val_Dipendenti EXCEPTION;
 BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-    htp.prn('<script>   const newUrl = "'||U_ROOT||'inserimentoBustaPaga?idSess='||idSess||'";
+    htp.prn('<script>   const newUrl = "'||U_ROOT||'.inserimentoBustaPaga?idSess='||idSess||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
@@ -1033,7 +1033,7 @@ BEGIN
                     (r_FkDipendente, sessionhandler.getiduser(idSess), TO_DATE(r_Data,'yyyy-mm-dd'), r_Importo, ((r_Importo*bonus_percent)/100));
                     --Commit
                     COMMIT;
-                    gui.REINDIRIZZA(u_root||'inserimentoBustaPaga?idSess='||idSess||'&r_popUp=True');
+                    gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=True');
                 ELSE IF( existDipendente(r_FkDipendente) = 0 ) THEN
                         RAISE NO_DATA_FOUND;
                     ELSE
@@ -1041,7 +1041,7 @@ BEGIN
                     END IF;
                 END IF;
             ELSE
-                gui.REINDIRIZZA(u_root||'inserimentoBustaPaga?idSess='||idSess||'&r_popUp=importoNegativo');
+                gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=importoNegativo');
             END IF;
         END IF;
     ELSE
@@ -1051,14 +1051,14 @@ BEGIN
     EXCEPTION
     WHEN NO_DATA_FOUND THEN
         ROLLBACK TO sp1;
-        gui.REINDIRIZZA(u_root||'inserimentoBustaPaga?idSess='||idSess||'&r_popUp=NoDataFound');
+        gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=NoDataFound');
     -- C'è già una busta paga per quel dipendente in quel giorno
     WHEN DUP_VAL_ON_INDEX THEN
         ROLLBACK TO sp1;
-        gui.REINDIRIZZA(u_root||'inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
+        gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
     WHEN OTHERS THEN
         IF(SQLCODE = -1) THEN
-            gui.REINDIRIZZA(u_root||'inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
+            gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
         END IF;
 
 END inserimentoBustaPaga;
@@ -1753,8 +1753,7 @@ procedure dettagliConvenzioni (
         END dettagliConvenzioni;
 
 
-/* DA RIVEDERE CON L'ALTRO GRUPPO */
-procedure inserimentoContabile (
+/* DA RIVEDERE CON L'ALTRO GRUPPO */procedure inserimentoContabile (
     idSessManager varchar2 default null,
     r_FkDipendente varchar2 default null
 )

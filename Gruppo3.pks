@@ -1,6 +1,6 @@
 create or replace package Gruppo3 as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
-	u_root constant varchar(100) := u_user || '.Gruppo3.';
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
+	u_root constant varchar(100) := u_user || '.Gruppo3';
 
     procedure visualizzabustepaga (
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
@@ -103,7 +103,7 @@ create or replace package Gruppo3 as
 	);
 
 	procedure inseriscidaticonvenzione (
-       -- idSessManager varchar2,
+        idSess 			varchar2,
 		r_nome          varchar2 default null,
 		r_ente          varchar2 default null,
 		r_sconto        varchar2 default null,
