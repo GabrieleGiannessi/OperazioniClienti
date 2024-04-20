@@ -1,6 +1,6 @@
-create or replace package gruppo3 as
+create or replace package Gruppo3 as
 	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.gruppo3';
+	u_root constant varchar(100) := u_user || '.Gruppo3';
 
     procedure visualizzabustepaga (
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
