@@ -1,52 +1,6 @@
-create or replace package gruppo3 as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.operazioniClienti';
-
-    procedure visualizzabustepaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
-        r_PopUp      in varchar2 default null
-    );
-
-    procedure modificabustapaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data in BUSTEPAGA.DATA%TYPE default null,
-        r_PopUp in varchar2 default null,
-        new_Importo in varchar2 default null,
-        new_Data in varchar2 default null
-    );
-
-    procedure visualizzabustepagadipendente (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
-    );
-    procedure inserimentobustapaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null
-    );
-
-    procedure visualizzaricarichecliente (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Data       in varchar2 default null,
-        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-        r_PopUp in varchar2 default null
-    );
-    procedure inserimentoricarica (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-        r_PopUp in varchar2 default null
-    );
-
-	--procedure clienti 
+create or replace package Gruppo3 as
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
+	u_root constant varchar(100) := u_user || '.Gruppo3.';
 	procedure registrazionecliente;
 
 	procedure inseriscidati (
@@ -67,6 +21,80 @@ create or replace package gruppo3 as
 		cl_email    varchar2 default null,
 		cl_password varchar2 default null,
 		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi 
+	);
+
+    procedure visualizzabustepaga (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
+        r_PopUp      in varchar2 default null
+    );
+
+    procedure modificabustapaga (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE,
+        r_PopUp in varchar2 default null,
+        new_Importo in varchar2 default null,
+        new_Data in varchar2 default null
+    );
+
+    procedure visualizzabustepagadipendente (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
+    );
+    procedure inserimentobustapaga (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_PopUp     in varchar2 default null
+    );
+
+	procedure dettagliStipendiPersonale(
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_dataInizio in varchar2 default null,
+        r_dataFine in varchar2 default null
+    );
+
+    procedure visualizzaricarichecliente (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    );
+    procedure inserimentoricarica (
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    );
+
+	--procedure clienti
+	procedure registrazionecliente;
+
+	procedure inseriscidati (
+		nome     varchar2 default null,
+		cognome  varchar2 default null,
+		email    varchar2 default null,
+		password varchar2 default null,
+		telefono varchar2 default null,
+		day      varchar2 default null,
+		month    varchar2 default null,
+		year     varchar2 default null,
+		gender   varchar2 default null
+	);
+
+	procedure modificacliente (
+		idsess      varchar default null,  -- identifica chi sta facendo l'accesso
+		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
+		cl_email    varchar2 default null,
+		cl_password varchar2 default null,
+		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi
 	);
 
 	procedure visualizzaclienti (
@@ -125,7 +153,7 @@ create or replace package gruppo3 as
 	procedure dettagliConvenzioni (
 		idSess varchar default null,
 		nome_convenzione varchar2 default null
-	); 
+	);
 
 	---------------------------------------------
 	procedure inserimentocontabile (
@@ -134,8 +162,8 @@ create or replace package gruppo3 as
 	);
 
     function existdipendente (
-        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE default null
-    ) return boolean;
+        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE
+    ) return number;
 
 	--function checkContabile(r_IdContabile in varchar2 default null) return boolean;
 
@@ -144,6 +172,4 @@ create or replace package gruppo3 as
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
 
-	
-
-end gruppo3;
+end Gruppo3;
