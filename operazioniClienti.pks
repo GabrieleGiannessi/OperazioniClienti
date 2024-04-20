@@ -1,27 +1,6 @@
-create or replace package operazioniclienti as
+create or replace package gruppo3 as
 	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
 	u_root constant varchar(100) := u_user || '.operazioniClienti';
-	procedure registrazionecliente;
-
-	procedure inseriscidati (
-		nome     varchar2 default null,
-		cognome  varchar2 default null,
-		email    varchar2 default null,
-		password varchar2 default null,
-		telefono varchar2 default null,
-		day      varchar2 default null,
-		month    varchar2 default null,
-		year     varchar2 default null,
-		gender   varchar2 default null
-	);
-
-	procedure modificacliente (
-		idsess      varchar default null,  -- identifica chi sta facendo l'accesso
-		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
-		cl_email    varchar2 default null,
-		cl_password varchar2 default null,
-		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi 
-	);
 
     procedure visualizzabustepaga (
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
@@ -67,6 +46,29 @@ create or replace package operazioniclienti as
         r_PopUp in varchar2 default null
     );
 
+	--procedure clienti 
+	procedure registrazionecliente;
+
+	procedure inseriscidati (
+		nome     varchar2 default null,
+		cognome  varchar2 default null,
+		email    varchar2 default null,
+		password varchar2 default null,
+		telefono varchar2 default null,
+		day      varchar2 default null,
+		month    varchar2 default null,
+		year     varchar2 default null,
+		gender   varchar2 default null
+	);
+
+	procedure modificacliente (
+		idsess      varchar default null,  -- identifica chi sta facendo l'accesso
+		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
+		cl_email    varchar2 default null,
+		cl_password varchar2 default null,
+		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi 
+	);
+
 	procedure visualizzaclienti (
 		idsess        varchar default null,
 		c_nome        varchar2 default null,
@@ -79,6 +81,9 @@ create or replace package operazioniclienti as
 		idsess varchar default '-1', --id della sessione (cliente o manager)
         id varchar2 default null --id del cliente 
 	);
+	----------------------------------------
+
+	--procedure convenzioni
 
 	procedure inserimentoconvenzione (
 		idsess varchar --per accedere devi essere loggato (e ruolo = operatore)
@@ -117,6 +122,12 @@ create or replace package operazioniclienti as
         c_cumulabile varchar2 default null
 	); 
 
+	procedure dettagliConvenzioni (
+		idSess varchar default null,
+		nome_convenzione varchar2 default null
+	); 
+
+	---------------------------------------------
 	procedure inserimentocontabile (
 		r_idsessionemanager varchar2 default null,
 		r_fkdipendente      varchar2 default null
@@ -133,4 +144,6 @@ create or replace package operazioniclienti as
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
 
-end operazioniclienti;
+	
+
+end gruppo3;

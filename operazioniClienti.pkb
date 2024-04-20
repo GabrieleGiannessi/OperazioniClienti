@@ -1,6 +1,6 @@
 SET DEFINE OFF; 
 
-create or replace PACKAGE BODY operazioniClienti as
+create or replace PACKAGE BODY gruppo3 as
 
 --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
     procedure registrazioneCliente IS
@@ -1331,6 +1331,73 @@ BEGIN
 
 END visualizzaConvenzioni; 
 
+procedure dettagliConvenzioni (
+		idSess varchar default null,
+        nome_convenzione varchar2 default null 
+	) IS 
+    BEGIN
+        gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess); 
+
+        --controllo manager
+        if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN 
+            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina');
+            return; 
+        END IF;
+
+        --controlli sull'esistenza di convenzione?nome_convenzione
+
+        gui.aggiungiForm; 
+            gui.aggiungiIntestazione (testo => 'Dettagli statistici');
+            gui.aggiungiIntestazione (testo => 'convenzioni');
+            gui.aCapo(); 
+
+            gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2'); 
+            --gui.aCapo();
+
+            --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
+            gui.apriFormFiltro; 
+                gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess); 
+                gui.aggiungiCampoFormFiltro (nome => 'nome_convenzione', placeholder => 'Nome convenzione');
+                gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra'); 
+            gui.chiudiFormFiltro; 
+            gui.aCapo(2); 
+
+
+            if nome_convenzione IS NOT NULL then 
+            --visualizzo i dati
+            gui.aggiungiGruppoInput; 
+                gui.aggiungiIntestazione( testo => 'Dati su clienti', dimensione => 'h1'); 
+                gui.aCapo();
+                gui.apridiv (classe => 'flex-container'); 
+                    gui.apridiv (classe => 'left'); 
+                        gui.aggiungiIntestazione( testo => 'Clienti che la usano', dimensione => 'h2');
+                    gui.chiudiDiv;
+                    gui.apridiv (classe => 'right'); 
+                        gui.aggiungiIntestazione( testo => ''||123||'', dimensione => 'h2');
+                    gui.chiudiDiv;
+
+                    gui.aCapo(2); 
+
+                    gui.apridiv (classe => 'left'); 
+                        gui.aggiungiIntestazione( testo => 'In percentuale', dimensione => 'h2');
+                    gui.chiudiDiv;
+                    gui.apridiv (classe => 'right'); 
+                        gui.aggiungiIntestazione( testo => '', dimensione => 'h2');
+                    gui.chiudiDiv;
+                gui.chiudiDiv; --flex-container
+            gui.chiudiGruppoInput;
+            end if; 
+             
+        gui.chiudiForm; 
+
+        gui.aCapo(2); 
+        gui.chiudiPagina; 
+
+
+
+
+        END dettagliConvenzioni;
+
 
 /* DA RIVEDERE CON L'ALTRO GRUPPO */
 procedure inserimentoContabile (
@@ -1346,5 +1413,5 @@ BEGIN
 END inserimentoContabile;
 
 
-end operazioniClienti;
+end gruppo3;
 
