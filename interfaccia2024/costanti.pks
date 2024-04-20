@@ -1,7 +1,7 @@
 SET DEFINE OFF;
 create or replace PACKAGE costanti as
 
-user_root CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
+  URL CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
 
   tableSortScript CONSTANT VARCHAR2(32767) := '
   var lastSortedTH;
@@ -82,7 +82,7 @@ const updateHiddenInput = (inputName, checkbox, symbol = ";") => {
     var freccia = multiselect.querySelector(".multiSelectBtn .arrow");
     var opzioni = contenutoMenu.querySelectorAll("#option");
 
-    if (contenutoMenu.style.display === "none") {
+    if (contenutoMenu.style.display === "none"|| contenutoMenu.style.display === "") {
       contenutoMenu.style.display = "block";
       freccia.style.transform = "rotate(0deg)";
       opzioni.forEach(function(opzione) {
@@ -125,7 +125,7 @@ function mostraConferma(riga, url) {
         var nuovaCella = nuovaRiga.insertCell(0);
         nuovaCella.colSpan = riga.cells.length; //Non funziona
         
-        nuovaCella.innerHTML = "Confermi? " +
+        nuovaCella.innerHTML = "Confermi? " + 
                                 "<button onclick=\"apriURL('" + url + "')\">Sì</button> " + 
                                 "<button onclick=\"annullaEliminazione(this.parentNode.parentNode)\">No</button>";
         
@@ -520,35 +520,35 @@ body{
     text-align:center;
   }
 
-
-//prova per profilo
+  
+//prova per profilo 
   .flex-container {
     display: flex;
 }
 
 .left {
-    width : 50%;
+    width : 50%; 
     height : 70px;
-    flex: 1;
-    float : left;
-    justify-content: start;
+    flex: 1;  
+    float : left; 
+    justify-content: start; 
 }
 
 .right {
     width : 50%;
-    height : 70px;
-    flex: 1;
-    float : right;
+    height : 70px; 
+    flex: 1; 
+    float : right; 
     text-align: right; /* Allinea il testo a destra */
 
     h2{
-      color : black;
+      color : black; 
     }
   }
 
 .left h2,
 .right h2 {
-  margin:0;
+  margin:0; 
 }
 
   /*Roba per form
