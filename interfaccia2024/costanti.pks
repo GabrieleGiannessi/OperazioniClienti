@@ -1,7 +1,7 @@
 SET DEFINE OFF;
 create or replace PACKAGE costanti as
 
-  URL CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
+  URL CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.gruppo3';
 
   tableSortScript CONSTANT VARCHAR2(32767) := '
   var lastSortedTH;
