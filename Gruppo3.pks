@@ -1,6 +1,6 @@
-create or replace package operazioniclienti as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.operazioniClienti';
+create or replace package Gruppo3 as
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
+	u_root constant varchar(100) := u_user || '.Gruppo3.';
 	procedure registrazionecliente;
 
 	procedure inseriscidati (
@@ -35,8 +35,8 @@ create or replace package operazioniclienti as
 
     procedure modificabustapaga (
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data in BUSTEPAGA.DATA%TYPE default null,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE,
         r_PopUp in varchar2 default null,
         new_Importo in varchar2 default null,
         new_Data in varchar2 default null
@@ -52,7 +52,14 @@ create or replace package operazioniclienti as
         r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
         r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_PopUp     in varchar2 default null
+    );
+
+	procedure dettagliStipendiPersonale(
+        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_dataInizio in varchar2 default null,
+        r_dataFine in varchar2 default null
     );
 
     procedure visualizzaricarichecliente (
@@ -123,8 +130,8 @@ create or replace package operazioniclienti as
 	);
 
     function existdipendente (
-        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE default null
-    ) return boolean;
+        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE
+    ) return number;
 
 	--function checkContabile(r_IdContabile in varchar2 default null) return boolean;
 
@@ -133,4 +140,4 @@ create or replace package operazioniclienti as
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
 
-end operazioniclienti;
+end Gruppo3;
