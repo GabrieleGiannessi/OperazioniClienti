@@ -1408,9 +1408,29 @@ procedure dettagliConvenzioni (
                     gui.chiudiDiv;
 
                     --tabella che visualizza le prime tre convenzioni più utilizzate
-                    gui.aggiungiIntestazione( testo => 'Convenzioni più usate', dimensione => 'h2');
+                    
+                    gui.aggiungiIntestazione( testo => 'Top 3 convenzioni più usate', dimensione => 'h2');
                     gui.aCapo;
-                    gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale'));
+                    gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale', 'Numero clienti'));
+                    for convenzione in (
+                        SELECT c.IDconvenzione,
+                                        c.Nome,
+                                        COUNT(ci.FK_Convenzione) AS NumeroClientiUtilizzatori
+                                        FROM CONVENZIONI c
+                                        JOIN CONVENZIONICLIENTI ci ON c.IDconvenzione = ci.FK_Convenzione
+                                        GROUP BY c.IDconvenzione, c.Nome, c.Ente
+                                        ORDER BY COUNT(ci.FK_Convenzione) DESC
+                                        FETCH FIRST 3 ROWS ONLY
+
+                    ) LOOP
+                    gui.AggiungiRigaTabella; 
+
+                        gui.aggiungiElementoTabella (elemento => convenzione.Nome); 
+                        gui.aggiungiElementoTabella (elemento => ''||(convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0||'%');
+                        gui.aggiungiElementoTabella (elemento => convenzione.NumeroClientiUtilizzatori); 
+
+                    gui.chiudiRigaTabella; 
+                    END LOOP;
                     gui.chiudiTabella;  
 
                 gui.chiudiDiv; --flex-container
