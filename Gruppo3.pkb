@@ -240,6 +240,11 @@ EXCEPTION
 
         gui.aCapo(3); 
         gui.chiudiPagina; 
+
+        EXCEPTION 
+        WHEN OTHERS then 
+            gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+            gui.chiudiPagina; 
     
         END associaConvenzione; 
 
@@ -525,7 +530,6 @@ END modificaCliente;
     c_Sesso char(1);
     c_Password varchar2(20);
     c_saldo int;
-    nome_convenzione CONVENZIONI.NOME%TYPE := null;
 
     BEGIN
          gui.apriPagina (titolo => 'Profilo', idSessione => idSess); 
@@ -1418,8 +1422,13 @@ END visualizzaConvenzioni;
 
 procedure dettagliConvenzioni (
 		idSess varchar default null,
-        nome_convenzione varchar2 default null
-	) IS
+        c_nome CONVENZIONI.NOME%TYPE default null 
+	) IS 
+    c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
+    c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL; 
+    num_clienti int := 0; 
+    totale_clienti int := 0;
+    percentage decimal (10,2) := 0; 
     BEGIN
         gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess);
 
@@ -1429,7 +1438,24 @@ procedure dettagliConvenzioni (
             return;
         END IF;
 
-        --controlli sull'esistenza di convenzione?nome_convenzione
+     
+        if c_nome is not NULL THEN 
+            SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome; 
+            if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
+            
+                --prelevo i dati
+                SELECT COUNT(IDCLIENTE) INTO totale_clienti FROM CLIENTI; 
+                if totale_clienti <> 0 then 
+                    SELECT COUNT(FK_CLIENTE) INTO num_clienti FROM CONVENZIONICLIENTI WHERE FK_CONVENZIONE = c_id; 
+                    percentage := (num_clienti / totale_clienti) * 100.0;
+                end if; 
+                
+                else
+                gui.aggiungiPopup (False, 'Convenzione non esistente'); 
+                gui.aCapo(2);
+                c_check:=false; 
+            end if; 
+        END IF; 
 
         gui.aggiungiForm;
             gui.aggiungiIntestazione (testo => 'Dettagli statistici');
@@ -1440,25 +1466,26 @@ procedure dettagliConvenzioni (
             --gui.aCapo();
 
             --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
-            gui.apriFormFiltro;
-                gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
-                gui.aggiungiCampoFormFiltro (nome => 'nome_convenzione', placeholder => 'Nome convenzione');
-                gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
-            gui.chiudiFormFiltro;
-            gui.aCapo(2);
+            gui.apriFormFiltro; 
+                gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess); 
+                gui.aggiungiCampoFormFiltro (nome => 'c_nome', placeholder => 'Nome convenzione');
+                gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra'); 
+            gui.chiudiFormFiltro; 
+            gui.aCapo(2); 
 
 
-            if nome_convenzione IS NOT NULL then
+            if c_nome IS NOT NULL AND c_check then 
             --visualizzo i dati
-            gui.aggiungiGruppoInput;
+            gui.aggiungiGruppoInput; 
                 gui.aggiungiIntestazione( testo => 'Dati su clienti', dimensione => 'h1');
-                gui.aCapo();
-                gui.apridiv (classe => 'flex-container');
-                    gui.apridiv (classe => 'left');
+
+                gui.aCapo(2);
+                gui.apridiv (classe => 'flex-container'); 
+                    gui.apridiv (classe => 'left'); 
                         gui.aggiungiIntestazione( testo => 'Clienti che la usano', dimensione => 'h2');
                     gui.chiudiDiv;
-                    gui.apridiv (classe => 'right');
-                        gui.aggiungiIntestazione( testo => ''||123||'', dimensione => 'h2');
+                    gui.apridiv (classe => 'right'); 
+                        gui.aggiungiIntestazione( testo => ''||num_clienti||'', dimensione => 'h2');
                     gui.chiudiDiv;
 
                     gui.aCapo(2);
@@ -1466,21 +1493,48 @@ procedure dettagliConvenzioni (
                     gui.apridiv (classe => 'left');
                         gui.aggiungiIntestazione( testo => 'In percentuale', dimensione => 'h2');
                     gui.chiudiDiv;
-                    gui.apridiv (classe => 'right');
-                        gui.aggiungiIntestazione( testo => '', dimensione => 'h2');
+                    gui.apridiv (classe => 'right'); 
+                        gui.aggiungiIntestazione( testo => ''||percentage||'%', dimensione => 'h2');
                     gui.chiudiDiv;
+
+                    --tabella che visualizza le prime tre convenzioni più utilizzate
+                    
+                    gui.aggiungiIntestazione( testo => 'Top 3 convenzioni più usate', dimensione => 'h2');
+                    gui.aCapo;
+                    gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale', 'Numero clienti'));
+                    for convenzione in (
+                        SELECT c.IDconvenzione,
+                                        c.Nome,
+                                        COUNT(ci.FK_Convenzione) AS NumeroClientiUtilizzatori
+                                        FROM CONVENZIONI c
+                                        JOIN CONVENZIONICLIENTI ci ON c.IDconvenzione = ci.FK_Convenzione
+                                        GROUP BY c.IDconvenzione, c.Nome, c.Ente
+                                        ORDER BY COUNT(ci.FK_Convenzione) DESC
+                                        FETCH FIRST 3 ROWS ONLY
+
+                    ) LOOP
+                    gui.AggiungiRigaTabella; 
+
+                        gui.aggiungiElementoTabella (elemento => convenzione.Nome); 
+                        gui.aggiungiElementoTabella (elemento => ''||(convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0||'%');
+                        gui.aggiungiElementoTabella (elemento => convenzione.NumeroClientiUtilizzatori); 
+
+                    gui.chiudiRigaTabella; 
+                    END LOOP;
+                    gui.chiudiTabella;  
+
                 gui.chiudiDiv; --flex-container
             gui.chiudiGruppoInput;
-            end if;
-
-        gui.chiudiForm;
+            end if; 
+    
+        gui.chiudiForm; 
 
         gui.aCapo(2);
         gui.chiudiPagina;
 
-
-
-
+        EXCEPTION 
+            when NO_DATA_FOUND THEN 
+            gui.aggiungiPopup (False, 'Convenzione non esistente'); 
         END dettagliConvenzioni;
 
 
