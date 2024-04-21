@@ -387,7 +387,7 @@ EXCEPTION
     popup BOOLEAN := false;
     c INTEGER := 0;
 
-    BEGIN
+    BEGIN   
     gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
 
     --accedo alla pagina (se sono cliente o operatore)
@@ -1503,7 +1503,7 @@ END dettagliRicaricheClienti;
 
    head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email', ' ');
 
-    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
+    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
         gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);
         gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
         return;
@@ -1577,7 +1577,7 @@ BEGIN
    if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
         head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile',' ');
         else
-        head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile', ' ');
+        head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile');
    end if;
 
    gui.APRIFORMFILTRO;
