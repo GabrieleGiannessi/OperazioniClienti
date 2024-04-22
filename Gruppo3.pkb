@@ -92,7 +92,7 @@ create or replace PACKAGE BODY Gruppo3 as
         gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
     end inserisciDati;
 
---form per la insert della convenzione
+--inserimentoConvenzione :form per la insert della convenzione
 PROCEDURE inserimentoConvenzione(
     idSess varchar
 ) IS
@@ -259,7 +259,7 @@ EXCEPTION
     d_fine CONVENZIONI.DATAFINE%TYPE := NULL;
     error_check boolean := false;
     c int := 0;
-    current_cumulabile int;
+    current_cumulabile CONVENZIONI.CUMULABILE%TYPE := NULL;
 
     BEGIN
         gui.apriPagina (titolo => 'Modifica convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
@@ -283,7 +283,7 @@ EXCEPTION
         --gestione delle modifiche
 
         if c_sconto IS NOT NULL AND c_sconto <> current_sconto then
-            IF 0 < c_sconto AND c_sconto < 100 THEN
+            IF 0 < c_sconto AND c_sconto < 100 THEN --controllo parametro
             UPDATE CONVENZIONI
                 SET SCONTO = c_Sconto
                 WHERE IDConvenzione = c_id;
@@ -294,7 +294,7 @@ EXCEPTION
         end if;
 
         if c_dataInizio IS NOT NULL AND C_dataInizio <> d_inizio then
-            if c_dataInizio > SYSDATE+1 then
+            if c_dataInizio > SYSDATE+1 then --controllo parametro
             UPDATE CONVENZIONI
             SET DATAINIZIO = c_dataInizio
             WHERE IDConvenzione = c_id;
@@ -305,16 +305,15 @@ EXCEPTION
 
         end if;
 
-        if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
-            if  c_DataFine > SYSDATE+1 then
+        if c_Cumulabile IS NOT NULL AND c_cumulabile <> current_cumulabile then       
             UPDATE CONVENZIONI
-                SET DATAFINE = c_dataFine
+                SET CUMULABILE = c_cumulabile
                 WHERE IDConvenzione = c_id;
-                c := c+1;
-            else
-            error_check:=true;
-            end if;
+                c:=c+1;
         end if;
+
+
+
 
             IF error_check THEN
                 gui.aggiungiPopup (FALSE, 'Modifiche non accettate, controllare i parametri');
@@ -335,10 +334,11 @@ EXCEPTION
         gui.aCapo(2);
         gui.aggiungiForm;
 
-        gui.aggiungiIntestazione (testo => 'Modifica convenzione');
+        gui.aggiungiGruppoInput;
+        gui.aggiungiIntestazione (testo => 'Modifica convenzione'); 
+        gui.chiudiGruppoInput; 
         gui.aCapo(2);
 
-        gui.acapo;
 
         gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
         gui.aggiungiInput (tipo => 'hidden', nome => 'c_id', value => c_id);
@@ -362,8 +362,12 @@ EXCEPTION
 						gui.CHIUDIGRUPPOINPUT;
 			        gui.chiudiDiv;
 
+            gui.acapo();
+
             gui.aggiungiGruppoInput;
                 gui.aggiungiBottoneSubmit (value => 'Modifica');
+                gui.acapo(3);
+                gui.bottoneAggiungi (url => u_root || '.visualizzaConvenzioni?idSess='||idSess||'', testo => 'Torna indietro');
             gui.chiudiGruppoInput;
 
         gui.ChiudiForm;
@@ -1619,9 +1623,11 @@ BEGIN
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Cumulabile);
 
                 if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
-                gui.apriElementoPulsanti;
-                    gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaConvenzione?idSess='||idSess||'&c_id='||convenzioni.IDCONVENZIONE||'');
-                gui.chiudiElementoPulsanti;
+                    if (convenzioni.DataInizio >= SYSDATE AND convenzioni.dataFine > SYSDATE) then 
+                        gui.apriElementoPulsanti;
+                            gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaConvenzione?idSess='||idSess||'&c_id='||convenzioni.IDCONVENZIONE||'');
+                        gui.chiudiElementoPulsanti;
+                    end if; 
                 end if;
 
     gui.ChiudiRigaTabella;
