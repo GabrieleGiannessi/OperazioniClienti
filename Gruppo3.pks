@@ -122,7 +122,8 @@ create or replace package Gruppo3 as
 
 	procedure associaConvenzione (
 		idSess varchar default null,
-		c_Nome varchar2 default null
+		c_Nome varchar2 default null,
+		err_popup varchar2 default null
 	); 
 
 	procedure modificaConvenzione (
