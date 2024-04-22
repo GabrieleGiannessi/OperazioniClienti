@@ -78,7 +78,8 @@ create or replace package Gruppo3 as
 		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
 		cl_email    varchar2 default null,
 		cl_password varchar2 default null,
-		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi
+		cl_telefono varchar2 default null,  -- questi parametri servono per le update dei campi
+		err_popup   varchar2 default null
 	);
 
 	procedure visualizzaclienti (

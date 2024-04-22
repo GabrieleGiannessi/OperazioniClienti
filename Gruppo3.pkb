@@ -396,13 +396,15 @@
         cl_id VARCHAR2 DEFAULT NULL,
         cl_Email VARCHAR2 DEFAULT NULL,
         cl_Password VARCHAR2 DEFAULT NULL,
-        cl_Telefono VARCHAR2 DEFAULT NULL
+        cl_Telefono VARCHAR2 DEFAULT NULL,
+        err_popup VARCHAR2 DEFAULT NULL
     ) IS
 
         current_email CLIENTI.Email%TYPE := NULL;
         current_telefono CLIENTI.Ntelefono%TYPE := NULL;
         current_password CLIENTI.Password%TYPE := NULL;
         popup BOOLEAN := false;
+        passCheck EXCEPTION; 
         c INTEGER := 0;
 
         BEGIN   
@@ -414,7 +416,16 @@
             return;
         end if;
 
-        --un cliente non può accedere alla pagina modifica di un altro cliente
+        --gestione errori tramite popup
+        if err_popup IS NOT NULL then 
+            if err_popup = 'P' then --errore sulla password
+                gui.aggiungiPopup (False, 'La password è troppo corta, deve essere di almeno 8 caratteri'); 
+                gui.aCapo(); 
+            end if; 
+        end if; 
+
+
+        --un cliente non può accedere alla pagina modificaCliente di un altro cliente
         if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti');
             return;
@@ -437,11 +448,21 @@
 
         --aggiornamento password
         IF cl_Password IS NOT NULL AND cl_Password <> current_password THEN
-                UPDATE CLIENTI
+
+                --controllare che la password sia di almeno 8 caratteri
+                if LENGTH(cl_Password) < 8 then 
+                
+                RAISE passCheck; 
+                
+                else 
+                    UPDATE CLIENTI
                     SET Password = cl_Password
                         WHERE IDcliente = cl_id;
-            popup := true;
-            c := c + 1;
+                popup := true;
+                c := c + 1;
+                end if; 
+
+                
         END IF;
 
             -- Aggiornamento del telefono
@@ -529,8 +550,13 @@
         gui.chiudiPagina;
 
         EXCEPTION
-        WHEN OTHERS THEN
-        gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!');
+        WHEN NO_DATA_FOUND THEN
+        gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||''); --mancava id cliente, reindirizziamo con l'id
+
+        WHEN passCheck THEN 
+        gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P'); --mancava id cliente, reindirizziamo con l'id
+
+
     END modificaCliente;
 
         procedure visualizzaProfilo (
