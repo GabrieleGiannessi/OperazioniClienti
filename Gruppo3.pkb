@@ -405,11 +405,13 @@
         current_password CLIENTI.Password%TYPE := NULL;
         popup BOOLEAN := false;
         passCheck EXCEPTION; 
+
         c INTEGER := 0;
 
         BEGIN   
         gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
 
+        SAVEPOINT sp1; 
         --accedo alla pagina (se sono cliente o operatore)
         if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Manager')) then
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
@@ -422,6 +424,11 @@
                 gui.aggiungiPopup (False, 'La password è troppo corta, deve essere di almeno 8 caratteri'); 
                 gui.aCapo(); 
             end if; 
+
+            if err_popup = 'E' then --errore sulla email
+                gui.aggiungiPopup (False, 'Email già utilizzata da qualche altro cliente'); 
+                gui.aCapo(); 
+            end if;
         end if; 
 
 
@@ -452,17 +459,16 @@
                 --controllare che la password sia di almeno 8 caratteri
                 if LENGTH(cl_Password) < 8 then 
                 
-                RAISE passCheck; 
-                
+                ROLLBACK TO sp1; 
+                gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P');
+
                 else 
                     UPDATE CLIENTI
                     SET Password = cl_Password
                         WHERE IDcliente = cl_id;
                 popup := true;
                 c := c + 1;
-                end if; 
-
-                
+                end if;             
         END IF;
 
             -- Aggiornamento del telefono
@@ -497,7 +503,6 @@
 
         gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
         gui.aggiungiInput (tipo => 'hidden', nome => 'cl_id', value => cl_id);
-
 
         if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
         gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
@@ -545,6 +550,8 @@
                     gui.aggiungiBottoneSubmit (value => 'Modifica');
         gui.CHIUDIGRUPPOINPUT;
 
+        --gui.aggiungiInput (tipo => 'hidden', nome => 'err_popup', value => err_popup);
+
         gui.CHIUDIFORM;
         gui.aCapo(2);
         gui.chiudiPagina;
@@ -553,9 +560,9 @@
         WHEN NO_DATA_FOUND THEN
         gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||''); --mancava id cliente, reindirizziamo con l'id
 
-        WHEN passCheck THEN 
-        gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P'); --mancava id cliente, reindirizziamo con l'id
-
+        WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK TO sp1; 
+        gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=E'); --email già utilizzata
 
     END modificaCliente;
 
@@ -1545,7 +1552,7 @@
 
     BEGIN
 
-    head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email', ' ');
+    head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
 
         if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
             gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);
@@ -1583,15 +1590,10 @@
         gui.AGGIUNGIRIGATABELLA;
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.DataNascita);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
 
                 gui.APRIELEMENTOPULSANTI;
-                gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaCliente?idSess='||idSess||'&cl_id='||clientI.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
                 gui.aggiungiPulsanteGenerale (collegamento => ''''|| u_root || '.visualizzaProfilo?idSess='||idSess||'&id='||clienti.IDCLIENTE||'''', testo => 'Profilo');
-
                 gui.chiudiElementoPulsanti;
         gui.ChiudiRigaTabella;
         end LOOP;
