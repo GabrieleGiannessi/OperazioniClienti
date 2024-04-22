@@ -184,6 +184,7 @@
             id_convenzione CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
             c_check CONVENZIONICLIENTI.FK_CLIENTE%TYPE := NULL; --uso questa variabile per il controllo sulla convenzione già associata
         BEGIN
+      
             gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
 
             --controllo che l'utente sia un cliente
@@ -191,6 +192,20 @@
                 gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
                 return;
             end if;
+
+            if err_popup IS NOT NULL then 
+
+                if err_popup = 'N' then --nodatafound : mandiamo il messaggio di errore 'convenzione non trovata'
+                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+                    gui.acapo(2);
+                end if; 
+
+                if err_popup = 'D' then --dupvalonindex : mandiamo il messaggio di errore 'convenzione già associata'
+                    gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername (idSess)|| '');
+                    gui.acapo(2);
+                end if; 
+
+            end if; 
 
             --controllo sulla convenzione
             if  c_Nome IS NOT NULL then
@@ -238,12 +253,10 @@
 
             EXCEPTION
             WHEN NO_DATA_FOUND then
-                gui.aggiungiPopup (False, 'Convenzione non trovata'); 
-                gui.chiudiPagina;
+                gui.REINDIRIZZA(u_root||'.associaConvenzione?idSess='||idSess||'&err_popUp=N');
             
             WHEN DUP_VAL_ON_INDEX then
-                gui.aggiungiPopup (False, 'Convenzione già associata al cliente'); 
-                gui.chiudiPagina;
+                gui.REINDIRIZZA(u_root||'.associaConvenzione?idSess='||idSess||'&err_popUp=D');
             
             END associaConvenzione;
 
