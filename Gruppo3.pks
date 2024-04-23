@@ -143,7 +143,8 @@ create or replace package Gruppo3 as
 
 	procedure dettagliConvenzioni (
 		idSess varchar default null,
-		c_nome CONVENZIONI.NOME%TYPE default null
+		c_nome CONVENZIONI.NOME%TYPE default null, 
+		err_popup varchar2 default null
 	); 
 
 	---------------------------------------------

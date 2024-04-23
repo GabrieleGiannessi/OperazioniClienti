@@ -187,7 +187,7 @@
 
         procedure associaConvenzione (
             idSess varchar default null, --CLIENTE
-            c_Codice varchar2 default null,
+            c_Codice varchar2 default null, 
             err_popup varchar2 default null
         ) IS
             data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
@@ -1756,7 +1756,8 @@ BEGIN
 
     procedure dettagliConvenzioni (
             idSess varchar default null,
-            c_nome CONVENZIONI.NOME%TYPE default null
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
         ) IS
         c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
         c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
@@ -1771,6 +1772,13 @@ BEGIN
                 gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina');
                 return;
             END IF;
+
+            if err_popup IS NOT NULL THEN 
+                if err_popup = 'N' then 
+                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+                    gui.aCapo(2); 
+                end if; 
+            END IF; 
 
             if c_nome is not NULL THEN
                 SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
@@ -1867,7 +1875,7 @@ BEGIN
 
             EXCEPTION
                 when NO_DATA_FOUND THEN
-                gui.aggiungiPopup (False, 'Convenzione non esistente');
+                gui.reindirizza (u_root || 'dettagliConvenzione?idSess='||idSess||'&err_popup=N');
             END dettagliConvenzioni;
 
 
