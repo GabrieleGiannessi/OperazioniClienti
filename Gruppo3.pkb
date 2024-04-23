@@ -93,18 +93,32 @@
         end inserisciDati;
 
     --inserimentoConvenzione :form per la insert della convenzione
-    PROCEDURE inserimentoConvenzione(
-        idSess varchar
+    PROCEDURE inserisciConvenzione(
+        idSess varchar, 
+        popup varchar2 default null
     ) IS
     BEGIN
 
+        gui.APRIPAGINA(titolo => 'Inserimento Convenzione', idSessione => idSess);
+
         if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-            gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homepage?p_success=S&idSessione='||idSess||'');
+            gui.chiudiPagina;
         return;
         end if;
 
-        gui.APRIPAGINA(titolo => 'Inserimento Convenzione', idSessione => idSess);
+        
+        if popup IS NOT NULL then
+            if popup = 'S' then
+                gui.aggiungiPopup (True, 'Convenzione inserita'); 
+                gui.aCapo;
+            end if; 
+            if popup = 'D' then 
+                gui.aggiungiPopup (False, 'Nome o codice accesso già usati'); 
+                gui.aCapo;
+            end if;  
+        end if; 
+
         gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');
         -- Inserimento dei campi del modulo
         gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
@@ -140,10 +154,7 @@
             gui.aCapo(2);
         gui.ChiudiPagina;
 
-
-        -- Chiusura della pagina HTML
-    --  gui.ChiudiPagina;
-    END inserimentoConvenzione;
+    END inserisciConvenzione;
 
     --procedura per la insert convenzione nel form (adesso funziona, bisogna settare le sessioni e i relativi controlli)
     procedure inseriscidatiConvenzione (
@@ -166,11 +177,11 @@
         VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
 
         -- Messaggio di conferma dell'inserimento
-        gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
-    EXCEPTION
-        WHEN OTHERS THEN
-            -- Gestione dell'eccezione e stampa dell'errore
-            gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
+        gui.reindirizza (u_root||'.inserisciConvenzione?idSess='||idSess||'&popUp=S');
+
+        EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN 
+        gui.reindirizza (u_root||'.inserisciConvenzione?idSess='||idSess||'&popUp=D');
 
         END inseriscidatiConvenzione;
 
@@ -457,7 +468,7 @@
         IF cl_Password IS NOT NULL AND cl_Password <> current_password THEN
 
                 --controllare che la password sia di almeno 8 caratteri
-                if LENGTH(cl_Password) < 8 then 
+                if LENGTH(cl_Password) < 8 then --si stampa l'errore
                 
                 ROLLBACK TO sp1; 
                 gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P');
@@ -693,6 +704,33 @@
                                         gui.apriDiv(classe => 'right');
                                         gui.aggiungiIntestazione(testo => j.NOME , dimensione => 'h2');
                                         gui.chiudiDiv;
+                                    END LOOP;
+                                END LOOP;
+
+                                gui.apriDiv(classe => 'left');
+                                gui.aggiungiIntestazione(testo => 'Convenzioni attive', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv(classe => 'right');
+                                gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                gui.chiudiDiv;
+
+                                --visualizziamo le convenzioni attive
+                                FOR i IN (
+                                    SELECT FK_CONVENZIONE FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess)
+                                ) LOOP
+                                    --prendiamo il nome e lo stampiamo
+                                    for j IN (
+                                        SELECT NOME, DATAFINE FROM CONVENZIONI WHERE IDCONVENZIONE = i.FK_CONVENZIONE
+                                    ) LOOP
+
+                                        if j.DATAFINE <= SYSDATE then
+                                        gui.apriDiv(classe => 'left');
+                                        gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                        gui.chiudiDiv;
+                                        gui.apriDiv(classe => 'right');
+                                        gui.aggiungiIntestazione(testo => j.NOME || ' - ' || j.DATAFINE, dimensione => 'h2');
+                                        gui.chiudiDiv;
+                                        end if; 
                                     END LOOP;
                                 END LOOP;
                             END IF;

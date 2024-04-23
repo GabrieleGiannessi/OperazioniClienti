@@ -102,8 +102,9 @@ create or replace package Gruppo3 as
 
 	--procedure convenzioni
 
-	procedure inserimentoconvenzione (
-		idsess varchar --per accedere devi essere loggato (e ruolo = operatore)
+	procedure inserisciConvenzione (
+		idsess varchar, --per accedere devi essere loggato (e ruolo = operatore)
+		popup varchar2 default null
 	);
 
 	procedure inseriscidaticonvenzione (
