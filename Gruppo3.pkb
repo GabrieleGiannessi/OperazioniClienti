@@ -697,7 +697,7 @@ procedure visualizzaBustePaga(
     BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
-     htp.prn('<script>   const newUrl = "'||costanti.URL||'.visualizzaBustePaga?idSess='||idSess||'";
+     htp.prn('<script>   const newUrl = "'||U_ROOT||'.visualizzaBustePaga?idSess='||idSess||'";
                         history.replaceState(null, null, newUrl);
         </script>');
 
@@ -745,14 +745,14 @@ procedure visualizzaBustePaga(
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => costanti.URL||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
                 gui.chiudiElementoPulsanti;
 
             gui.CHIUDIRIGATABELLA;
         END LOOP;
             gui.ChiudiTabella;
         ELSE
-            gui.AGGIUNGIPOPUP(FALSE, 'Non hai permessi necessari per accedere a questa pagina!');
+            gui.AGGIUNGIPOPUP(FALSE, 'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
     gui.CHIUDIPAGINA();
@@ -792,7 +792,7 @@ head gui.StringArray;
 BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-    htp.prn('<script>   const newUrl = '||costanti.URL||'".modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'";
+    htp.prn('<script>   const newUrl = '||U_ROOT||'".modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
@@ -867,15 +867,15 @@ BEGIN
             WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Data = r_Data;
             -- Commit
             COMMIT;
-            gui.REINDIRIZZA(costanti.URL||'.visualizzaBustePaga?idSess='||idSess||'&r_popUp=True');
+            gui.REINDIRIZZA(U_ROOT||'.visualizzaBustePaga?idSess='||idSess||'&r_popUp=True');
         END IF;
 
         IF (new_Importo < 0) THEN
-            gui.REINDIRIZZA(costanti.URL||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
+            gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
         END IF;
 
     ELSE
-        gui.AGGIUNGIPOPUP(False,'Non hai permessi necessari per accedere a questa pagina!');
+        gui.AGGIUNGIPOPUP(False,'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
     gui.CHIUDIPAGINA();
@@ -883,10 +883,10 @@ BEGIN
     EXCEPTION
     WHEN NO_DATA_FOUND THEN
         ROLLBACK  TO sp1;
-        gui.REINDIRIZZA(costanti.URL||'.gruppo3modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
+        gui.REINDIRIZZA(U_ROOT||'.gruppo3modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
     WHEN DUP_VAL_ON_INDEX THEN
         ROLLBACK  TO sp1;
-        gui.REINDIRIZZA(costanti.URL||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=dubBusta');
+        gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=dubBusta');
 
 
 END modificaBustaPaga;
@@ -940,7 +940,7 @@ IF(sessionhandler.getRuolo(idSess) = 'Autista' OR sessionhandler.getRuolo(idSess
 
         gui.ChiudiTabella;
 ELSE
-    gui.AGGIUNGIPOPUP(False, 'Non hai i permessi necessari per accedere alla pagina');
+    gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi necessari per accedere alla pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
 END IF;
 
 gui.CHIUDIPAGINA();
@@ -1006,7 +1006,7 @@ BEGIN
             gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
         END IF;
 
-        gui.AGGIUNGIFORM (url => costanti.URL||'.inserimentoBustaPaga');
+        gui.AGGIUNGIFORM (url => U_ROOT||'.inserimentoBustaPaga');
 
             gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
             gui.ACAPO();
@@ -1043,7 +1043,7 @@ BEGIN
             END IF;
         END IF;
     ELSE
-        gui.AGGIUNGIPOPUP(False, 'Non hai i permessi necessari per accedere alla pagina!');
+        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi necessari per accedere alla pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
     EXCEPTION
@@ -1073,7 +1073,7 @@ head gui.stringArray;
 BEGIN
 
 --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-    htp.prn('<script>   const newUrl = "'||costanti.URL||'.visualizzaRicaricheCliente?idSess='||idSess||'";
+    htp.prn('<script>   const newUrl = "'||U_ROOT||'.visualizzaRicaricheCliente?idSess='||idSess||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
@@ -1119,9 +1119,9 @@ IF(sessionhandler.getruolo(idSess) = 'Cliente') THEN
     end LOOP;
 
         gui.ChiudiTabella;
-        gui.BOTTONEAGGIUNGI(testo=>'Inserisci Ricarica', classe=>'bottone2', url=> costanti.URL||'.inserimentoRicarica?idSess='||idSess);
+        gui.BOTTONEAGGIUNGI(testo=>'Inserisci Ricarica', classe=>'bottone2', url=> U_ROOT||'.inserimentoRicarica?idSess='||idSess);
 ELSE
-    gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina');
+    gui.AggiungiPopup(False, 'Errore: non hai il permesso per accedere a questa pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
 END IF;
 END visualizzaRicaricheCliente;
 
@@ -1137,7 +1137,7 @@ ImportoNegativo EXCEPTION;
 
 BEGIN
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-    htp.prn('<script>   const newUrl = "'||costanti.URL||'.inserimentoRicarica?idSess='||idSess||'";
+    htp.prn('<script>   const newUrl = "'||U_ROOT||'.inserimentoRicarica?idSess='||idSess||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
@@ -1155,7 +1155,7 @@ BEGIN
 
     /* Controllo i permessi di accesso */
     IF(sessionhandler.getruolo(idSess) = 'Cliente' ) THEN
-        gui.AGGIUNGIFORM (url => costanti.URL||'.inserimentoRicarica');
+        gui.AGGIUNGIFORM (url => U_ROOT||'.inserimentoRicarica');
             gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
             gui.AGGIUNGIGRUPPOINPUT;
                 gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
@@ -1176,17 +1176,17 @@ BEGIN
             WHERE IDcliente = sessionhandler.getiduser(idSess);
             COMMIT;
             /* Reindiriziamo alla pagina visualizzaRicaricheCliente */
-            gui.REINDIRIZZA(costanti.URL||'.visualizzaRicaricheCliente?idSess='||idSess||'&r_PopUp=True');
+            gui.REINDIRIZZA(U_ROOT||'.visualizzaRicaricheCliente?idSess='||idSess||'&r_PopUp=True');
         END IF;
     ELSE
-        gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina!');
+        gui.AggiungiPopup(False, 'Errore: non hai i permessi per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
     EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE = -2290 THEN
             ROLLBACK TO sp1;
-            gui.REINDIRIZZA(costanti.URL||'inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
+            gui.REINDIRIZZA(U_ROOT||'inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
         END IF;
 end inserimentoRicarica;
 
@@ -1373,7 +1373,7 @@ BEGIN
 
         gui.CHIUDIPAGINA();
     ELSE
-        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina');
+        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
 END dettagliStipendiPersonale;
@@ -1480,7 +1480,7 @@ BEGIN
 
             gui.CHIUDIGRUPPOINPUT();
     ELSE
-        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina');
+        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
     EXCEPTION
