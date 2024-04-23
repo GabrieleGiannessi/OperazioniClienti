@@ -732,25 +732,25 @@
             END visualizzaProfilo;
 
 
-    --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
-    procedure visualizzaBustePaga(
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
-        r_PopUp      in varchar2 default null
-    ) is
+--visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
+procedure visualizzaBustePaga(
+    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+    r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+    r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+    r_Data       in varchar2 default null,
+    r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+    r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
+    r_PopUp      in varchar2 default null
+) is
 
         head gui.StringArray;
 
         BEGIN
 
-        --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
-        htp.prn('<script>   const newUrl = "'||costanti.URL||'.visualizzaBustePaga?idSess='||idSess||'";
-                            history.replaceState(null, null, newUrl);
-            </script>');
+    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
+     htp.prn('<script>   const newUrl = "'||U_ROOT||'.visualizzaBustePaga?idSess='||idSess||'";
+                        history.replaceState(null, null, newUrl);
+        </script>');
 
 
         head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile', ' ');
@@ -776,18 +776,18 @@
 
             gui.APRITABELLA (elementi => head);
 
-            for busta_paga IN (
-                select *
-                from bustepaga b
-                where ( b.fk_dipendente = r_Dipendente or r_Dipendente is null )
-                    and ( b.fk_contabile = r_Contabile or r_Contabile is null )
-                    and ( trunc(b.DATA) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
-                    and ( b.importo = r_Importo or r_Importo is null )
-                    and ( b.bonus = r_Bonus or r_Bonus is null )
-                order by data desc
-            )
-            LOOP
-                gui.AGGIUNGIRIGATABELLA;
+        for busta_paga IN (
+            select *
+            from bustepaga b
+            where ( b.fk_dipendente = r_FkDipendente or r_FkDipendente is null )
+                and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
+                and ( trunc(b.DATA) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
+            order by data desc
+        )
+        LOOP
+            gui.AGGIUNGIRIGATABELLA;
 
                     gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE);
                     gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
@@ -795,16 +795,16 @@
                     gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.BONUS, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
                     gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
-                    gui.apriElementoPulsanti;
-                    gui.AGGIUNGIPULSANTEMODIFICA(collegamento => costanti.URL||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
-                    gui.chiudiElementoPulsanti;
+                gui.apriElementoPulsanti;
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.chiudiElementoPulsanti;
 
-                gui.CHIUDIRIGATABELLA;
-            END LOOP;
-                gui.ChiudiTabella;
-            ELSE
-                gui.AGGIUNGIPOPUP(FALSE, 'Non hai permessi necessari per accedere a questa pagina!');
-        END IF;
+            gui.CHIUDIRIGATABELLA;
+        END LOOP;
+            gui.ChiudiTabella;
+        ELSE
+            gui.AGGIUNGIPOPUP(FALSE, 'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
+    END IF;
 
         gui.CHIUDIPAGINA();
 
@@ -842,10 +842,10 @@
 
     BEGIN
 
-        --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-        htp.prn('<script>   const newUrl = '||costanti.URL||'".modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'";
-                        history.replaceState(null, null, newUrl);
-        </script>');
+    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
+    htp.prn('<script>   const newUrl = '||U_ROOT||'".modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'";
+                    history.replaceState(null, null, newUrl);
+    </script>');
 
         gui.apriPagina(titolo => 'modificaBustaPaga', idSessione=>idSess);
         SAVEPOINT sp1;
@@ -908,36 +908,36 @@
             FROM DIPENDENTI d
             WHERE d.MATRICOLA = r_FkDipendente;
 
-            IF (new_Importo > 0 AND bonus_percent >= 0) THEN
-                -- Aggiornamento del contabile, dell'importo e del bonus (ricalcolato da dipendenti)
-                UPDATE BUSTEPAGA
-                SET BUSTEPAGA.FK_CONTABILE = SESSIONHANDLER.GETIDUSER(idSess),
-                    BUSTEPAGA.DATA = TO_DATE(new_Data, 'yyyy-mm-dd'),
-                    BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
-                    BUSTEPAGA.Bonus = (TO_NUMBER(new_Importo)*bonus_percent)/100
-                WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Data = r_Data;
-                -- Commit
-                COMMIT;
-                gui.REINDIRIZZA(costanti.URL||'.visualizzaBustePaga?idSess='||idSess||'&r_popUp=True');
-            END IF;
-
-            IF (new_Importo < 0) THEN
-                gui.REINDIRIZZA(costanti.URL||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
-            END IF;
-
-        ELSE
-            gui.AGGIUNGIPOPUP(False,'Non hai permessi necessari per accedere a questa pagina!');
+        IF (new_Importo > 0 AND bonus_percent >= 0) THEN
+            -- Aggiornamento del contabile, dell'importo e del bonus (ricalcolato da dipendenti)
+            UPDATE BUSTEPAGA
+            SET BUSTEPAGA.FK_CONTABILE = SESSIONHANDLER.GETIDUSER(idSess),
+                BUSTEPAGA.DATA = TO_DATE(new_Data, 'yyyy-mm-dd'),
+                BUSTEPAGA.Importo = TO_NUMBER(new_Importo),
+                BUSTEPAGA.Bonus = (TO_NUMBER(new_Importo)*bonus_percent)/100
+            WHERE BUSTEPAGA.Fk_Dipendente = r_FkDipendente AND BUSTEPAGA.Data = r_Data;
+            -- Commit
+            COMMIT;
+            gui.REINDIRIZZA(U_ROOT||'.visualizzaBustePaga?idSess='||idSess||'&r_popUp=True');
         END IF;
+
+        IF (new_Importo < 0) THEN
+            gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
+        END IF;
+
+    ELSE
+        gui.AGGIUNGIPOPUP(False,'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
+    END IF;
 
         gui.CHIUDIPAGINA();
 
-        EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            ROLLBACK  TO sp1;
-            gui.REINDIRIZZA(costanti.URL||'.gruppo3modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
-        WHEN DUP_VAL_ON_INDEX THEN
-            ROLLBACK  TO sp1;
-            gui.REINDIRIZZA(costanti.URL||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=dubBusta');
+    EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        ROLLBACK  TO sp1;
+        gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
+    WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK  TO sp1;
+        gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=dubBusta');
 
 
     END modificaBustaPaga;
@@ -989,10 +989,10 @@
             gui.ChiudiRigaTabella;
             end LOOP;
 
-            gui.ChiudiTabella;
-    ELSE
-        gui.AGGIUNGIPOPUP(False, 'Non hai i permessi necessari per accedere alla pagina');
-    END IF;
+        gui.ChiudiTabella;
+ELSE
+    gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi necessari per accedere alla pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
+END IF;
 
     gui.CHIUDIPAGINA();
 
@@ -1057,7 +1057,7 @@
                 gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
             END IF;
 
-            gui.AGGIUNGIFORM (url => costanti.URL||'.inserimentoBustaPaga');
+        gui.AGGIUNGIFORM (url => U_ROOT||'.inserimentoBustaPaga');
 
                 gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
                 gui.ACAPO();
@@ -1072,43 +1072,44 @@
                         gui.aggiungiBottoneSubmit (value => 'Inserisci');
                 gui.CHIUDIGRUPPOINPUT;
 
-            gui.CHIUDIFORM;
-            IF(r_Importo IS NOT NULL) THEN
-                IF ( r_Importo > 0 ) THEN
-                    -- Controllo che esista il dipendente.
-                    IF(existDipendente(r_FkDipendente) = 1) THEN
-                        SELECT d.Bonus INTO bonus_percent FROM DIPENDENTI d WHERE d.Matricola = sessionhandler.getiduser(idSess);
-                        INSERT INTO BUSTEPAGA (FK_Dipendente, FK_Contabile, Data, Importo, Bonus) VALUES
-                        (r_FkDipendente, sessionhandler.getiduser(idSess), TO_DATE(r_Data,'yyyy-mm-dd'), r_Importo, ((r_Importo*bonus_percent)/100));
-                        --Commit
-                        COMMIT;
-                        gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=True');
-                    ELSE IF( existDipendente(r_FkDipendente) = 0 ) THEN
-                            RAISE NO_DATA_FOUND;
-                        ELSE
-                            RAISE dup_Val_Dipendenti;
-                        END IF;
+        gui.CHIUDIFORM;
+        IF(r_Importo IS NOT NULL) THEN
+            IF ( r_Importo > 0 ) THEN
+                -- Controllo che esista il dipendente.
+                IF(existDipendente(r_FkDipendente) = 1) THEN
+                    SELECT d.Bonus INTO bonus_percent FROM DIPENDENTI d WHERE d.Matricola = sessionhandler.getiduser(idSess);
+                    INSERT INTO BUSTEPAGA (FK_Dipendente, FK_Contabile, Data, Importo, Bonus) VALUES
+                    (r_FkDipendente, sessionhandler.getiduser(idSess), TO_DATE(r_Data,'yyyy-mm-dd'), r_Importo, ((r_Importo*bonus_percent)/100));
+                    --Commit
+                    COMMIT;
+                    gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=True');
+                ELSE IF( existDipendente(r_FkDipendente) = 0 ) THEN
+                        RAISE NO_DATA_FOUND;
+                    ELSE
+                        RAISE dup_Val_Dipendenti;
                     END IF;
-                ELSE
-                    gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=importoNegativo');
                 END IF;
+            ELSE
+                gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=importoNegativo');
             END IF;
-        ELSE
-            gui.AGGIUNGIPOPUP(False, 'Non hai i permessi necessari per accedere alla pagina!');
         END IF;
+    ELSE
+        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi necessari per accedere alla pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
+    END IF;
 
-        EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            ROLLBACK TO sp1;
-            gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=NoDataFound');
-        -- C'è già una busta paga per quel dipendente in quel giorno
-        WHEN DUP_VAL_ON_INDEX THEN
-            ROLLBACK TO sp1;
+    EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        ROLLBACK TO sp1;
+        gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=NoDataFound');
+    -- C'è già una busta paga per quel dipendente in quel giorno
+    WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK TO sp1;
+        gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
+    WHEN OTHERS THEN
+        IF(SQLCODE = -1) THEN
+            -- unique costraint violated
             gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
-        WHEN OTHERS THEN
-            IF(SQLCODE = -1) THEN
-                gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
-            END IF;
+        END IF;
 
     END inserimentoBustaPaga;
 
@@ -1123,10 +1124,10 @@
 
     BEGIN
 
-    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-        htp.prn('<script>   const newUrl = "'||costanti.URL||'.visualizzaRicaricheCliente?idSess='||idSess||'";
-                        history.replaceState(null, null, newUrl);
-        </script>');
+--QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
+    htp.prn('<script>   const newUrl = "'||U_ROOT||'.visualizzaRicaricheCliente?idSess='||idSess||'";
+                    history.replaceState(null, null, newUrl);
+    </script>');
 
     gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente', idSessione=>idSess);
 
@@ -1169,12 +1170,12 @@
             gui.ChiudiRigaTabella;
         end LOOP;
 
-            gui.ChiudiTabella;
-            gui.BOTTONEAGGIUNGI(testo=>'Inserisci Ricarica', classe=>'bottone2', url=> costanti.URL||'.inserimentoRicarica?idSess='||idSess);
-    ELSE
-        gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina');
-    END IF;
-    END visualizzaRicaricheCliente;
+        gui.ChiudiTabella;
+        gui.BOTTONEAGGIUNGI(testo=>'Inserisci Ricarica', classe=>'bottone2', url=> U_ROOT||'.inserimentoRicarica?idSess='||idSess);
+ELSE
+    gui.AggiungiPopup(False, 'Errore: non hai il permesso per accedere a questa pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
+END IF;
+END visualizzaRicaricheCliente;
 
     procedure inserimentoRicarica (
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
@@ -1186,11 +1187,11 @@
 
     ImportoNegativo EXCEPTION;
 
-    BEGIN
-        --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-        htp.prn('<script>   const newUrl = "'||costanti.URL||'.inserimentoRicarica?idSess='||idSess||'";
-                        history.replaceState(null, null, newUrl);
-        </script>');
+BEGIN
+    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
+    htp.prn('<script>   const newUrl = "'||U_ROOT||'.inserimentoRicarica?idSess='||idSess||'";
+                    history.replaceState(null, null, newUrl);
+    </script>');
 
         gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
 
@@ -1204,14 +1205,14 @@
 
         SAVEPOINT sp1;
 
-        /* Controllo i permessi di accesso */
-        IF(sessionhandler.getruolo(idSess) = 'Cliente' ) THEN
-            gui.AGGIUNGIFORM (url => costanti.URL||'.inserimentoRicarica');
-                gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
-                gui.CHIUDIGRUPPOINPUT;
+    /* Controllo i permessi di accesso */
+    IF(sessionhandler.getruolo(idSess) = 'Cliente' ) THEN
+        gui.AGGIUNGIFORM (url => U_ROOT||'.inserimentoRicarica');
+            gui.aggiungiIntestazione(testo => 'Inserimento Ricarica', dimensione => 'h2');
+            gui.AGGIUNGIGRUPPOINPUT;
+                gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
+            gui.CHIUDIGRUPPOINPUT;
 
                 gui.AGGIUNGIGRUPPOINPUT;
                     gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci');
@@ -1219,44 +1220,59 @@
 
             gui.CHIUDIFORM;
 
-            IF(r_importo IS NOT NULL) THEN
-                /* Inserimento nuova ricarica */
-                INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(idSess), SYSDATE, r_Importo);
-                /* Aggiornamento del Saldo */
-                UPDATE CLIENTI SET Saldo = (SELECT c.Saldo FROM CLIENTI c WHERE c.IDCLIENTE = sessionhandler.getiduser(idSess)) + r_Importo
-                WHERE IDcliente = sessionhandler.getiduser(idSess);
-                COMMIT;
-                /* Reindiriziamo alla pagina visualizzaRicaricheCliente */
-                gui.REINDIRIZZA(costanti.URL||'.visualizzaRicaricheCliente?idSess='||idSess||'&r_PopUp=True');
-            END IF;
-        ELSE
-            gui.AggiungiPopup(False, 'Non hai il permesso per accedere a questa pagina!');
+        IF(r_importo IS NOT NULL) THEN
+            /* Inserimento nuova ricarica */
+            INSERT INTO RICARICHE VALUES(seq_IDricarica.NEXTVAL, sessionhandler.getiduser(idSess), SYSDATE, r_Importo);
+            /* Aggiornamento del Saldo */
+            UPDATE CLIENTI SET Saldo = (SELECT c.Saldo FROM CLIENTI c WHERE c.IDCLIENTE = sessionhandler.getiduser(idSess)) + r_Importo
+            WHERE IDcliente = sessionhandler.getiduser(idSess);
+            COMMIT;
+            /* Reindiriziamo alla pagina visualizzaRicaricheCliente */
+            gui.REINDIRIZZA(U_ROOT||'.visualizzaRicaricheCliente?idSess='||idSess||'&r_PopUp=True');
         END IF;
+    ELSE
+        gui.AggiungiPopup(False, 'Errore: non hai i permessi per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
+    END IF;
 
-        EXCEPTION
-        WHEN OTHERS THEN
-            IF SQLCODE = -2290 THEN
-                ROLLBACK TO sp1;
-                gui.REINDIRIZZA(costanti.URL||'inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
-            END IF;
-    end inserimentoRicarica;
+    EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -2290 THEN
+            -- vincolo check violato
+            ROLLBACK TO sp1;
+            gui.REINDIRIZZA(U_ROOT||'inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
+        END IF;
+end inserimentoRicarica;
 
-    procedure dettagliStipendiPersonale(
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_DataInizio in varchar2 default null,
-        r_DataFine in varchar2 default null
-    )
-    IS
-        totStipAutisti number :=0;
-        totStipOperatori number :=0;
-        totStipContabili number :=0;
-        totStipManager number := 0;
-        totStipGeneral number := 0;
-        minDate varchar2(20);
-        maxDate varchar2(20);
-        head gui.stringArray;
-    BEGIN
-        IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
+function bustePagaIsEmpty return BOOLEAN IS
+    count_b NUMBER := 0;
+BEGIN
+    SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b;
+    IF (count_b = 0) THEN
+        return TRUE;
+    ELSE
+        return FALSE;
+    END IF;
+end bustePagaIsEmpty;
+
+procedure dettagliStipendiPersonale(
+    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+    r_DataInizio in varchar2 default null,
+    r_DataFine in varchar2 default null
+)
+IS
+    totStipAutisti number :=0;
+    totStipOperatori number :=0;
+    totStipContabili number :=0;
+    totStipManager number := 0;
+    totStipGeneral number := 0;
+    minDate varchar2(20);
+    maxDate varchar2(20);
+    head gui.stringArray;
+BEGIN
+    IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
+        gui.APRIPAGINA(titolo=> 'dettagliStipendiPersonale', idSessione=>idSess);
+        -- controllo che la tabella non sia vuota
+        IF(NOT bustePagaIsEmpty()) THEN
             -- Recupero data minima e massima in buste paga
             SELECT TO_CHAR(MIN(b.DATA), 'dd/mm/yyyy') INTO minDate
             FROM BUSTEPAGA b;
@@ -1266,169 +1282,183 @@
             SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipGeneral
             FROM (DIPENDENTI d JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
             WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
             -- Recupero somma stipendi autisti
             SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipAutisti
             FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
             WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
             -- Recupero somma stipendi operatori
             SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipOperatori
             FROM (OPERATORI o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
             WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
             -- Recupero somma stipendi contabili
             SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipContabili
             FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
             WHERE r.RUOLO = 1 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
             -- Recupero somma stipendi manager
             SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipManager
             FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
             WHERE r.RUOLO = 0 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
-
-            gui.APRIPAGINA(titolo=> 'dettagliStipendiPersonale', idSessione=>idSess);
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
             gui.AGGIUNGIFORM();
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Stipendi Personale', dimensione => 'h1');
-                gui.APRIFORMFILTRO();
-                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-                        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataInizio', placeholder => 'Data Inizio');
-                        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataFine', placeholder => 'Data Fine');
-                        gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
-                    gui.ACAPO;
-                gui.CHIUDIFORMFILTRO;
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Personale completo', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipGeneral, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Autisti', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipAutisti, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for autista IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => autista.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(autista.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.ACAPO();
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Operatori', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipOperatori, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for operatore IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (Operatori o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => operatore.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(operatore.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Contabili', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipContabili, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for contabile IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE r.RUOLO = 1
-                                    AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => contabile.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(contabile.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Manager', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipManager, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for manager IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE r.RUOLO = 0
-                                    AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => manager.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(manager.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Stipendi Personale', dimensione => 'h1');
+            gui.APRIFORMFILTRO();
+                gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataInizio', placeholder => 'Data Inizio');
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataFine', placeholder => 'Data Fine');
+                    gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
+                gui.ACAPO;
+            gui.CHIUDIFORMFILTRO;
+            gui.AGGIUNGIGRUPPOINPUT;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Personale completo', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipGeneral, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Autisti', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipAutisti, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for autista IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => autista.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(autista.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.ACAPO();
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Operatori', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipOperatori, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for operatore IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (Operatori o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => operatore.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(operatore.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.ACAPO;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Contabili', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipContabili, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for contabile IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE r.RUOLO = 1
+                                AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => contabile.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(contabile.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.ACAPO;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Manager', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipManager, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for manager IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE r.RUOLO = 0
+                                AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => manager.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(manager.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
                 gui.CHIUDIGRUPPOINPUT;
             gui.CHIUDIFORM();
 
             gui.CHIUDIPAGINA();
         ELSE
-            gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina');
+            RAISE NO_DATA_FOUND;
         END IF;
+    ELSE
+        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
+    END IF;
 
-    END dettagliStipendiPersonale;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        gui.AGGIUNGIPOPUP(False,'Errore: nessun dato presente.');
+END dettagliStipendiPersonale;
 
+function ricaricheIsEmpty return BOOLEAN IS
+    count_r NUMBER := 0;
+BEGIN
+    SELECT COUNT(*) INTO count_r FROM RICARICHE r;
+    IF (count_r = 0) THEN
+        return TRUE;
+    ELSE
+        return FALSE;
+    END IF;
+end ricaricheIsEmpty;
 
     procedure dettagliRicaricheClienti(
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
@@ -1445,8 +1475,11 @@
         delta number := 0;
         head gui.stringArray;
 
-    BEGIN
-        IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
+BEGIN
+    gui.APRIPAGINA(titolo=> 'dettagliRicaricheClienti', idSessione=>idSess);
+    IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
+        -- controllo che la tabella ricariche non sia vuota
+        IF(NOT ricaricheIsEmpty()) THEN
             -- Recupero data minima e massima in ricariche.
             SELECT TO_CHAR(MIN(r.DATA), 'yyyy-mm-dd') INTO minDate
             FROM RICARICHE r;
@@ -1477,7 +1510,6 @@
             delta :=  totRicaricheDataFine - totRicaricheDataInizio;
             trendPercent := ((delta * 100) /totRicaricheDataInizio);
             -- gui
-            gui.APRIPAGINA(titolo=> 'dettagliRicaricheClienti', idSessione=>idSess);
             gui.AGGIUNGIFORM();
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Ricariche Clienti', dimensione => 'h1');
                 gui.APRIFORMFILTRO();
@@ -1514,11 +1546,11 @@
                     for cliente IN (
                             SELECT *
                             FROM (SELECT c.IDCLIENTE, SUM(r.IMPORTO) AS ricaricheTot
-                                FROM Clienti c JOIN RICARICHE r ON (c.IDCLIENTE = r.FK_CLIENTE)
-                                WHERE (TRUNC(r.data) >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                  FROM Clienti c JOIN RICARICHE r ON (c.IDCLIENTE = r.FK_CLIENTE)
+                                  WHERE (TRUNC(r.data) >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
                                     AND (TRUNC(r.data) <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY c.IDCLIENTE
-                                ORDER BY ricaricheTot)
+                                  GROUP BY c.IDCLIENTE
+                                  ORDER BY ricaricheTot)
                             WHERE ROWNUM <=10
                         )
                     LOOP
@@ -1531,12 +1563,15 @@
 
                 gui.CHIUDIGRUPPOINPUT();
         ELSE
-            gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina');
+            RAISE NO_DATA_FOUND;
         END IF;
+    ELSE
+        gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi per accedere a questa pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
+    END IF;
 
-        EXCEPTION
-        WHEN OTHERS THEN
-            gui.AGGIUNGIPOPUP(False, sqlcode||SQLERRM);
+    EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        gui.AGGIUNGIPOPUP(False, 'Errore: nessun dato presente.');
 
     END dettagliRicaricheClienti;
 

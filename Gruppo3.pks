@@ -1,11 +1,11 @@
 create or replace package Gruppo3 as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.Gruppo3';
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
+	u_root constant varchar(100) := u_user || '.gruppo3';
 
     procedure visualizzabustepaga (
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
         r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
         r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
@@ -35,11 +35,15 @@ create or replace package Gruppo3 as
         r_PopUp     in varchar2 default null
     );
 
+	function bustePagaIsEmpty return BOOLEAN;
+
 	procedure dettagliStipendiPersonale(
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_dataInizio in varchar2 default null,
         r_dataFine in varchar2 default null
     );
+
+	function ricaricheIsEmpty return BOOLEAN;
 
 	procedure dettagliRicaricheClienti(
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
