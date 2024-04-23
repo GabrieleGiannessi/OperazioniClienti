@@ -684,8 +684,8 @@ END modificaCliente;
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
 procedure visualizzaBustePaga(
     idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-    r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+    r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+    r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
     r_Data       in varchar2 default null,
     r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
     r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
@@ -728,8 +728,8 @@ procedure visualizzaBustePaga(
         for busta_paga IN (
             select *
             from bustepaga b
-            where ( b.fk_dipendente = r_Dipendente or r_Dipendente is null )
-                and ( b.fk_contabile = r_Contabile or r_Contabile is null )
+            where ( b.fk_dipendente = r_FkDipendente or r_FkDipendente is null )
+                and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
                 and ( trunc(b.DATA) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
                 and ( b.importo = r_Importo or r_Importo is null )
                 and ( b.bonus = r_Bonus or r_Bonus is null )

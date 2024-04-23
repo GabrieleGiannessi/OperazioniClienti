@@ -4,8 +4,8 @@ create or replace package Gruppo3 as
 
     procedure visualizzabustepaga (
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
         r_Data       in varchar2 default null,
         r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
         r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
