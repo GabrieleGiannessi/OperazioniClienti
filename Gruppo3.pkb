@@ -1624,7 +1624,8 @@ BEGIN
     head gui.StringArray; --parametri per headers della tabella
 
     BEGIN
-
+    
+    gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
     head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
 
         if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
@@ -1633,8 +1634,6 @@ BEGIN
             gui.chiudiPagina;
             return;
         end if;
-
-        gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
 
         gui.APRIFORMFILTRO;
             gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
@@ -1687,14 +1686,14 @@ BEGIN
 
     BEGIN
 
-        gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess, scriptjs => costanti.tablesortscript);
+        gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess);
 
         if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Operatore') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina');
             return;
         end if;
 
-    if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+        if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
             head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile',' ');
             else
             head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile');
