@@ -1,6 +1,64 @@
-create or replace package operazioniclienti as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
-	u_root constant varchar(100) := u_user || '.operazioniClienti';
+create or replace package Gruppo3 as
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
+	u_root constant varchar(100) := u_user || '.gruppo3';
+
+    procedure visualizzabustepaga (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_FkContabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
+        r_PopUp      in varchar2 default null
+    );
+
+    procedure modificabustapaga (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE,
+        r_PopUp in varchar2 default null,
+        new_Importo in varchar2 default null,
+        new_Data in varchar2 default null
+    );
+
+    procedure visualizzabustepagadipendente (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
+    );
+    procedure inserimentobustapaga (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_PopUp     in varchar2 default null
+    );
+
+	procedure dettagliStipendiPersonale(
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_dataInizio in varchar2 default null,
+        r_dataFine in varchar2 default null
+    );
+
+	procedure dettagliRicaricheClienti(
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_DataInizio in varchar2 default null,
+        r_DataFine in varchar2 default null
+    );
+
+    procedure visualizzaricarichecliente (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    );
+    procedure inserimentoricarica (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    );
+
 	procedure registrazionecliente;
 
 	procedure inseriscidati (
@@ -20,52 +78,8 @@ create or replace package operazioniclienti as
 		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
 		cl_email    varchar2 default null,
 		cl_password varchar2 default null,
-		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi 
+		cl_telefono varchar2 default null  -- questi parametri servono per le update dei campi
 	);
-
-    procedure visualizzabustepaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Dipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Contabile  in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null,
-        r_PopUp      in varchar2 default null
-    );
-
-    procedure modificabustapaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE default null,
-        r_Data in BUSTEPAGA.DATA%TYPE default null,
-        r_PopUp in varchar2 default null,
-        new_Importo in varchar2 default null,
-        new_Data in varchar2 default null
-    );
-
-    procedure visualizzabustepagadipendente (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
-    );
-    procedure inserimentobustapaga (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-        r_Data       in varchar2 default null,
-        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null
-    );
-
-    procedure visualizzaricarichecliente (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Data       in varchar2 default null,
-        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-        r_PopUp in varchar2 default null
-    );
-    procedure inserimentoricarica (
-        r_IdSessione in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-        r_PopUp in varchar2 default null
-    );
 
 	procedure visualizzaclienti (
 		idsess        varchar default null,
@@ -79,13 +93,16 @@ create or replace package operazioniclienti as
 		idsess varchar default '-1', --id della sessione (cliente o manager)
         id varchar2 default null --id del cliente 
 	);
+	----------------------------------------
+
+	--procedure convenzioni
 
 	procedure inserimentoconvenzione (
 		idsess varchar --per accedere devi essere loggato (e ruolo = operatore)
 	);
 
 	procedure inseriscidaticonvenzione (
-       -- r_IdSessioneManager varchar2,
+        idSess 			varchar2,
 		r_nome          varchar2 default null,
 		r_ente          varchar2 default null,
 		r_sconto        varchar2 default null,
@@ -104,7 +121,8 @@ create or replace package operazioniclienti as
 	);
 
 	procedure associaConvenzione (
-		idSess varchar default null
+		idSess varchar default null,
+		c_Nome varchar2 default null
 	); 
 
 	procedure modificaConvenzione (
@@ -116,14 +134,20 @@ create or replace package operazioniclienti as
         c_cumulabile varchar2 default null
 	); 
 
+	procedure dettagliConvenzioni (
+		idSess varchar default null,
+		c_nome CONVENZIONI.NOME%TYPE default null
+	); 
+
+	---------------------------------------------
 	procedure inserimentocontabile (
-		r_idsessionemanager varchar2 default null,
+		idSessmanager varchar2 default null,
 		r_fkdipendente      varchar2 default null
 	);
 
     function existdipendente (
-        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE default null
-    ) return boolean;
+        r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE
+    ) return number;
 
 	--function checkContabile(r_IdContabile in varchar2 default null) return boolean;
 
@@ -132,4 +156,4 @@ create or replace package operazioniclienti as
         r_Data in BUSTEPAGA.DATA%TYPE
     ) return boolean;
 
-end operazioniclienti;
+end Gruppo3;
