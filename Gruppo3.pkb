@@ -187,7 +187,7 @@
 
         procedure associaConvenzione (
             idSess varchar default null, --CLIENTE
-            c_Nome varchar2 default null,
+            c_Codice varchar2 default null,
             err_popup varchar2 default null
         ) IS
             data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
@@ -219,8 +219,8 @@
             end if; 
 
             --controllo sulla convenzione
-            if  c_Nome IS NOT NULL then
-                SELECT IDCONVENZIONE,DATAFINE, DATAINIZIO INTO id_convenzione, data_fine, data_inizio FROM CONVENZIONI WHERE NOME = c_Nome;
+            if  c_Codice IS NOT NULL then
+                SELECT IDCONVENZIONE,DATAFINE, DATAINIZIO INTO id_convenzione, data_fine, data_inizio FROM CONVENZIONI WHERE CODICEACCESSO = c_Codice;
                 if SQL%ROWCOUNT = 1 then --convenzione trovata
 
                 -- il controllo che la convenzione non sia già associata al cliente è implicito in quanto (fk_cliente, fk_convenzione) in 
@@ -249,7 +249,7 @@
                 gui.acapo(2);
 
                 gui.aggiungiGruppoInput;
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-check', nome => 'c_Nome', placeholder => 'Nome',ident => 'c_Nome',  required => true);
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-lock', nome => 'c_Codice', placeholder => 'Immetti il codice di accesso alla convenzione',ident => 'c_Codice',  required => true);
                 gui.chiudiGruppoInput;
 
                 gui.acapo();
