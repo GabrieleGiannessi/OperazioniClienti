@@ -35,11 +35,15 @@ create or replace package Gruppo3 as
         r_PopUp     in varchar2 default null
     );
 
+	function bustePagaIsEmpty return BOOLEAN;
+
 	procedure dettagliStipendiPersonale(
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_dataInizio in varchar2 default null,
         r_dataFine in varchar2 default null
     );
+
+	function ricaricheIsEmpty return BOOLEAN;
 
 	procedure dettagliRicaricheClienti(
         idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
