@@ -212,7 +212,7 @@ create or replace PACKAGE BODY gui as
 				'gruppo3.visualizzaProfilo?idSess=' || idSessione || '&id=' || SESSIONHANDLER.getIDUser(idSessione) || '',
 				'gruppo3.visualizzaConvenzioni?idSess=' || idSessione || '', 
 				'gruppo3.associaConvenzione?idSess=' || idSessione || '',
-				'gruppo3.inserisciConvenzione?' || idSessione || '',
+				'gruppo3.inserisciConvenzione?idSess=' || idSessione || '',
 				'gruppo3.dettagliConvenzioni?idSess=' || idSessione || ''
 			)
 		);

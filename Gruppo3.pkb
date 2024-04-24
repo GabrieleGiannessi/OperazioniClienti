@@ -126,10 +126,10 @@
         gui.AggiungiGruppoInput;
         gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
         gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-        gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
-        gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
         gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
-        gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-lock', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
         gui.ChiudiGruppoInput;
 
 
@@ -200,7 +200,8 @@
 
             --controllo che l'utente sia un cliente
             if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
-                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
                 return;
             end if;
 
@@ -291,8 +292,9 @@
 
             --controllo che l'utente sia un manager
             if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
-                --return;
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
+                return;
             end if;
 
             --controlliamo che la convenzione sia modificabile (per essere modificabile non deve essere stata ancora pubblicata o essere scaduta)
@@ -318,17 +320,51 @@
                     end if;
             end if;
 
-            if c_dataInizio IS NOT NULL AND C_dataInizio <> d_inizio then
-                if c_dataInizio > SYSDATE+1 then --controllo parametro
+            if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+            --controlli 
+                if c_dataInizio < SYSDATE then 
+                    error_check:=true;
+                end if; 
+
+                if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
+                    if c_dataInizio > c_dataFine then 
+                        error_check:=true;
+                    end if; 
+
+                    else 
+                        if c_dataInizio > d_fine then
+                            error_check:=true;
+                        end if;
+                end if; 
+                
                 UPDATE CONVENZIONI
                 SET DATAINIZIO = c_dataInizio
                 WHERE IDConvenzione = c_id;
                 c := c+1;
-                else
-                    error_check:=true;
-                end if;
 
             end if;
+
+            if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
+            --controlli
+                if c_dataFine < SYSDATE then
+                     error_check:=true;
+                end if; 
+
+                if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+                    if c_dataFine < c_dataInizio then 
+                        error_check:=true;
+                    end if; 
+
+                    else 
+                        if c_dataFine < d_inizio then 
+                            error_check:=true;
+                        end if; 
+                end if; 
+
+            UPDATE CONVENZIONI
+                SET DATAFINE = c_dataFine
+                WHERE IDConvenzione = c_id;
+            end if; 
 
             if c_Cumulabile IS NOT NULL AND c_cumulabile <> current_cumulabile then       
                 UPDATE CONVENZIONI
@@ -336,9 +372,6 @@
                     WHERE IDConvenzione = c_id;
                     c:=c+1;
             end if;
-
-
-
 
                 IF error_check THEN
                     gui.aggiungiPopup (FALSE, 'Modifiche non accettate, controllare i parametri');
@@ -425,7 +458,8 @@
         SAVEPOINT sp1; 
         --accedo alla pagina (se sono cliente o operatore)
         if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Manager')) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina; 
             return;
         end if;
 
@@ -445,7 +479,8 @@
 
         --un cliente non può accedere alla pagina modificaCliente di un altro cliente
         if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina; 
             return;
         end if;
 
@@ -595,7 +630,8 @@
             gui.apriPagina (titolo => 'Profilo', idSessione => idSess);
 
             if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+                gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
                 return;
             end if;
 
@@ -723,16 +759,17 @@
                                         SELECT NOME, DATAFINE FROM CONVENZIONI WHERE IDCONVENZIONE = i.FK_CONVENZIONE
                                     ) LOOP
 
-                                        if j.DATAFINE <= SYSDATE then
+                                        if j.DATAFINE > SYSDATE then
                                         gui.apriDiv(classe => 'left');
-                                        gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                        gui.aggiungiIntestazione(testo => j.NOME, dimensione => 'h3');
                                         gui.chiudiDiv;
                                         gui.apriDiv(classe => 'right');
-                                        gui.aggiungiIntestazione(testo => j.NOME || ' - ' || j.DATAFINE, dimensione => 'h2');
+                                        gui.aggiungiIntestazione(testo => 'data di scadenza : ' || j.DATAFINE || '', dimensione => 'h3');
                                         gui.chiudiDiv;
                                         end if; 
                                     END LOOP;
                                 END LOOP;
+
                             END IF;
 
                             gui.chiudiDiv; --flex-container
@@ -1626,15 +1663,15 @@ BEGIN
     BEGIN
     
     gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
-    head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
 
-        if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
+    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
             gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
             gui.chiudiPagina;
             return;
         end if;
 
+    
         gui.APRIFORMFILTRO;
             gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
             gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
@@ -1649,6 +1686,7 @@ BEGIN
         gui.CHIUDIFORMFILTRO;
         gui.aCapo(2);
 
+        head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
         gui.APRITABELLA (elementi => head);
 
     for clienti IN
@@ -1689,7 +1727,8 @@ BEGIN
         gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess);
 
         if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Operatore') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina;
             return;
         end if;
 
@@ -1769,7 +1808,8 @@ BEGIN
 
             --controllo manager
             if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
-                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina');
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
                 return;
             END IF;
 
@@ -1875,7 +1915,7 @@ BEGIN
 
             EXCEPTION
                 when NO_DATA_FOUND THEN
-                gui.reindirizza (u_root || 'dettagliConvenzione?idSess='||idSess||'&err_popup=N');
+                gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
             END dettagliConvenzioni;
 
 
