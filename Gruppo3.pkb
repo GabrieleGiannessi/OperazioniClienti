@@ -2034,7 +2034,7 @@ procedure dettaglifasceConvenzioni(
                     gui.aCapo(2);
                     gui.apridiv (classe => 'flex-container');
                         gui.apridiv (classe => 'left');
-                            gui.aggiungiIntestazione( testo => 'Fascia 1 (18-25)', dimensione => 'h2');
+                            gui.aggiungiIntestazione( testo => 'Cienti dai 18 ai 25', dimensione => 'h2');
                         gui.chiudiDiv;
                         gui.apridiv (classe => 'right');
                             gui.aggiungiIntestazione( testo => ''||percentagefascia1||'%', dimensione => 'h2');
@@ -2043,7 +2043,7 @@ procedure dettaglifasceConvenzioni(
                         gui.aCapo(2);
 
                           gui.apridiv (classe => 'left');
-                            gui.aggiungiIntestazione( testo => 'Fascia 2 (25-50)', dimensione => 'h2');
+                            gui.aggiungiIntestazione( testo => 'Clienti dai 25 ai 50)', dimensione => 'h2');
                         gui.chiudiDiv;
                         gui.apridiv (classe => 'right');
                             gui.aggiungiIntestazione( testo => ''||percentagefascia2||'%', dimensione => 'h2');
@@ -2052,7 +2052,7 @@ procedure dettaglifasceConvenzioni(
                         gui.aCapo(2);
 
                          gui.apridiv (classe => 'left');
-                            gui.aggiungiIntestazione( testo => 'Fascia 3 (Over 50)', dimensione => 'h2');
+                            gui.aggiungiIntestazione( testo => 'Clienti Over 50)', dimensione => 'h2');
                         gui.chiudiDiv;
                         gui.apridiv (classe => 'right');
                             gui.aggiungiIntestazione( testo => ''||percentagefascia3||'%', dimensione => 'h2');
