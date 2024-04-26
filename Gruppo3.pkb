@@ -1152,7 +1152,7 @@ END IF;
     END inserimentoBustaPaga;
 
     procedure visualizzaRicaricheCliente (
-        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
@@ -1870,6 +1870,138 @@ BEGIN
                 when NO_DATA_FOUND THEN
                 gui.aggiungiPopup (False, 'Convenzione non esistente');
             END dettagliConvenzioni;
+
+procedure dettaglifasceConvenzioni(
+            idSess varchar default null,
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
+        ) IS
+        c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
+        c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+        num_clientifascia1 int := 0;
+        num_clientifascia2 int := 0;
+        num_clientifascia3 int := 0;
+        totale_clientifascia1 int := 0;
+        totale_clientifascia2 int := 0;
+        totale_clientifascia3 int := 0; 
+        percentagefascia1 decimal (10,2) := 0;
+        percentagefascia2 decimal (10,2) := 0;
+        percentagefascia3 decimal (10,2) := 0;
+        BEGIN
+            gui.apriPagina (titolo => 'Dettagli fasce convenzioni', idSessione => idSess);
+
+            --controllo manager
+            if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
+                return;
+            END IF;
+
+            if err_popup IS NOT NULL THEN 
+                if err_popup = 'N' then 
+                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+                    gui.aCapo(2); 
+                end if; 
+            END IF; 
+
+            if c_nome is not NULL THEN
+                SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
+                if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
+
+                    --prelevo i dati /*fascia dai 18-25*/
+                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia1 FROM CLIENTI
+                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25 ;
+                    if totale_clientifascia1 <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia1 FROM CONVENZIONICLIENTI cconv 
+                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25);
+                        percentagefascia1 := (num_clientifascia1 / totale_clientifascia1) * 100.0;
+                    end if;
+                    --fascia2
+                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia2 FROM CLIENTI
+                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50;
+                    if totale_clientifascia2 <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia2 FROM CONVENZIONICLIENTI cconv 
+                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50);
+                        percentagefascia2 := (num_clientifascia2 / totale_clientifascia2) * 100.0;
+                    end if;
+                    --fascia3
+                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia3 FROM CLIENTI
+                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50;
+                     if totale_clientifascia3 <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia3 FROM CONVENZIONICLIENTI cconv 
+                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50);
+                        percentagefascia3 := (num_clientifascia3 / totale_clientifascia3) * 100.0;
+                    end if;
+                    else
+                    gui.aggiungiPopup (False, 'Convenzione non esistente');
+                    gui.aCapo(2);
+                    c_check:=false;
+                end if;
+            END IF;
+            --fin qui ok
+            gui.aggiungiForm;
+                gui.aggiungiIntestazione (testo => 'Dettagli statistici');
+                gui.aggiungiIntestazione (testo => 'fasce convenzioni');
+                gui.aCapo();
+
+                gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
+                --gui.aCapo();
+
+                --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
+                gui.apriFormFiltro;
+                    gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
+                    gui.aggiungiCampoFormFiltro (nome => 'c_nome', placeholder => 'Nome convenzione');
+                    gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
+                gui.chiudiFormFiltro;
+                gui.aCapo(2);
+
+
+                if c_nome IS NOT NULL AND c_check then
+                --visualizzo i dati
+                gui.aggiungiGruppoInput;
+                    gui.aggiungiIntestazione( testo => 'Dati sulle fasce di età', dimensione => 'h1');
+
+                    gui.aCapo(2);
+                    gui.apridiv (classe => 'flex-container');
+                        gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Fascia 1 (18-25)', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentagefascia1||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                        gui.aCapo(2);
+
+                          gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Fascia 2 (25-50)', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentagefascia2||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                        gui.aCapo(2);
+
+                         gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Fascia 3 (Over 50)', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentagefascia3||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                
+                    gui.chiudiDiv; --flex-container
+                gui.chiudiGruppoInput;
+                end if;
+
+            gui.chiudiForm;
+
+            gui.aCapo(2);
+            gui.chiudiPagina;
+
+            EXCEPTION
+                when NO_DATA_FOUND THEN
+                gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
+            END dettaglifasceConvenzioni;
 
 
     /* DA RIVEDERE CON L'ALTRO GRUPPO */procedure inserimentoContabile (

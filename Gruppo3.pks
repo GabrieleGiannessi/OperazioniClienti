@@ -57,8 +57,8 @@ create or replace package Gruppo3 as
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
-    procedure inserimentoricarica (
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+    procedure inserimentoRicarica (
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
@@ -145,6 +145,12 @@ create or replace package Gruppo3 as
 		idSess varchar default null,
 		c_nome CONVENZIONI.NOME%TYPE default null
 	); 
+
+	procedure dettaglifasceConvenzioni(
+            idSess varchar default null,
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
+        );
 
 	---------------------------------------------
 	procedure inserimentocontabile (
