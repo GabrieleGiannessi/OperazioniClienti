@@ -63,7 +63,9 @@ create or replace package Gruppo3 as
         r_PopUp in varchar2 default null
     );
 
-	procedure registrazionecliente;
+	procedure registrazionecliente(
+		err_popup varchar2 default null
+	);
 
 	procedure inseriscidati (
 		nome     varchar2 default null,
@@ -78,7 +80,7 @@ create or replace package Gruppo3 as
 	);
 
 	procedure modificacliente (
-		idsess      varchar default null,  -- identifica chi sta facendo l'accesso
+		idsess      SESSIONICLIENTI.IDSESSIONE%TYPE default null,  -- identifica chi sta facendo l'accesso
 		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
 		cl_email    varchar2 default null,
 		cl_password varchar2 default null,
@@ -87,7 +89,7 @@ create or replace package Gruppo3 as
 	);
 
 	procedure visualizzaclienti (
-		idsess        varchar default null,
+		idsess        SESSIONICLIENTI.IDSESSIONE%TYPE default null,
 		c_nome        varchar2 default null,
 		c_cognome     varchar2 default null,
 		c_datanascita varchar2 default null,
@@ -95,7 +97,7 @@ create or replace package Gruppo3 as
 	);
 
 	procedure visualizzaprofilo (
-		idsess varchar default '-1', --id della sessione (cliente o manager)
+		idsess SESSIONICLIENTI.IDSESSIONE%TYPE default null, --id della sessione (cliente o manager)
         id varchar2 default null --id del cliente 
 	);
 	----------------------------------------
@@ -127,7 +129,7 @@ create or replace package Gruppo3 as
 	);
 
 	procedure associaConvenzione (
-		idSess varchar default null,
+		idSess SESSIONICLIENTI.IDSESSIONE%TYPE default null,
 		c_Codice varchar2 default null,
 		err_popup varchar2 default null
 	); 
@@ -142,7 +144,7 @@ create or replace package Gruppo3 as
 	); 
 
 	procedure dettagliConvenzioni (
-		idSess varchar default null,
+		idSess SESSIONIDIPENDENTI.IDSESSIONE%TYPE default null,
 		c_nome CONVENZIONI.NOME%TYPE default null, 
 		err_popup varchar2 default null
 	); 

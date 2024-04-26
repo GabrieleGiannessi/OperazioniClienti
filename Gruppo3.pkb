@@ -3,9 +3,34 @@
     create or replace PACKAGE BODY Gruppo3 as
 
     --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
-        procedure registrazioneCliente IS
+        procedure registrazioneCliente (
+            err_popup varchar2 default null
+        ) IS
         BEGIN
+
         gui.APRIPAGINA(titolo => 'Registrazione');
+
+        if err_popup is not null then 
+
+            --cliente già presente
+            if err_popup = 'D' then 
+                    gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
+                    gui.aCapo(2); 
+                end if;
+
+                --dataNascita
+                if err_popup = 'B' then 
+                    gui.AggiungiPopup(False, 'Data di nascita non valida!');
+                    gui.aCapo(2); 
+                end if;
+
+                --password
+                if err_popup = 'P' then 
+                    gui.AggiungiPopup(False, 'Password troppo corta! Deve essere di almeno 8 caratteri');
+                    gui.aCapo(2); 
+                end if;
+        end if; 
+         
         gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');
 
 
@@ -17,7 +42,7 @@
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');
                     gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');
                     gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password');
-                    gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'number', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
                 gui.CHIUDIGRUPPOINPUT;
 
 
@@ -75,8 +100,20 @@
         Sesso CHAR(1);
 
         begin
-            DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY');
+            DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD-MM-YYYY');
             Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+
+            --data di nascita non valida
+            if DataNascita > SYSDATE then
+                 gui.reindirizza (u_root || '.registrazioneCliente?err_popup=B');
+                 return;
+            end if; 
+
+            --password troppo corta
+            if length (Password) < 8 then 
+                gui.reindirizza (u_root || '.registrazioneCliente?err_popup=P');
+                return;
+            end if;
 
             INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo)
             VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0);
@@ -86,10 +123,9 @@
             gui.HomePage (p_registrazione => true);
 
         EXCEPTION
-        WHEN OTHERS THEN
+        WHEN DUP_VAL_ON_INDEX THEN
             --visualizza popup di errore
-            gui.ApriPagina ('Errore');
-            gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
+            gui.reindirizza (u_root || '.registrazioneCliente?err_popup=D');
         end inserisciDati;
 
     --inserimentoConvenzione :form per la insert della convenzione
@@ -186,7 +222,7 @@
         END inseriscidatiConvenzione;
 
         procedure associaConvenzione (
-            idSess varchar default null, --CLIENTE
+            idSess SESSIONICLIENTI.IDSESSIONE%TYPE default null, --CLIENTE
             c_Codice varchar2 default null, 
             err_popup varchar2 default null
         ) IS
@@ -213,7 +249,7 @@
                 end if; 
 
                 if err_popup = 'D' then --dupvalonindex : mandiamo il messaggio di errore 'convenzione già associata'
-                    gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername (idSess)|| '');
+                    gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername     (idSess)|| '');
                     gui.acapo(2);
                 end if; 
 
@@ -436,7 +472,7 @@
 
     --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
         procedure modificaCliente(
-        idSess VARCHAR DEFAULT NULL,
+        idSess SESSIONICLIENTI.IDSESSIONE%TYPE DEFAULT NULL,
         cl_id VARCHAR2 DEFAULT NULL,
         cl_Email VARCHAR2 DEFAULT NULL,
         cl_Password VARCHAR2 DEFAULT NULL,
@@ -457,7 +493,7 @@
 
         SAVEPOINT sp1; 
         --accedo alla pagina (se sono cliente o operatore)
-        if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Manager')) then
+        if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
             gui.chiudiPagina; 
             return;
@@ -507,6 +543,7 @@
                 
                 ROLLBACK TO sp1; 
                 gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P');
+                return; 
 
                 else 
                     UPDATE CLIENTI
@@ -553,23 +590,13 @@
         if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
         gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
         gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
-        else if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then
-                gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
-            end if;
         end if;
 
-        -- se chi accede alla pagina è un operatore visualizzo il bottone per tornare alla tabella
-        if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then
-            gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?idSess='||idSess||'');
-            gui.aCapo(2);
-            else
-            if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
-            gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
-            gui.aCapo(2);
-            end if;
+        if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
+        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
+        gui.aCapo(2);
         end if;
-
-
+       
         gui.AGGIUNGIGRUPPOINPUT;
             gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
             gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
@@ -596,8 +623,6 @@
                     gui.aggiungiBottoneSubmit (value => 'Modifica');
         gui.CHIUDIGRUPPOINPUT;
 
-        --gui.aggiungiInput (tipo => 'hidden', nome => 'err_popup', value => err_popup);
-
         gui.CHIUDIFORM;
         gui.aCapo(2);
         gui.chiudiPagina;
@@ -613,7 +638,7 @@
     END modificaCliente;
 
         procedure visualizzaProfilo (
-            idSess varchar default '-1',
+            idsess SESSIONICLIENTI.IDSESSIONE%TYPE default null,
             id varchar2 default null
         ) is
 
@@ -708,15 +733,13 @@
                                 gui.chiudiDiv;
                                 end if;
 
-                                --il Manager può visualizzare il saldo del cliente
-                                if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                                    gui.apriDiv (classe => 'left');
+                                gui.apriDiv (classe => 'left');
                                     gui.aggiungiIntestazione (testo => 'Saldo', dimensione => 'h2');
                                 gui.chiudiDiv;
                                 gui.apriDiv (classe => 'right');
                                     gui.aggiungiIntestazione (testo => c_Saldo || '€', dimensione => 'h2');
                                 gui.chiudiDiv;
-                                end if;
+                                
 
                                 IF (SESSIONHANDLER.CheckRuolo(idSess, 'Cliente')) THEN
                                 gui.apriDiv(classe => 'left');
@@ -1651,7 +1674,7 @@ BEGIN
     END dettagliRicaricheClienti;
 
     procedure visualizzaClienti(
-        idSess VARCHAR default NULL,
+        idSess SESSIONICLIENTI.IDSESSIONE%TYPE default NULL,
         c_Nome VARCHAR2 default NULL,
         c_Cognome VARCHAR2 default NULL,
         c_DataNascita VARCHAR2 default NULL,
@@ -1794,7 +1817,7 @@ BEGIN
     END visualizzaConvenzioni;
 
     procedure dettagliConvenzioni (
-            idSess varchar default null,
+            idSess SESSIONIDIPENDENTI.IDSESSIONE%TYPE default null,
             c_nome CONVENZIONI.NOME%TYPE default null,
             err_popup varchar2 default null
         ) IS
