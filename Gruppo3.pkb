@@ -3,9 +3,34 @@
     create or replace PACKAGE BODY Gruppo3 as
 
     --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
-        procedure registrazioneCliente IS
+        procedure registrazioneCliente (
+            err_popup varchar2 default null
+        ) IS
         BEGIN
+
         gui.APRIPAGINA(titolo => 'Registrazione');
+
+        if err_popup is not null then 
+
+            --cliente già presente
+            if err_popup = 'D' then 
+                    gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
+                    gui.aCapo(2); 
+                end if;
+
+                --dataNascita
+                if err_popup = 'B' then 
+                    gui.AggiungiPopup(False, 'Data di nascita non valida!');
+                    gui.aCapo(2); 
+                end if;
+
+                --password
+                if err_popup = 'P' then 
+                    gui.AggiungiPopup(False, 'Password troppo corta! Deve essere di almeno 8 caratteri');
+                    gui.aCapo(2); 
+                end if;
+        end if; 
+         
         gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');
 
 
@@ -17,7 +42,7 @@
                     gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');
                     gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');
                     gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password');
-                    gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'number', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
                 gui.CHIUDIGRUPPOINPUT;
 
 
@@ -75,8 +100,20 @@
         Sesso CHAR(1);
 
         begin
-            DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY');
+            DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD-MM-YYYY');
             Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
+
+            --data di nascita non valida
+            if DataNascita > SYSDATE then
+                 gui.reindirizza (u_root || '.registrazioneCliente?err_popup=B');
+                 return;
+            end if; 
+
+            --password troppo corta
+            if length (Password) < 8 then 
+                gui.reindirizza (u_root || '.registrazioneCliente?err_popup=P');
+                return;
+            end if;
 
             INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo)
             VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0);
@@ -86,10 +123,9 @@
             gui.HomePage (p_registrazione => true);
 
         EXCEPTION
-        WHEN OTHERS THEN
+        WHEN DUP_VAL_ON_INDEX THEN
             --visualizza popup di errore
-            gui.ApriPagina ('Errore');
-            gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
+            gui.reindirizza (u_root || '.registrazioneCliente?err_popup=D');
         end inserisciDati;
 
     --inserimentoConvenzione :form per la insert della convenzione
@@ -126,10 +162,10 @@
         gui.AggiungiGruppoInput;
         gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
         gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-        gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
-        gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
         gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
-        gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-lock', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
         gui.ChiudiGruppoInput;
 
 
@@ -174,7 +210,7 @@
 
         -- Inserimento dei dati nella tabella CONVENZIONI
         INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
-        VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
+        VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), r_codiceAccesso, TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
 
         -- Messaggio di conferma dell'inserimento
         gui.reindirizza (u_root||'.inserisciConvenzione?idSess='||idSess||'&popUp=S');
@@ -186,8 +222,8 @@
         END inseriscidatiConvenzione;
 
         procedure associaConvenzione (
-            idSess varchar default null, --CLIENTE
-            c_Nome varchar2 default null,
+            idSess SESSIONICLIENTI.IDSESSIONE%TYPE default null, --CLIENTE
+            c_Codice varchar2 default null, 
             err_popup varchar2 default null
         ) IS
             data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
@@ -200,7 +236,8 @@
 
             --controllo che l'utente sia un cliente
             if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
-                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
                 return;
             end if;
 
@@ -212,15 +249,15 @@
                 end if; 
 
                 if err_popup = 'D' then --dupvalonindex : mandiamo il messaggio di errore 'convenzione già associata'
-                    gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername (idSess)|| '');
+                    gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername     (idSess)|| '');
                     gui.acapo(2);
                 end if; 
 
             end if; 
 
             --controllo sulla convenzione
-            if  c_Nome IS NOT NULL then
-                SELECT IDCONVENZIONE,DATAFINE, DATAINIZIO INTO id_convenzione, data_fine, data_inizio FROM CONVENZIONI WHERE NOME = c_Nome;
+            if  c_Codice IS NOT NULL then
+                SELECT IDCONVENZIONE,DATAFINE, DATAINIZIO INTO id_convenzione, data_fine, data_inizio FROM CONVENZIONI WHERE CODICEACCESSO = c_Codice;
                 if SQL%ROWCOUNT = 1 then --convenzione trovata
 
                 -- il controllo che la convenzione non sia già associata al cliente è implicito in quanto (fk_cliente, fk_convenzione) in 
@@ -249,7 +286,7 @@
                 gui.acapo(2);
 
                 gui.aggiungiGruppoInput;
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-check', nome => 'c_Nome', placeholder => 'Nome',ident => 'c_Nome',  required => true);
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-lock', nome => 'c_Codice', placeholder => 'Immetti il codice di accesso alla convenzione',ident => 'c_Codice',  required => true);
                 gui.chiudiGruppoInput;
 
                 gui.acapo();
@@ -291,8 +328,9 @@
 
             --controllo che l'utente sia un manager
             if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
-                --return;
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
+                return;
             end if;
 
             --controlliamo che la convenzione sia modificabile (per essere modificabile non deve essere stata ancora pubblicata o essere scaduta)
@@ -318,17 +356,51 @@
                     end if;
             end if;
 
-            if c_dataInizio IS NOT NULL AND C_dataInizio <> d_inizio then
-                if c_dataInizio > SYSDATE+1 then --controllo parametro
+            if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+            --controlli 
+                if c_dataInizio < SYSDATE then 
+                    error_check:=true;
+                end if; 
+
+                if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
+                    if c_dataInizio > c_dataFine then 
+                        error_check:=true;
+                    end if; 
+
+                    else 
+                        if c_dataInizio > d_fine then
+                            error_check:=true;
+                        end if;
+                end if; 
+                
                 UPDATE CONVENZIONI
                 SET DATAINIZIO = c_dataInizio
                 WHERE IDConvenzione = c_id;
                 c := c+1;
-                else
-                    error_check:=true;
-                end if;
 
             end if;
+
+            if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
+            --controlli
+                if c_dataFine < SYSDATE then
+                     error_check:=true;
+                end if; 
+
+                if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+                    if c_dataFine < c_dataInizio then 
+                        error_check:=true;
+                    end if; 
+
+                    else 
+                        if c_dataFine < d_inizio then 
+                            error_check:=true;
+                        end if; 
+                end if; 
+
+            UPDATE CONVENZIONI
+                SET DATAFINE = c_dataFine
+                WHERE IDConvenzione = c_id;
+            end if; 
 
             if c_Cumulabile IS NOT NULL AND c_cumulabile <> current_cumulabile then       
                 UPDATE CONVENZIONI
@@ -336,9 +408,6 @@
                     WHERE IDConvenzione = c_id;
                     c:=c+1;
             end if;
-
-
-
 
                 IF error_check THEN
                     gui.aggiungiPopup (FALSE, 'Modifiche non accettate, controllare i parametri');
@@ -403,7 +472,7 @@
 
     --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
         procedure modificaCliente(
-        idSess VARCHAR DEFAULT NULL,
+        idSess SESSIONICLIENTI.IDSESSIONE%TYPE DEFAULT NULL,
         cl_id VARCHAR2 DEFAULT NULL,
         cl_Email VARCHAR2 DEFAULT NULL,
         cl_Password VARCHAR2 DEFAULT NULL,
@@ -424,8 +493,9 @@
 
         SAVEPOINT sp1; 
         --accedo alla pagina (se sono cliente o operatore)
-        if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Manager')) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+        if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina; 
             return;
         end if;
 
@@ -445,7 +515,8 @@
 
         --un cliente non può accedere alla pagina modificaCliente di un altro cliente
         if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina; 
             return;
         end if;
 
@@ -472,6 +543,7 @@
                 
                 ROLLBACK TO sp1; 
                 gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P');
+                return; 
 
                 else 
                     UPDATE CLIENTI
@@ -518,23 +590,13 @@
         if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
         gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
         gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
-        else if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then
-                gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
-            end if;
         end if;
 
-        -- se chi accede alla pagina è un operatore visualizzo il bottone per tornare alla tabella
-        if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then
-            gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?idSess='||idSess||'');
-            gui.aCapo(2);
-            else
-            if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
-            gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
-            gui.aCapo(2);
-            end if;
+        if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
+        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
+        gui.aCapo(2);
         end if;
-
-
+       
         gui.AGGIUNGIGRUPPOINPUT;
             gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
             gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
@@ -561,8 +623,6 @@
                     gui.aggiungiBottoneSubmit (value => 'Modifica');
         gui.CHIUDIGRUPPOINPUT;
 
-        --gui.aggiungiInput (tipo => 'hidden', nome => 'err_popup', value => err_popup);
-
         gui.CHIUDIFORM;
         gui.aCapo(2);
         gui.chiudiPagina;
@@ -578,7 +638,7 @@
     END modificaCliente;
 
         procedure visualizzaProfilo (
-            idSess varchar default '-1',
+            idsess SESSIONICLIENTI.IDSESSIONE%TYPE default null,
             id varchar2 default null
         ) is
 
@@ -595,7 +655,8 @@
             gui.apriPagina (titolo => 'Profilo', idSessione => idSess);
 
             if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+                gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
                 return;
             end if;
 
@@ -672,15 +733,13 @@
                                 gui.chiudiDiv;
                                 end if;
 
-                                --il Manager può visualizzare il saldo del cliente
-                                if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                                    gui.apriDiv (classe => 'left');
+                                gui.apriDiv (classe => 'left');
                                     gui.aggiungiIntestazione (testo => 'Saldo', dimensione => 'h2');
                                 gui.chiudiDiv;
                                 gui.apriDiv (classe => 'right');
                                     gui.aggiungiIntestazione (testo => c_Saldo || '€', dimensione => 'h2');
                                 gui.chiudiDiv;
-                                end if;
+                                
 
                                 IF (SESSIONHANDLER.CheckRuolo(idSess, 'Cliente')) THEN
                                 gui.apriDiv(classe => 'left');
@@ -723,16 +782,17 @@
                                         SELECT NOME, DATAFINE FROM CONVENZIONI WHERE IDCONVENZIONE = i.FK_CONVENZIONE
                                     ) LOOP
 
-                                        if j.DATAFINE <= SYSDATE then
+                                        if j.DATAFINE > SYSDATE then
                                         gui.apriDiv(classe => 'left');
-                                        gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                        gui.aggiungiIntestazione(testo => j.NOME, dimensione => 'h3');
                                         gui.chiudiDiv;
                                         gui.apriDiv(classe => 'right');
-                                        gui.aggiungiIntestazione(testo => j.NOME || ' - ' || j.DATAFINE, dimensione => 'h2');
+                                        gui.aggiungiIntestazione(testo => 'data di scadenza : ' || j.DATAFINE || '', dimensione => 'h3');
                                         gui.chiudiDiv;
                                         end if; 
                                     END LOOP;
                                 END LOOP;
+
                             END IF;
 
                             gui.chiudiDiv; --flex-container
@@ -1614,7 +1674,7 @@ BEGIN
     END dettagliRicaricheClienti;
 
     procedure visualizzaClienti(
-        idSess VARCHAR default NULL,
+        idSess SESSIONICLIENTI.IDSESSIONE%TYPE default NULL,
         c_Nome VARCHAR2 default NULL,
         c_Cognome VARCHAR2 default NULL,
         c_DataNascita VARCHAR2 default NULL,
@@ -1624,18 +1684,17 @@ BEGIN
     head gui.StringArray; --parametri per headers della tabella
 
     BEGIN
+    
+    gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
 
-    head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
-
-        if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
+    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
             gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
             gui.chiudiPagina;
             return;
         end if;
 
-        gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
-
+    
         gui.APRIFORMFILTRO;
             gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
             gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
@@ -1650,6 +1709,7 @@ BEGIN
         gui.CHIUDIFORMFILTRO;
         gui.aCapo(2);
 
+        head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
         gui.APRITABELLA (elementi => head);
 
     for clienti IN
@@ -1687,14 +1747,15 @@ BEGIN
 
     BEGIN
 
-        gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess, scriptjs => costanti.tablesortscript);
+        gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess);
 
         if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Operatore') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina');
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina;
             return;
         end if;
 
-    if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+        if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
             head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile',' ');
             else
             head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile');
@@ -1756,8 +1817,9 @@ BEGIN
     END visualizzaConvenzioni;
 
     procedure dettagliConvenzioni (
-            idSess varchar default null,
-            c_nome CONVENZIONI.NOME%TYPE default null
+            idSess SESSIONIDIPENDENTI.IDSESSIONE%TYPE default null,
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
         ) IS
         c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
         c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
@@ -1769,9 +1831,17 @@ BEGIN
 
             --controllo manager
             if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
-                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina');
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina; 
                 return;
             END IF;
+
+            if err_popup IS NOT NULL THEN 
+                if err_popup = 'N' then 
+                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+                    gui.aCapo(2); 
+                end if; 
+            END IF; 
 
             if c_nome is not NULL THEN
                 SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
@@ -1868,7 +1938,7 @@ BEGIN
 
             EXCEPTION
                 when NO_DATA_FOUND THEN
-                gui.aggiungiPopup (False, 'Convenzione non esistente');
+                gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
             END dettagliConvenzioni;
 
 
