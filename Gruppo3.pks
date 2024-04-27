@@ -57,13 +57,15 @@ create or replace package Gruppo3 as
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
-    procedure inserimentoricarica (
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+    procedure inserimentoRicarica (
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
     );
 
-	procedure registrazionecliente;
+	procedure registrazionecliente(
+		err_popup varchar2 default null
+	);
 
 	procedure inseriscidati (
 		nome     varchar2 default null,
@@ -78,15 +80,16 @@ create or replace package Gruppo3 as
 	);
 
 	procedure modificacliente (
-		idSess VARCHAR DEFAULT NULL,
-        cl_id VARCHAR2 DEFAULT NULL,
-        cl_Email VARCHAR2 DEFAULT NULL,
-        cl_Password VARCHAR2 DEFAULT NULL,
-        cl_Telefono VARCHAR2 DEFAULT NULL
+		idsess      SESSIONICLIENTI.IDSESSIONE%TYPE default null,  -- identifica chi sta facendo l'accesso
+		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
+		cl_email    varchar2 default null,
+		cl_password varchar2 default null,
+		cl_telefono varchar2 default null,  -- questi parametri servono per le update dei campi
+		err_popup   varchar2 default null
 	);
 
 	procedure visualizzaclienti (
-		idsess        varchar default null,
+		idsess        SESSIONICLIENTI.IDSESSIONE%TYPE default null,
 		c_nome        varchar2 default null,
 		c_cognome     varchar2 default null,
 		c_datanascita varchar2 default null,
@@ -94,17 +97,17 @@ create or replace package Gruppo3 as
 	);
 
 	procedure visualizzaprofilo (
-		idsess varchar default '-1', --id della sessione (cliente o manager)
+		idsess SESSIONICLIENTI.IDSESSIONE%TYPE default null, --id della sessione (cliente o manager)
         id varchar2 default null --id del cliente 
 	);
 	----------------------------------------
 
 	--procedure convenzioni
 
-	/*procedure inserisciConvenzione (
+	procedure inserisciConvenzione (
 		idsess varchar, --per accedere devi essere loggato (e ruolo = operatore)
 		popup varchar2 default null
-	);*/
+	);
 
 	procedure inseriscidaticonvenzione (
         idSess 			varchar2,
@@ -126,8 +129,9 @@ create or replace package Gruppo3 as
 	);
 
 	procedure associaConvenzione (
-		idSess varchar default null, --CLIENTE
-        c_Nome varchar2 default null
+		idSess SESSIONICLIENTI.IDSESSIONE%TYPE default null,
+		c_Codice varchar2 default null,
+		err_popup varchar2 default null
 	); 
 
 	procedure modificaConvenzione (
@@ -140,9 +144,16 @@ create or replace package Gruppo3 as
 	); 
 
 	procedure dettagliConvenzioni (
-		idSess varchar default null,
-		c_nome CONVENZIONI.NOME%TYPE default null
-	); 
+		idSess SESSIONIDIPENDENTI.IDSESSIONE%TYPE default null,
+		c_nome CONVENZIONI.NOME%TYPE default null,
+		err_popup varchar2 default null
+	);
+
+	procedure dettaglifasceConvenzioni(
+            idSess varchar default null,
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
+        );
 
 	---------------------------------------------
 	procedure inserimentocontabile (

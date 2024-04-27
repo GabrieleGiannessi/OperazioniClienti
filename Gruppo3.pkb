@@ -1,684 +1,833 @@
-SET DEFINE OFF;
+    SET DEFINE OFF;
 
-create or replace PACKAGE BODY Gruppo3 as
+    create or replace PACKAGE BODY Gruppo3 as
 
---registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
-    procedure registrazioneCliente IS
-    BEGIN
-    gui.APRIPAGINA(titolo => 'Registrazione');
-    gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');
+    --registrazioneCliente : procedura che instanzia la pagina HTML adibita al ruolo di far registrare il cliente al sito
+        procedure registrazioneCliente (
+            err_popup varchar2 default null
+        ) IS
+        BEGIN
 
+        gui.APRIPAGINA(titolo => 'Registrazione');
 
-            gui.aggiungiIntestazione(testo => 'Registrazione');
-            gui.acapo;
-            gui.AGGIUNGIGRUPPOINPUT;
-                gui.aggiungiIntestazione(testo => 'Informazioni personali', dimensione => 'h2');
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');
-                gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');
-                gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password');
-                gui.AGGIUNGICAMPOFORM (tipo => 'tel', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
-            gui.CHIUDIGRUPPOINPUT;
+        if err_popup is not null then
 
-
-           gui.aggiungiGruppoInput;
-            gui.APRIDIV (classe => 'col-half');
-                gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4');
-
-                    gui.APRIDIV (classe => 'col-third');
-                        gui.AGGIUNGIINPUT (placeholder => 'DD', nome => 'Day', classe => '');
-                    gui.CHIUDIDIV;
-
-                    gui.APRIDIV (classe => 'col-third');
-                        gui.AGGIUNGIINPUT (placeholder => 'MM', nome => 'Month', classe => '');
-                    gui.CHIUDIDIV;
-
-                    gui.APRIDIV (classe => 'col-third');
-                        gui.AGGIUNGIINPUT (placeholder => 'YYYY', nome => 'Year', classe => '');
-                    gui.CHIUDIDIV;
-                gui.chiudiDiv;
-
-                    gui.APRIDIV (classe => 'col-half');
-                        gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
-
-                    gui.AGGIUNGIGRUPPOINPUT;
-                        gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-male', tipo => 'radio', value => 'M');
-                        gui.AGGIUNGILABEL (target => 'gender-male', testo => 'Maschio');
-                        gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-female', tipo => 'radio', value => 'F');
-                        gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina');
-                    gui.CHIUDIGRUPPOINPUT;
-                gui.CHIUDIDIV;
-
-           gui.CHIUDIGRUPPOINPUT;
-
-            gui.AGGIUNGIGRUPPOINPUT;
-                    gui.aggiungiBottoneSubmit (value => 'Registra');
-            gui.CHIUDIGRUPPOINPUT;
-        gui.CHIUDIFORM;
-        GUI.ACAPO(2);
-    gui.ChiudiPagina;
-
-    END registrazioneCliente;
-
---inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
-    procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
-    Cognome VARCHAR2 DEFAULT NULL,
-    Email VARCHAR2 DEFAULT NULL,
-    Password VARCHAR2 DEFAULT NULL,
-    Telefono VARCHAR2 DEFAULT NULL,
-    Day VARCHAR2 DEFAULT NULL,
-    Month VARCHAR2 DEFAULT NULL,
-    Year VARCHAR2 DEFAULT NULL,
-    Gender VARCHAR2 DEFAULT NULL) IS
-
-    DataNascita DATE;
-    Sesso CHAR(1);
-
-    begin
-        DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD/MM/YYYY');
-        Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
-
-        INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo)
-        VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0);
-
-        --se l'inserimento va a buon fine, apro la pagina di login
-
-        gui.HomePage (p_registrazione => true);
-
-    EXCEPTION
-    WHEN OTHERS THEN
-        --visualizza popup di errore
-        gui.ApriPagina ('Errore');
-        gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
-    end inserisciDati;
-
---form per la insert della convenzione
-PROCEDURE inserimentoConvenzione(
-    idSess varchar
-) IS
-BEGIN
-
-    if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-        gui.APRIPAGINA(titolo => 'Inserimento Convenzione');
-        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
-    return;
-    end if;
-
-    gui.APRIPAGINA(titolo => 'Inserimento Convenzione', idSessione => idSess);
-    gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');
-    -- Inserimento dei campi del modulo
-    gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
-    gui.aCapo();
-    gui.AggiungiGruppoInput;
-     gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
-    gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-    gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
-    gui.AggiungiCampoForm(tipo => 'text', classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
-    gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
-    gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
-    gui.ChiudiGruppoInput;
-
-
-    gui.AGGIUNGIGRUPPOINPUT;
-        gui.aggiungiIntestazione (testo => 'Data inizio', dimensione => 'h2');
-        gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
-        gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2');
-        gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
-        gui.aggiungiIntestazione (testo => 'Cumulabile', dimensione => 'h2');
-        gui.aggiungiSelezioneSingola (elementi => gui.StringArray ('Si', 'No'), valoreEffettivo => gui.StringArray('1','0'), ident => 'r_cumulabile', optionSelected => '0'); 
-        
-    gui.chiudiGruppoInput;
-
-    -- Bottone di submit per inviare il modulo
-    gui.AGGIUNGIGRUPPOINPUT;
-    gui.AggiungiBottoneSubmit(value => 'Inserisci');
-    gui.ChiudiGruppoInput;
-
-
-    -- Chiusura del modulo
-        gui.ChiudiForm;
-        gui.aCapo(2);
-    gui.ChiudiPagina;
-
-
-    -- Chiusura della pagina HTML
-  --  gui.ChiudiPagina;
-END inserimentoConvenzione;
-
---procedura per la insert convenzione nel form (adesso funziona, bisogna settare le sessioni e i relativi controlli)
-procedure inseriscidatiConvenzione (
-        idSess          varchar2,
-        r_nome          varchar2 default null,
-        r_ente          varchar2 default null,
-        r_sconto        varchar2 default null,
-        r_codiceAccesso varchar2 default null,
-        r_dataInizio    varchar2 default null,
-        r_dataFine      varchar2 default null,
-        r_cumulabile    varchar2 default null
-) IS
-BEGIN
-
-    -- Apre una pagina di registrazione
-    gui.ApriPagina('Inserimento Convenzione', idSessione => idSess);
-
-    -- Inserimento dei dati nella tabella CONVENZIONI
-    INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
-    VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), TO_NUMBER(r_codiceAccesso), TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
-
-    -- Messaggio di conferma dell'inserimento
-    gui.AGGIUNGIPOPUP(TRUE,'Convenzione inserita correttamente.');
-EXCEPTION
-    WHEN OTHERS THEN
-        -- Gestione dell'eccezione e stampa dell'errore
-        gui.AGGIUNGIPOPUP(FALSE,'Errore durante l''inserimento della convenzione: ');
-
-    END inseriscidatiConvenzione;
-
-    procedure associaConvenzione (
-		idSess varchar default null, --CLIENTE
-        c_Nome varchar2 default null
-	) IS
-        data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
-        id_convenzione CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
-        c_check CONVENZIONICLIENTI.FK_CLIENTE%TYPE := NULL; --uso questa variabile per il controllo sulla convenzione già associata
-    BEGIN
-        gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
-
-        --controllo che l'utente sia un cliente
-        if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
-            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
-            return;
-        end if;
-
-        --controllo sulla convenzione
-        if  TRUNC(c_Nome) IS NOT NULL then
-            SELECT IDCONVENZIONE,DATAFINE INTO id_convenzione, data_fine FROM CONVENZIONI WHERE NOME = c_Nome;
-            if SQL%ROWCOUNT > 0 then --convenzione trovata
-
-            --controllo che la convenzione non sia già associata al cliente
-            SELECT FK_CLIENTE INTO c_check FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess) AND FK_CONVENZIONE = id_convenzione;
-             if SQL%ROWCOUNT > 0 then
-                gui.aggiungiPopup (False, 'Convenzione già associata');
-                gui.aCapo(2);
-
-             else
-                --controllo convenzione scaduta
-                if data_fine < SYSDATE then
-                    gui.aggiungiPopup (False, 'Convenzione scaduta');
+            --cliente già presente
+            if err_popup = 'D' then
+                    gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
                     gui.aCapo(2);
-
                 end if;
 
-                INSERT INTO CONVENZIONICLIENTI (FK_CLIENTE, FK_CONVENZIONE) VALUES (SESSIONHANDLER.GETIDUSER(idSess), id_convenzione);
-                gui.aggiungiPopup (True, 'Convenzione associata');
-                gui.aCapo(2);
+                --dataNascita
+                if err_popup = 'B' then
+                    gui.AggiungiPopup(False, 'Data di nascita non valida!');
+                    gui.aCapo(2);
                 end if;
-             end if;
+
+                --password
+                if err_popup = 'P' then
+                    gui.AggiungiPopup(False, 'Password troppo corta! Deve essere di almeno 8 caratteri');
+                    gui.aCapo(2);
+                end if;
         end if;
 
-        gui.aggiungiForm;
-            gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-            gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h2');
+        gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');
+
+
+                gui.aggiungiIntestazione(testo => 'Registrazione');
+                gui.acapo;
+                gui.AGGIUNGIGRUPPOINPUT;
+                    gui.aggiungiIntestazione(testo => 'Informazioni personali', dimensione => 'h2');
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Nome', placeholder => 'Nome');
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'Cognome', placeholder => 'Cognome');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'Email', placeholder => 'Indirizzo Email');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'Password', placeholder => 'Password');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'number', classeIcona => 'fa fa-phone', nome => 'Telefono', placeholder => 'Telefono');
+                gui.CHIUDIGRUPPOINPUT;
+
+
             gui.aggiungiGruppoInput;
-                gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
-            gui.chiudiGruppoInput;
+                gui.APRIDIV (classe => 'col-half');
+                    gui.aggiungiIntestazione(testo => 'Data di nascita', dimensione => 'h4');
 
-            gui.acapo(2);
+                        gui.APRIDIV (classe => 'col-third');
+                            gui.AGGIUNGIINPUT (placeholder => 'DD', nome => 'Day', classe => '');
+                        gui.CHIUDIDIV;
 
-            gui.aggiungiGruppoInput;
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-check', nome => 'c_nome', placeholder => 'Nome',ident => 'c_nome',  required => true);
-            gui.chiudiGruppoInput;
+                        gui.APRIDIV (classe => 'col-third');
+                            gui.AGGIUNGIINPUT (placeholder => 'MM', nome => 'Month', classe => '');
+                        gui.CHIUDIDIV;
 
-            gui.acapo();
-            gui.aggiungiGruppoInput;
-                gui.aggiungiBottoneSubmit (value => 'Associa');
-            gui.chiudiGruppoInput;
+                        gui.APRIDIV (classe => 'col-third');
+                            gui.AGGIUNGIINPUT (placeholder => 'YYYY', nome => 'Year', classe => '');
+                        gui.CHIUDIDIV;
+                    gui.chiudiDiv;
 
-        gui.chiudiForm;
+                        gui.APRIDIV (classe => 'col-half');
+                            gui.aggiungiIntestazione(testo => 'Sesso', dimensione => 'h4');
 
-        gui.aCapo(3);
-        gui.chiudiPagina;
+                        gui.AGGIUNGIGRUPPOINPUT;
+                            gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-male', tipo => 'radio', value => 'M');
+                            gui.AGGIUNGILABEL (target => 'gender-male', testo => 'Maschio');
+                            gui.AGGIUNGIINPUT (nome => 'gender', ident => 'gender-female', tipo => 'radio', value => 'F');
+                            gui.AGGIUNGILABEL (target => 'gender-female', testo => 'Femmina');
+                        gui.CHIUDIGRUPPOINPUT;
+                    gui.CHIUDIDIV;
 
-        EXCEPTION
-        WHEN NO_DATA_FOUND then
-            gui.aggiungiPopup (False, 'Convenzione non trovata');
-            gui.chiudiPagina;
+            gui.CHIUDIGRUPPOINPUT;
 
-        END associaConvenzione;
+                gui.AGGIUNGIGRUPPOINPUT;
+                        gui.aggiungiBottoneSubmit (value => 'Registra');
+                gui.CHIUDIGRUPPOINPUT;
+            gui.CHIUDIFORM;
+            GUI.ACAPO(2);
+        gui.ChiudiPagina;
 
-	procedure modificaConvenzione (
-		idSess varchar default null,
-        c_id varchar2,
-        c_sconto varchar2 default null,
-        c_dataInizio varchar2 default null,
-        c_dataFine varchar2 default null,
-        c_cumulabile varchar2 default null
-	) IS
-    current_sconto CONVENZIONI.SCONTO%TYPE := NULL;
-    d_inizio CONVENZIONI.DATAINIZIO%TYPE := NULL;
-    d_fine CONVENZIONI.DATAFINE%TYPE := NULL;
-    error_check boolean := false;
-    c int := 0;
-    current_cumulabile int;
+        END registrazioneCliente;
 
-    BEGIN
-        gui.apriPagina (titolo => 'Modifica convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
+    --inserisciDati : procedura che prende i dati dal form di registrazioneCliente e provvede a inserire i dati nella tabella
+        procedure inserisciDati (Nome VARCHAR2 DEFAULT NULL,
+        Cognome VARCHAR2 DEFAULT NULL,
+        Email VARCHAR2 DEFAULT NULL,
+        Password VARCHAR2 DEFAULT NULL,
+        Telefono VARCHAR2 DEFAULT NULL,
+        Day VARCHAR2 DEFAULT NULL,
+        Month VARCHAR2 DEFAULT NULL,
+        Year VARCHAR2 DEFAULT NULL,
+        Gender VARCHAR2 DEFAULT NULL) IS
 
-        --controllo che l'utente sia un manager
-        if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!');
-            --return;
-        end if;
+        DataNascita DATE;
+        Sesso CHAR(1);
 
-        --controlliamo che la convenzione sia modificabile (per essere modificabile non deve essere stata ancora pubblicata o essere scaduta)
-        if c_id IS NOT NULL then
-            SELECT Sconto, DataInizio, DataFine, Cumulabile INTO current_sconto, d_inizio, d_fine, current_cumulabile FROM CONVENZIONI WHERE
-                IDCONVENZIONE = c_id;
-                if (d_fine < SYSDATE OR d_inizio < SYSDATE) then
-                    gui.aggiungiPopup (FALSE, 'Convenzione scaduta o già pubblicata, perciò non modificabile!');
-                    return; 
-                end if;
-        end if;
+        begin
+            DataNascita := TO_DATE (Day || '/' || Month || '/' || Year, 'DD-MM-YYYY');
+            Sesso := SUBSTR(Gender, 1, 1);  -- cast da varchar2 a char(1)
 
-        --gestione delle modifiche
-
-        if c_sconto IS NOT NULL AND c_sconto <> current_sconto then
-            IF 0 < c_sconto AND c_sconto < 100 THEN
-            UPDATE CONVENZIONI
-                SET SCONTO = c_Sconto
-                WHERE IDConvenzione = c_id;
-                c := c+1;
-                else
-                error_check:=true;
-                end if;
-        end if;
-
-        if c_dataInizio IS NOT NULL AND C_dataInizio <> d_inizio then
-            if c_dataInizio > SYSDATE+1 then
-            UPDATE CONVENZIONI
-            SET DATAINIZIO = c_dataInizio
-            WHERE IDConvenzione = c_id;
-            c := c+1;
-            else
-                error_check:=true;
+            --data di nascita non valida
+            if DataNascita > SYSDATE then
+                 gui.reindirizza (u_root || '.registrazioneCliente?err_popup=B');
+                 return;
             end if;
 
+            --password troppo corta
+            if length (Password) < 8 then
+                gui.reindirizza (u_root || '.registrazioneCliente?err_popup=P');
+                return;
+            end if;
+
+            INSERT INTO CLIENTI (Nome, Cognome, DataNascita, Sesso, NTelefono, Email, Password, Stato, Saldo)
+            VALUES (Nome, Cognome, DataNascita, Sesso, TO_NUMBER(Telefono),Email,Password,1,0);
+
+            --se l'inserimento va a buon fine, apro la pagina di login
+
+            gui.HomePage (p_registrazione => true);
+
+        EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            --visualizza popup di errore
+            gui.reindirizza (u_root || '.registrazioneCliente?err_popup=D');
+        end inserisciDati;
+
+    --inserimentoConvenzione :form per la insert della convenzione
+    PROCEDURE inserisciConvenzione(
+        idSess varchar, 
+        popup varchar2 default null
+    ) IS
+    BEGIN
+
+        gui.APRIPAGINA(titolo => 'Inserimento Convenzione', idSessione => idSess);
+
+        if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homepage?p_success=S&idSessione='||idSess||'');
+            gui.chiudiPagina;
+        return;
         end if;
 
-        if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
-            if  c_DataFine > SYSDATE+1 then
+        
+        if popup IS NOT NULL then
+            if popup = 'S' then
+                gui.aggiungiPopup (True, 'Convenzione inserita'); 
+                gui.aCapo;
+            end if; 
+            if popup = 'D' then 
+                gui.aggiungiPopup (False, 'Nome o codice accesso già usati'); 
+                gui.aCapo;
+            end if;  
+        end if; 
+
+        gui.AGGIUNGIFORM (url => u_root || '.inseriscidatiConvenzione');
+        -- Inserimento dei campi del modulo
+        gui.aggiungiIntestazione(testo => 'Inserimento Convenzione');
+        gui.aCapo();
+        gui.AggiungiGruppoInput;
+        gui.aggiungiIntestazione (testo => 'Info', dimensione => 'h2');
+        gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-user', nome => 'r_nome', placeholder => 'Nome');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-user', nome => 'r_ente', placeholder => 'Ente');
+        gui.AggiungiCampoForm(tipo => 'number', classeIcona => 'fa fa-money-bill', nome => 'r_sconto', placeholder => 'Sconto');
+        gui.AggiungiCampoForm(classeIcona => 'fa fa-lock', nome => 'r_codiceAccesso', placeholder => 'Codice Accesso');
+        gui.ChiudiGruppoInput;
+
+
+        gui.AGGIUNGIGRUPPOINPUT;
+            gui.aggiungiIntestazione (testo => 'Data inizio', dimensione => 'h2');
+            gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataInizio', placeholder => 'Data Inizio');
+            gui.aggiungiIntestazione (testo => 'Data fine', dimensione => 'h2');
+            gui.AggiungiCampoForm(tipo => 'date', nome => 'r_dataFine', placeholder => 'Data Fine');
+            gui.aggiungiIntestazione (testo => 'Cumulabile', dimensione => 'h2');
+            gui.aggiungiSelezioneSingola (elementi => gui.StringArray ('Si', 'No'), valoreEffettivo => gui.StringArray('1','0'), ident => 'r_cumulabile', optionSelected => '0'); 
+            
+        gui.chiudiGruppoInput;
+
+        -- Bottone di submit per inviare il modulo
+        gui.AGGIUNGIGRUPPOINPUT;
+        gui.AggiungiBottoneSubmit(value => 'Inserisci');
+        gui.ChiudiGruppoInput;
+
+
+        -- Chiusura del modulo
+            gui.ChiudiForm;
+            gui.aCapo(2);
+        gui.ChiudiPagina;
+
+    END inserisciConvenzione;
+
+    --procedura per la insert convenzione nel form (adesso funziona, bisogna settare le sessioni e i relativi controlli)
+    procedure inseriscidatiConvenzione (
+            idSess          varchar2,
+            r_nome          varchar2 default null,
+            r_ente          varchar2 default null,
+            r_sconto        varchar2 default null,
+            r_codiceAccesso varchar2 default null,
+            r_dataInizio    varchar2 default null,
+            r_dataFine      varchar2 default null,
+            r_cumulabile    varchar2 default null
+    ) IS
+    BEGIN
+
+        -- Apre una pagina di registrazione
+        gui.ApriPagina('Inserimento Convenzione', idSessione => idSess);
+
+        -- Inserimento dei dati nella tabella CONVENZIONI
+        INSERT INTO CONVENZIONI (Nome, Ente, Sconto, CodiceAccesso, DataInizio, DataFine, Cumulabile)
+        VALUES (r_nome, r_ente, TO_NUMBER(r_sconto), r_codiceAccesso, TO_DATE(r_dataInizio,'(YYYY/MM/DD)'), TO_DATE(r_dataFine,'YYYY/MM/DD'), r_cumulabile);
+
+        -- Messaggio di conferma dell'inserimento
+        gui.reindirizza (u_root||'.inserisciConvenzione?idSess='||idSess||'&popUp=S');
+
+        EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN 
+        gui.reindirizza (u_root||'.inserisciConvenzione?idSess='||idSess||'&popUp=D');
+
+        END inseriscidatiConvenzione;
+
+        procedure associaConvenzione (
+            idSess SESSIONICLIENTI.IDSESSIONE%TYPE default null, --CLIENTE
+            c_Codice varchar2 default null,
+            err_popup varchar2 default null
+        ) IS
+            data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
+            data_inizio CONVENZIONI.DATAINIZIO%TYPE := NULL; 
+            id_convenzione CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+            c_check CONVENZIONICLIENTI.FK_CLIENTE%TYPE := NULL; --uso questa variabile per il controllo sulla convenzione già associata
+        BEGIN
+      
+            gui.apriPagina (titolo => 'Associa convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
+
+            --controllo che l'utente sia un cliente
+            if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina;
+                return;
+            end if;
+
+            if err_popup IS NOT NULL then
+
+                if err_popup = 'N' then --nodatafound : mandiamo il messaggio di errore 'convenzione non trovata'
+                    gui.aggiungiPopup (False, 'Convenzione non trovata');
+                    gui.acapo(2);
+                end if;
+
+                if err_popup = 'D' then --dupvalonindex : mandiamo il messaggio di errore 'convenzione già associata'
+                    gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername     (idSess)|| '');
+                    gui.acapo(2);
+                end if; 
+
+            end if; 
+
+            --controllo sulla convenzione
+            if  c_Codice IS NOT NULL then
+                SELECT IDCONVENZIONE,DATAFINE, DATAINIZIO INTO id_convenzione, data_fine, data_inizio FROM CONVENZIONI WHERE CODICEACCESSO = c_Codice;
+                if SQL%ROWCOUNT = 1 then --convenzione trovata
+
+                -- il controllo che la convenzione non sia già associata al cliente è implicito in quanto (fk_cliente, fk_convenzione) in 
+                --convenzioniClienti è primary key
+
+                    --controllo convenzione scaduta o non ancora emessa
+                    if data_fine < SYSDATE OR data_inizio > SYSDATE then
+                        gui.aggiungiPopup (False, 'Convenzione scaduta , o non ancora pubblicata');
+                        gui.aCapo(2);
+                    else
+                        INSERT INTO CONVENZIONICLIENTI (FK_CLIENTE, FK_CONVENZIONE) VALUES (SESSIONHANDLER.GETIDUSER(idSess), id_convenzione);
+                        gui.aggiungiPopup (True, 'Convenzione associata');
+                        gui.aCapo(2);
+                        end if;
+                  
+                end if;
+            end if;
+
+            gui.aggiungiForm;
+                gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
+                gui.aggiungiIntestazione(testo => 'Associa convenzione', dimensione => 'h2');
+                gui.aggiungiGruppoInput;
+                    gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
+                gui.chiudiGruppoInput;
+
+                gui.acapo(2);
+
+                gui.aggiungiGruppoInput;
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-lock', nome => 'c_Codice', placeholder => 'Immetti il codice di accesso alla convenzione',ident => 'c_Codice',  required => true);
+                gui.chiudiGruppoInput;
+
+                gui.acapo();
+                gui.aggiungiGruppoInput;
+                    gui.aggiungiBottoneSubmit (value => 'Associa');
+                gui.chiudiGruppoInput;
+
+            gui.chiudiForm;
+
+            gui.aCapo(3);
+            gui.chiudiPagina;
+
+            EXCEPTION
+            WHEN NO_DATA_FOUND then
+                gui.REINDIRIZZA(u_root||'.associaConvenzione?idSess='||idSess||'&err_popUp=N');
+            
+            WHEN DUP_VAL_ON_INDEX then
+                gui.REINDIRIZZA(u_root||'.associaConvenzione?idSess='||idSess||'&err_popUp=D');
+            
+            END associaConvenzione;
+
+        procedure modificaConvenzione (
+            idSess varchar default null,
+            c_id varchar2,
+            c_sconto varchar2 default null,
+            c_dataInizio varchar2 default null,
+            c_dataFine varchar2 default null,
+            c_cumulabile varchar2 default null
+        ) IS
+        current_sconto CONVENZIONI.SCONTO%TYPE := NULL;
+        d_inizio CONVENZIONI.DATAINIZIO%TYPE := NULL;
+        d_fine CONVENZIONI.DATAFINE%TYPE := NULL;
+        error_check boolean := false;
+        c int := 0;
+        current_cumulabile CONVENZIONI.CUMULABILE%TYPE := NULL;
+
+        BEGIN
+            gui.apriPagina (titolo => 'Modifica convenzione', idSessione => idSess); --se l'utente non è loggato torna alla pagina di login
+
+            --controllo che l'utente sia un manager
+            if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina;
+                return;
+            end if;
+
+            --controlliamo che la convenzione sia modificabile (per essere modificabile non deve essere stata ancora pubblicata o essere scaduta)
+            if c_id IS NOT NULL then
+                SELECT Sconto, DataInizio, DataFine, Cumulabile INTO current_sconto, d_inizio, d_fine, current_cumulabile FROM CONVENZIONI WHERE
+                    IDCONVENZIONE = c_id;
+                    if (d_fine < SYSDATE OR d_inizio < SYSDATE) then
+                        gui.aggiungiPopup (FALSE, 'Convenzione scaduta o già pubblicata, perciò non modificabile!');
+                        return; 
+                    end if;
+            end if;
+
+            --gestione delle modifiche
+
+            if c_sconto IS NOT NULL AND c_sconto <> current_sconto then
+                IF 0 < c_sconto AND c_sconto < 100 THEN --controllo parametro
+                UPDATE CONVENZIONI
+                    SET SCONTO = c_Sconto
+                    WHERE IDConvenzione = c_id;
+                    c := c+1;
+                    else
+                    error_check:=true;
+                    end if;
+            end if;
+
+            if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+            --controlli
+                if c_dataInizio < SYSDATE then
+                    error_check:=true;
+                end if;
+
+                if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
+                    if c_dataInizio > c_dataFine then
+                        error_check:=true;
+                    end if;
+
+                    else
+                        if c_dataInizio > d_fine then
+                            error_check:=true;
+                        end if;
+                end if;
+
+                UPDATE CONVENZIONI
+                SET DATAINIZIO = c_dataInizio
+                WHERE IDConvenzione = c_id;
+                c := c+1;
+
+            end if;
+
+            if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
+            --controlli
+                if c_dataFine < SYSDATE then
+                     error_check:=true;
+                end if;
+
+                if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+                    if c_dataFine < c_dataInizio then
+                        error_check:=true;
+                    end if;
+
+                    else
+                        if c_dataFine < d_inizio then
+                            error_check:=true;
+                        end if;
+                end if;
+
             UPDATE CONVENZIONI
                 SET DATAFINE = c_dataFine
                 WHERE IDConvenzione = c_id;
-                c := c+1;
+            end if;
+
+            if c_Cumulabile IS NOT NULL AND c_cumulabile <> current_cumulabile then       
+                UPDATE CONVENZIONI
+                    SET CUMULABILE = c_cumulabile
+                    WHERE IDConvenzione = c_id;
+                    c:=c+1;
+            end if;
+
+                IF error_check THEN
+                    gui.aggiungiPopup (FALSE, 'Modifiche non accettate, controllare i parametri');
+                    gui.acapo(2);
+                ELSE
+                    IF c > 1 THEN
+                        gui.aggiungiPopup (TRUE, 'Campi modificati');
+                        gui.acapo(2);
+                    ELSE
+                        IF c = 1 THEN
+                            gui.aggiungiPopup (TRUE, 'Campo modificato');
+                            gui.acapo(2);
+                        END IF;
+                    END IF;
+                END IF;
+
+
+            gui.aCapo(2);
+            gui.aggiungiForm;
+
+            gui.aggiungiGruppoInput;
+            gui.aggiungiIntestazione (testo => 'Modifica convenzione'); 
+            gui.chiudiGruppoInput; 
+            gui.aCapo(2);
+
+
+            gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
+            gui.aggiungiInput (tipo => 'hidden', nome => 'c_id', value => c_id);
+
+                gui.aggiungiGruppoInput;
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'c_sconto', placeholder => 'Sconto',ident => 'c_sconto',  required => false);
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Data di inizio', dimensione => 'h2');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'date', classeIcona => 'fa fa-envelope', nome => 'c_dataInizio', placeholder => 'Data di inizio convenzione',ident => 'c_dataInizio',  required => false);
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Data di scadenza', dimensione => 'h2');
+                    gui.AGGIUNGICAMPOFORM (tipo => 'date', classeIcona => 'fa fa-envelope', nome => 'c_dataFine', placeholder => 'Data di fine convenzione',ident => 'c_dataFine',  required => false);
+                gui.chiudiGruppoInput;
+
+                gui.aggiungiIntestazione(testo => 'Cumulabile', dimensione => 'h2');
+                        gui.apriDiv(classe => 'row');
+                            gui.AGGIUNGIGRUPPOINPUT;
+                                gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'si', tipo => 'radio', value => '1');
+                                gui.AGGIUNGILABEL (target => 'si', testo => 'si');
+                                gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'no', tipo => 'radio', value => '0');
+                                gui.AGGIUNGILABEL (target => 'no', testo => 'no');
+                                gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'default', tipo => 'radio', value => current_cumulabile, selected => true); --valore di default non cumulabile (cambiare con valore originale della convenzione)
+                            gui.CHIUDIGRUPPOINPUT;
+                        gui.chiudiDiv;
+
+                gui.acapo();
+
+                gui.aggiungiGruppoInput;
+                    gui.aggiungiBottoneSubmit (value => 'Modifica');
+                    gui.acapo(3);
+                    gui.bottoneAggiungi (url => u_root || '.visualizzaConvenzioni?idSess='||idSess||'', testo => 'Torna indietro');
+                gui.chiudiGruppoInput;
+
+            gui.ChiudiForm;
+            gui.aCapo(3);
+            gui.chiudiPagina;
+
+            END modificaConvenzione;
+
+    --modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
+        procedure modificaCliente(
+        idSess SESSIONICLIENTI.IDSESSIONE%TYPE DEFAULT NULL,
+        cl_id VARCHAR2 DEFAULT NULL,
+        cl_Email VARCHAR2 DEFAULT NULL,
+        cl_Password VARCHAR2 DEFAULT NULL,
+        cl_Telefono VARCHAR2 DEFAULT NULL,
+        err_popup VARCHAR2 DEFAULT NULL
+    ) IS
+
+        current_email CLIENTI.Email%TYPE := NULL;
+        current_telefono CLIENTI.Ntelefono%TYPE := NULL;
+        current_password CLIENTI.Password%TYPE := NULL;
+        popup BOOLEAN := false;
+        passCheck EXCEPTION; 
+
+        c INTEGER := 0;
+
+        BEGIN   
+        gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
+
+        SAVEPOINT sp1; 
+        --accedo alla pagina (se sono cliente o operatore)
+        if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina;
+            return;
+        end if;
+
+        --gestione errori tramite popup
+        if err_popup IS NOT NULL then 
+            if err_popup = 'P' then --errore sulla password
+                gui.aggiungiPopup (False, 'La password è troppo corta, deve essere di almeno 8 caratteri'); 
+                gui.aCapo(); 
+            end if; 
+
+            if err_popup = 'E' then --errore sulla email
+                gui.aggiungiPopup (False, 'Email già utilizzata da qualche altro cliente'); 
+                gui.aCapo(); 
+            end if;
+        end if; 
+
+
+        --un cliente non può accedere alla pagina modificaCliente di un altro cliente
+        if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina;
+            return;
+        end if;
+
+            SELECT Email, Ntelefono, Password
+                INTO current_email, current_telefono, current_password
+                    FROM CLIENTI
+                        WHERE IDCLIENTE  = cl_id;
+
+            -- Aggiornamento dell'email
+        IF cl_Email IS NOT NULL AND cl_Email <> current_email THEN
+            UPDATE CLIENTI
+            SET Email = cl_Email
+            WHERE IDcliente = cl_id;
+            popup := true;
+            c := c + 1;
+
+        END IF;
+
+        --aggiornamento password
+        IF cl_Password IS NOT NULL AND cl_Password <> current_password THEN
+
+                --controllare che la password sia di almeno 8 caratteri
+                if LENGTH(cl_Password) < 8 then --si stampa l'errore
+                
+                ROLLBACK TO sp1; 
+                gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P');
+                return;
+
+                else 
+                    UPDATE CLIENTI
+                    SET Password = cl_Password
+                        WHERE IDcliente = cl_id;
+                popup := true;
+                c := c + 1;
+                end if;             
+        END IF;
+
+            -- Aggiornamento del telefono
+        IF cl_Telefono IS NOT NULL AND cl_Telefono <> current_telefono THEN
+            UPDATE CLIENTI
+            SET Ntelefono = cl_Telefono
+            WHERE IDcliente = cl_id;
+
+            popup := true;
+            c := c + 1;
+        END IF;
+
+        --logica popup di successo
+        if popup AND c>1 then
+            gui.AGGIUNGIPOPUP (True , 'Campi modificati');
+            gui.aCapo;
             else
-            error_check:=true;
+            if popup AND c=1 then
+            gui.AGGIUNGIPOPUP (True , 'Campo modificato');
+            gui.aCapo;
             end if;
         end if;
 
-            IF error_check THEN
-                gui.aggiungiPopup (FALSE, 'Modifiche non accettate, controllare i parametri');
-                gui.acapo(2);
-            ELSE
-                IF c > 1 THEN
-                    gui.aggiungiPopup (TRUE, 'Campi modificati');
-                    gui.acapo(2);
-                ELSE
-                    IF c = 1 THEN
-                        gui.aggiungiPopup (TRUE, 'Campo modificato');
-                        gui.acapo(2);
-                    END IF;
-                END IF;
-            END IF;
+        --ri-aggiorno i valori da visualizzare nella schermata
+        SELECT Email, Ntelefono, Password
+        INTO current_email, current_telefono, current_password
+        FROM CLIENTI
+        WHERE IDcliente = cl_id;
 
 
-        gui.aCapo(2);
-        gui.aggiungiForm;
-
-        gui.aggiungiIntestazione (testo => 'Modifica convenzione');
-        gui.aCapo(2);
-
-        gui.acapo;
+        gui.AGGIUNGIFORM;
 
         gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
-        gui.aggiungiInput (tipo => 'hidden', nome => 'c_id', value => c_id);
+        gui.aggiungiInput (tipo => 'hidden', nome => 'cl_id', value => cl_id);
 
-             gui.aggiungiGruppoInput;
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'c_sconto', placeholder => 'Sconto',ident => 'c_sconto',  required => false);
-                 gui.AGGIUNGIINTESTAZIONE (testo => 'Data di inizio', dimensione => 'h2');
-                gui.AGGIUNGICAMPOFORM (tipo => 'date', classeIcona => 'fa fa-envelope', nome => 'c_dataInizio', placeholder => 'Data di inizio convenzione',ident => 'c_dataInizio',  required => false);
-                 gui.AGGIUNGIINTESTAZIONE (testo => 'Data di scadenza', dimensione => 'h2');
-                gui.AGGIUNGICAMPOFORM (tipo => 'date', classeIcona => 'fa fa-envelope', nome => 'c_dataFine', placeholder => 'Data di fine convenzione',ident => 'c_dataFine',  required => false);
-             gui.chiudiGruppoInput;
-
-             gui.aggiungiIntestazione(testo => 'Cumulabile', dimensione => 'h2');
-					gui.apriDiv(classe => 'row');
-						gui.AGGIUNGIGRUPPOINPUT;
-							gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'si', tipo => 'radio', value => '1');
-							gui.AGGIUNGILABEL (target => 'si', testo => 'si');
-							gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'no', tipo => 'radio', value => '0');
-							gui.AGGIUNGILABEL (target => 'no', testo => 'no');
-                            gui.AGGIUNGIINPUT (nome => 'c_cumulabile', ident => 'default', tipo => 'radio', value => current_cumulabile, selected => true); --valore di default non cumulabile (cambiare con valore originale della convenzione)
-						gui.CHIUDIGRUPPOINPUT;
-			        gui.chiudiDiv;
-
-            gui.aggiungiGruppoInput;
-                gui.aggiungiBottoneSubmit (value => 'Modifica');
-            gui.chiudiGruppoInput;
-
-        gui.ChiudiForm;
-        gui.aCapo(3);
-        gui.chiudiPagina;
-
-        END modificaConvenzione;
-
---modificaCliente : procedura che instanzia la pagina HTML della modifica dati cliente
-    procedure modificaCliente(
-    idSess VARCHAR DEFAULT NULL,
-    cl_id VARCHAR2 DEFAULT NULL,
-    cl_Email VARCHAR2 DEFAULT NULL,
-    cl_Password VARCHAR2 DEFAULT NULL,
-    cl_Telefono VARCHAR2 DEFAULT NULL
-) IS
-
-    current_email CLIENTI.Email%TYPE := NULL;
-    current_telefono CLIENTI.Ntelefono%TYPE := NULL;
-    current_password CLIENTI.Password%TYPE := NULL;
-    popup BOOLEAN := false;
-    c INTEGER := 0;
-
-    BEGIN   
-    gui.APRIPAGINA(titolo => 'Modifica dati cliente', idSessione => idSess); --accedo alla pagina se sono loggato
-
-    --accedo alla pagina (se sono cliente o operatore)
-    if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo(idSess, 'Manager')) then
-        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
-        return;
-    end if;
-
-    --un cliente non può accedere alla pagina modifica di un altro cliente
-    if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
-        gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti');
-        return;
-    end if;
-
-        SELECT Email, Ntelefono, Password
-            INTO current_email, current_telefono, current_password
-                FROM CLIENTI
-                    WHERE IDCLIENTE  = cl_id;
-
-        -- Aggiornamento dell'email
-    IF cl_Email IS NOT NULL AND cl_Email <> current_email THEN
-        UPDATE CLIENTI
-        SET Email = cl_Email
-        WHERE IDcliente = cl_id;
-        popup := true;
-        c := c + 1;
-
-    END IF;
-
-    --aggiornamento password
-    IF cl_Password IS NOT NULL AND cl_Password <> current_password THEN
-            UPDATE CLIENTI
-                SET Password = cl_Password
-                    WHERE IDcliente = cl_id;
-        popup := true;
-        c := c + 1;
-    END IF;
-
-        -- Aggiornamento del telefono
-    IF cl_Telefono IS NOT NULL AND cl_Telefono <> current_telefono THEN
-        UPDATE CLIENTI
-        SET Ntelefono = cl_Telefono
-        WHERE IDcliente = cl_id;
-
-        popup := true;
-        c := c + 1;
-    END IF;
-
-    --logica popup di successo
-    if popup AND c>1 then
-        gui.AGGIUNGIPOPUP (True , 'Campi modificati');
-        gui.aCapo;
-        else
-        if popup AND c=1 then
-        gui.AGGIUNGIPOPUP (True , 'Campo modificato');
-        gui.aCapo;
+        if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
+        gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
+        gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
         end if;
-    end if;
 
-    --ri-aggiorno i valori da visualizzare nella schermata
-    SELECT Email, Ntelefono, Password
-    INTO current_email, current_telefono, current_password
-    FROM CLIENTI
-    WHERE IDcliente = cl_id;
-
-
-    gui.AGGIUNGIFORM;
-
-    gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
-    gui.aggiungiInput (tipo => 'hidden', nome => 'cl_id', value => cl_id);
-
-
-    if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
-    gui.aggiungiIntestazione(testo => 'Modifica dati di', dimensione => 'h1');
-    gui.aggiungiIntestazione(testo => SESSIONHANDLER.getUsername(idSess));
-    else if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then
-            gui.aggiungiIntestazione(testo => 'Modifica dati', dimensione => 'h1');
-        end if;
-    end if;
-
-    -- se chi accede alla pagina è un operatore visualizzo il bottone per tornare alla tabella
-    if SESSIONHANDLER.checkRuolo(idSess, 'Manager') then
-        gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaClienti?idSess='||idSess||'');
-        gui.aCapo(2);
-        else
         if SESSIONHANDLER.checkRuolo(idSess, 'Cliente') then
         gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
         gui.aCapo(2);
         end if;
-    end if;
 
+        gui.AGGIUNGIGRUPPOINPUT;
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
+            gui.AGGIUNGIPARAGRAFO (testo => current_email);
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');
+            gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
+        gui.CHIUDIGRUPPOINPUT;
 
-    gui.AGGIUNGIGRUPPOINPUT;
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
-        gui.AGGIUNGIPARAGRAFO (testo => current_email);
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova email: ', dimensione => 'h3');
-        gui.AGGIUNGICAMPOFORM (tipo => 'email', classeIcona => 'fa fa-envelope', nome => 'cl_Email', placeholder => 'Nuova mail',ident => 'Email',  required => false);
-    gui.CHIUDIGRUPPOINPUT;
+        gui.AGGIUNGIGRUPPOINPUT;
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');
+            gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false);
+        gui.CHIUDIGRUPPOINPUT;
 
-    gui.AGGIUNGIGRUPPOINPUT;
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Password', dimensione => 'h2');
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Inserisci la nuova password', dimensione => 'h3');
-        gui.AGGIUNGICAMPOFORM (tipo => 'password', classeIcona => 'fa fa-key', nome => 'cl_Password', placeholder => 'Password', ident => 'Password', required => false);
-    gui.CHIUDIGRUPPOINPUT;
+        gui.AGGIUNGIGRUPPOINPUT;
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
+            gui.AGGIUNGIPARAGRAFO (testo => current_telefono);
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3');
+            gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false);
+        gui.CHIUDIGRUPPOINPUT;
 
-    gui.AGGIUNGIGRUPPOINPUT;
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Telefono', dimensione => 'h2');
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio numero : ', dimensione => 'h3');
-        gui.AGGIUNGIPARAGRAFO (testo => current_telefono);
-        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo numero : ', dimensione => 'h3');
-        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-phone', nome => 'cl_Telefono', placeholder => 'Telefono', ident => 'Telefono', required => false);
-    gui.CHIUDIGRUPPOINPUT;
+        gui.AGGIUNGIGRUPPOINPUT;
+                    gui.aggiungiBottoneSubmit (value => 'Modifica');
+        gui.CHIUDIGRUPPOINPUT;
 
-    gui.AGGIUNGIGRUPPOINPUT;
-                gui.aggiungiBottoneSubmit (value => 'Modifica');
-    gui.CHIUDIGRUPPOINPUT;
+        gui.CHIUDIFORM;
+        gui.aCapo(2);
+        gui.chiudiPagina;
 
-    gui.CHIUDIFORM;
-    gui.aCapo(2);
-    gui.chiudiPagina;
+        EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+        gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||''); --mancava id cliente, reindirizziamo con l'id
 
-    EXCEPTION
-    WHEN OTHERS THEN
-    gui.AGGIUNGIPOPUP (False, 'Errore sulla modifica dei campi!');
-END modificaCliente;
+        WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK TO sp1; 
+        gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=E'); --email già utilizzata
 
-    procedure visualizzaProfilo (
-        idSess varchar default '-1',
-        id varchar2 default null
-    ) is
+    END modificaCliente;
 
-    c_Nome varchar2(20);
-    c_Cognome varchar2(20);
-    c_DataNascita date;
-    c_Telefono int;
-    c_Email varchar2(50);
-    c_Sesso char(1);
-    c_Password varchar2(20);
-    c_saldo int;
+        procedure visualizzaProfilo (
+            idsess SESSIONICLIENTI.IDSESSIONE%TYPE default null,
+            id varchar2 default null
+        ) is
 
-    BEGIN
-         gui.apriPagina (titolo => 'Profilo', idSessione => idSess);
+        c_Nome varchar2(20);
+        c_Cognome varchar2(20);
+        c_DataNascita date;
+        c_Telefono int;
+        c_Email varchar2(50);
+        c_Sesso char(1);
+        c_Password varchar2(20);
+        c_saldo int;
 
-        if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
-            return;
-        end if;
+        BEGIN
+            gui.apriPagina (titolo => 'Profilo', idSessione => idSess);
 
-        if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
-            --prelevo i dati di cui ho bisogno tramite dalla sessione
-            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita,
-            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = SessionHandler.getIDuser (idSess);
-        end if;
+            if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+                gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina;
+                return;
+            end if;
 
-        if (SESSIONHANDLER.checkRuolo (idSess, 'Manager') AND id IS NOT NULL) then
-            --prelevo le informazioni relative all'id del cliente passato per parametro al manager
-            SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita,
-            c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = id;
-        end if;
+            if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+                --prelevo i dati di cui ho bisogno tramite dalla sessione
+                SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita,
+                c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = SessionHandler.getIDuser (idSess);
+            end if;
 
-            gui.aggiungiForm;
-                --devo aggiungere i dati del cliente tramite sessionHandler
+            if (SESSIONHANDLER.checkRuolo (idSess, 'Manager') AND id IS NOT NULL) then
+                --prelevo le informazioni relative all'id del cliente passato per parametro al manager
+                SELECT Nome, Cognome, DataNascita, NTelefono, Email, Sesso, Password, Saldo INTO c_Nome, c_Cognome, c_DataNascita,
+                c_Telefono, c_Email, c_Sesso, c_Password, c_saldo FROM CLIENTI WHERE IDCLIENTE = id;
+            end if;
 
-                gui.aggiungiIntestazione (testo => 'Profilo di ');
+                gui.aggiungiForm;
+                    --devo aggiungere i dati del cliente tramite sessionHandler
 
-                if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
-                gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (idSess));
-                else
-                    if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                     gui.aggiungiIntestazione (testo => c_Nome); --già salvato il nome del cliente in precedenza
+                    gui.aggiungiIntestazione (testo => 'Profilo di ');
+
+                    if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+                    gui.aggiungiIntestazione (testo => SessionHandler.GETUSERNAME (idSess));
+                    else
+                        if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+                        gui.aggiungiIntestazione (testo => c_Nome); --già salvato il nome del cliente in precedenza
+                        end if;
                     end if;
-                end if;
 
-                gui.aCapo(4);
+                    gui.aCapo(4);
 
-                gui.aggiungiGruppoInput;
-                gui.apriDiv (classe => 'flex-container');
-                            gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Nome', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => c_Nome, dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Cognome', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => c_Cognome, dimensione => 'h2');
-                            gui.chiudiDiv;
-
-                            gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Data di nascita', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => ''||c_DataNascita||'', dimensione => 'h2');
-                            gui.chiudiDiv;
-
-                            gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Telefono', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => ''||c_Telefono||'', dimensione => 'h2');
-                            gui.chiudiDiv;
-
-                            gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Email', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => c_Email, dimensione => 'h2');
-                            gui.chiudiDiv;
-
-                            --se chi entra nella pagina è Cliente, si visualizza la password
-                            if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+                    gui.aggiungiGruppoInput;
+                    gui.apriDiv (classe => 'flex-container');
                                 gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Password', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => c_Password, dimensione => 'h2');
-                            gui.chiudiDiv;
-                            end if;
-
-                            --il Manager può visualizzare il saldo del cliente
-                            if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+                                    gui.aggiungiIntestazione (testo => 'Nome', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => c_Nome, dimensione => 'h2');
+                                gui.chiudiDiv;
                                 gui.apriDiv (classe => 'left');
-                                gui.aggiungiIntestazione (testo => 'Saldo', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => c_Saldo || '€', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            end if;
+                                    gui.aggiungiIntestazione (testo => 'Cognome', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => c_Cognome, dimensione => 'h2');
+                                gui.chiudiDiv;
 
-                            IF (SESSIONHANDLER.CheckRuolo(idSess, 'Cliente')) THEN
-                            gui.apriDiv(classe => 'left');
-                            gui.aggiungiIntestazione(testo => 'Convenzioni associate', dimensione => 'h2');
-                            gui.chiudiDiv;
-                            gui.apriDiv(classe => 'right');
-                            gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
-                            gui.chiudiDiv;
+                                gui.apriDiv (classe => 'left');
+                                    gui.aggiungiIntestazione (testo => 'Data di nascita', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => ''||c_DataNascita||'', dimensione => 'h2');
+                                gui.chiudiDiv;
 
-                            --visualizziamo le convenzioni associate
-                            FOR i IN (
-                                SELECT FK_CONVENZIONE FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess)
-                            ) LOOP
-                                --prendiamo il nome e lo stampiamo
-                                for j IN (
-                                    SELECT NOME FROM CONVENZIONI WHERE IDCONVENZIONE = i.FK_CONVENZIONE
+                                gui.apriDiv (classe => 'left');
+                                    gui.aggiungiIntestazione (testo => 'Telefono', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => ''||c_Telefono||'', dimensione => 'h2');
+                                gui.chiudiDiv;
+
+                                gui.apriDiv (classe => 'left');
+                                    gui.aggiungiIntestazione (testo => 'Email', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => c_Email, dimensione => 'h2');
+                                gui.chiudiDiv;
+
+                                --se chi entra nella pagina è Cliente, si visualizza la password
+                                if (SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
+                                    gui.apriDiv (classe => 'left');
+                                    gui.aggiungiIntestazione (testo => 'Password', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => c_Password, dimensione => 'h2');
+                                gui.chiudiDiv;
+                                end if;
+
+                                gui.apriDiv (classe => 'left');
+                                    gui.aggiungiIntestazione (testo => 'Saldo', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv (classe => 'right');
+                                    gui.aggiungiIntestazione (testo => c_Saldo || '€', dimensione => 'h2');
+                                gui.chiudiDiv;
+
+
+                                IF (SESSIONHANDLER.CheckRuolo(idSess, 'Cliente')) THEN
+                                gui.apriDiv(classe => 'left');
+                                gui.aggiungiIntestazione(testo => 'Convenzioni associate', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv(classe => 'right');
+                                gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                gui.chiudiDiv;
+
+                                --visualizziamo le convenzioni associate
+                                FOR i IN (
+                                    SELECT FK_CONVENZIONE FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess)
                                 ) LOOP
-                                    gui.apriDiv(classe => 'left');
-                                    gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
-                                    gui.chiudiDiv;
-                                    gui.apriDiv(classe => 'right');
-                                    gui.aggiungiIntestazione(testo => j.NOME , dimensione => 'h2');
-                                    gui.chiudiDiv;
+                                    --prendiamo il nome e lo stampiamo
+                                    for j IN (
+                                        SELECT NOME FROM CONVENZIONI WHERE IDCONVENZIONE = i.FK_CONVENZIONE
+                                    ) LOOP
+                                        gui.apriDiv(classe => 'left');
+                                        gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                        gui.chiudiDiv;
+                                        gui.apriDiv(classe => 'right');
+                                        gui.aggiungiIntestazione(testo => j.NOME , dimensione => 'h2');
+                                        gui.chiudiDiv;
+                                    END LOOP;
                                 END LOOP;
-                            END LOOP;
-                        END IF;
 
-                        gui.chiudiDiv; --flex-container
-                    gui.chiudiGruppoInput;
+                                gui.apriDiv(classe => 'left');
+                                gui.aggiungiIntestazione(testo => 'Convenzioni attive', dimensione => 'h2');
+                                gui.chiudiDiv;
+                                gui.apriDiv(classe => 'right');
+                                gui.aggiungiIntestazione(testo => ' ', dimensione => 'h2');
+                                gui.chiudiDiv;
 
-                    gui.aCapo(2);
+                                --visualizziamo le convenzioni attive
+                                FOR i IN (
+                                    SELECT FK_CONVENZIONE FROM CONVENZIONICLIENTI WHERE FK_CLIENTE = SESSIONHANDLER.getIDUser(idSess)
+                                ) LOOP
+                                    --prendiamo il nome e lo stampiamo
+                                    for j IN (
+                                        SELECT NOME, DATAFINE FROM CONVENZIONI WHERE IDCONVENZIONE = i.FK_CONVENZIONE
+                                    ) LOOP
 
-                            if (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
+                                        if j.DATAFINE > SYSDATE then
+                                        gui.apriDiv(classe => 'left');
+                                        gui.aggiungiIntestazione(testo => j.NOME, dimensione => 'h3');
+                                        gui.chiudiDiv;
+                                        gui.apriDiv(classe => 'right');
+                                        gui.aggiungiIntestazione(testo => 'data di scadenza : ' || j.DATAFINE || '', dimensione => 'h3');
+                                        gui.chiudiDiv;
+                                        end if;
+                                    END LOOP;
+                                END LOOP;
+
+                            END IF;
+
+                            gui.chiudiDiv; --flex-container
+                        gui.chiudiGruppoInput;
+
+                        gui.aCapo(2);
+
+                                if (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
+                                    gui.aggiungiGruppoInput;
+                                        gui.bottoneAggiungi (url => u_root || '.ModificaCliente?idSess='||idSess||'&cl_id='||SESSIONHANDLER.getIDUser(idSess)||'', testo => 'Modifica');
+                                gui.chiudiGruppoInput;
+
+                                gui.aCapo(2);
+
                                 gui.aggiungiGruppoInput;
-                                    gui.bottoneAggiungi (url => u_root || '.ModificaCliente?idSess='||idSess||'&cl_id='||SESSIONHANDLER.getIDUser(idSess)||'', testo => 'Modifica');
-                             gui.chiudiGruppoInput;
+                                        gui.bottoneAggiungi (url => u_root || '.associaConvenzione?idSess='||idSess||'', testo => 'Associa convenzione');
+                                gui.chiudiGruppoInput;
 
-                            gui.aCapo(2);
+                                gui.aCapo(2);
 
-                              gui.aggiungiGruppoInput;
-                                    gui.bottoneAggiungi (url => u_root || '.associaConvenzione?idSess='||idSess||'', testo => 'Associa convenzione');
-                             gui.chiudiGruppoInput;
+                                end if;
 
-                             gui.aCapo(2);
-
-                            end if;
-
-                            if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
-                             gui.aCapo(2);
-                                gui.aggiungiGruppoInput;
-                                        gui.bottoneAggiungi (url => u_root || '.visualizzaClienti?idSess='||idSess||'', testo => 'Torna indietro');
-                                 gui.chiudiGruppoInput;
-                            end if;
+                                if (SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
+                                gui.aCapo(2);
+                                    gui.aggiungiGruppoInput;
+                                            gui.bottoneAggiungi (url => u_root || '.visualizzaClienti?idSess='||idSess||'', testo => 'Torna indietro');
+                                    gui.chiudiGruppoInput;
+                                end if;
 
 
-            gui.chiudiForm;
-            gui.aCapo(3);
-        gui.ChiudiPagina;
+                gui.chiudiForm;
+                gui.aCapo(3);
+            gui.ChiudiPagina;
 
-        END visualizzaProfilo;
+            END visualizzaProfilo;
 
 
 --visualizzazioneBustePaga : procedura che visualizza tutte le buste paga presenti nel database
@@ -692,9 +841,9 @@ procedure visualizzaBustePaga(
     r_PopUp      in varchar2 default null
 ) is
 
-    head gui.StringArray;
+        head gui.StringArray;
 
-    BEGIN
+        BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE IL POP UP DELLA MODIFICA AVVENUTA CON SUCCESSO
      htp.prn('<script>   const newUrl = "'||U_ROOT||'.visualizzaBustePaga?idSess='||idSess||'";
@@ -702,160 +851,160 @@ procedure visualizzaBustePaga(
         </script>');
 
 
-    head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile', ' ');
-    gui.apriPagina(titolo => 'VisualizzazioneBustePaga', idSessione=> idSess);
+        head := gui.StringArray ('Dipendente', 'Data', 'Importo', 'Bonus', 'Contabile', ' ');
+        gui.apriPagina(titolo => 'VisualizzazioneBustePaga', idSessione=> idSess);
 
-    /* Controllo che l'utente abbia i permessi necessari */
-    IF(sessionhandler.getRuolo(idSess) = 'Contabile') THEN
-        IF (r_popUp = 'True') THEN
-            gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
-        END IF;
+        /* Controllo che l'utente abbia i permessi necessari */
+        IF(sessionhandler.getRuolo(idSess) = 'Contabile') THEN
+            IF (r_popUp = 'True') THEN
+                gui.AGGIUNGIPOPUP(True, 'Modifica avvenuta con successo!');
+            END IF;
 
-        gui.APRIFORMFILTRO();
-            gui.aggiungiinput(tipo=> 'hidden', nome => 'idSess', value=>idSess);
-            gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
-            /*gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');*/
-            gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-            gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-            gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
-            gui.aggiungicampoformfiltro('submit', '','','Filtra');
-        gui.CHIUDIFORMFILTRO;
+            gui.APRIFORMFILTRO();
+                gui.aggiungiinput(tipo=> 'hidden', nome => 'idSess', value=>idSess);
+                gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
+                gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+                gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+                gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
+                gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
+                gui.aggiungicampoformfiltro('submit', '','','Filtra');
+            gui.CHIUDIFORMFILTRO;
 
-        gui.aCapo;
+            gui.aCapo;
 
-        gui.APRITABELLA (elementi => head);
+            gui.APRITABELLA (elementi => head);
 
         for busta_paga IN (
             select *
             from bustepaga b
             where ( b.fk_dipendente = r_FkDipendente or r_FkDipendente is null )
-              and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
-              and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
+                and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
+                and ( trunc(b.DATA) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
                 and ( b.importo = r_Importo or r_Importo is null )
                 and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
-            )
-            LOOP
-                gui.AGGIUNGIRIGATABELLA;
+        )
+        LOOP
+            gui.AGGIUNGIRIGATABELLA;
 
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.IMPORTO, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.BONUS, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.IMPORTO, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.BONUS, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_Data='||busta_paga.Data);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
                 gui.chiudiElementoPulsanti;
 
-                gui.CHIUDIRIGATABELLA;
-            END LOOP;
-        gui.CHIUDITABELLA();
-    ELSE
+            gui.CHIUDIRIGATABELLA;
+        END LOOP;
+            gui.ChiudiTabella;
+        ELSE
             gui.AGGIUNGIPOPUP(FALSE, 'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
-    gui.CHIUDIPAGINA();
+        gui.CHIUDIPAGINA();
 
-END visualizzaBustePaga;
+    END visualizzaBustePaga;
 
-function existBustaPaga(
-    r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE,
-    r_Data in BUSTEPAGA.DATA%TYPE
-) return boolean IS
-    count_b NUMBER := 0;
-BEGIN
-    SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
-    IF(count_b=1) THEN
-        return TRUE;
-    ELSE
-        return FALSE;
-    END IF;
-END existBustaPaga;
+    function existBustaPaga(
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE
+    ) return boolean IS
+        count_b NUMBER := 0;
+    BEGIN
+        SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
+        IF(count_b=0) THEN
+            return TRUE;
+        ELSE
+            return FALSE;
+        END IF;
+    END existBustaPaga;
 
-procedure modificaBustaPaga (
-    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE,
-    r_Data in BUSTEPAGA.DATA%TYPE,
-    r_PopUp in varchar2 default null,
-    new_Importo in varchar2 default null,
-    new_Data in varchar2 default null
-)
-IS
--- Se la data della busta paga è maggiore della data odierna
--- Modifica della data possibile soltanto per una data successiva a oggi
-bonus_percent number := 0;
-old_importo number := 0;
-old_contabile number :=0;
-head gui.StringArray;
+    procedure modificaBustaPaga (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_CONTABILE%TYPE,
+        r_Data in BUSTEPAGA.DATA%TYPE,
+        r_PopUp in varchar2 default null,
+        new_Importo in varchar2 default null,
+        new_Data in varchar2 default null
+    )
+    IS
+    -- Se la data della busta paga è maggiore della data odierna
+    -- Modifica della data possibile soltanto per una data successiva a oggi
+    bonus_percent number := 0;
+    old_importo number := 0;
+    old_contabile number :=0;
+    head gui.StringArray;
 
-BEGIN
+    BEGIN
 
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
     htp.prn('<script>   const newUrl = '||U_ROOT||'".modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
-    gui.apriPagina(titolo => 'modificaBustaPaga', idSessione=>idSess);
-    SAVEPOINT sp1;
-    /* Controllo che l'utente sia un contabile e che la busta paga possa essere modificata */
-    IF(SESSIONHANDLER.GETRUOLO(idSess) = 'Contabile' AND r_Data > TRUNC(SYSDATE) )THEN
+        gui.apriPagina(titolo => 'modificaBustaPaga', idSessione=>idSess);
+        SAVEPOINT sp1;
+        /* Controllo che l'utente sia un contabile e che la busta paga possa essere modificata */
+        IF(SESSIONHANDLER.GETRUOLO(idSess) = 'Contabile' AND r_Data > TRUNC(SYSDATE) )THEN
 
-        IF(r_PopUp IS NOT NULL) THEN
-            IF(r_PopUp = 'importoNegativo') THEN
-                gui.AGGIUNGIPOPUP(False, 'Errore: importo non può essere negativo. Modifica non effettuata!');
+            IF(r_PopUp IS NOT NULL) THEN
+                IF(r_PopUp = 'importoNegativo') THEN
+                    gui.AGGIUNGIPOPUP(False, 'Errore: importo non può essere negativo. Modifica non effettuata!');
+                END IF;
+                IF(r_PopUp = 'dubBusta') THEN
+                    gui.AGGIUNGIPOPUP(False, 'Errore: due buste paga nello stesso giorno. Modifica non effettuata!');
+                END IF;
+                IF(r_PopUp = 'noDataFound') THEN
+                    gui.AGGIUNGIPOPUP(False, 'Errore: busta paga che si vuole modificare non esiste. Modifica non effettuata!');
+                END IF;
             END IF;
-            IF(r_PopUp = 'dubBusta') THEN
-                gui.AGGIUNGIPOPUP(False, 'Errore: due buste paga nello stesso giorno. Modifica non effettuata!');
+
+            gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga del dipendente '||r_FkDipendente, Dimensione=>'h1');
+
+            -- Controllo che la busta paga esista
+            IF(existBustaPaga (r_FkDipendente,  r_Data)) THEN
+                -- Recupero vecchio Importo e vecchio contabile
+                SELECT b.FK_CONTABILE, b.IMPORTO INTO old_contabile, old_importo
+                FROM BUSTEPAGA b
+                WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
+                -- Creo il form
+                gui.AGGIUNGIFORM();
+                    gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'idSess', value=>idSess);
+                    gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkDipendente', value => r_FkDipendente);
+                    gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
+
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => old_importo);
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');
+                        gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
+                    gui.CHIUDIGRUPPOINPUT;
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia Data: ', dimensione => 'h3');
+                        gui.AGGIUNGIPARAGRAFO (testo => r_Data);
+                        gui.ACAPO;
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova Data: ', dimensione => 'h3');
+                        gui.AGGIUNGIINPUT(tipo=>'date', nome=>'new_Data', minimo=>''||TO_CHAR(SYSDATE,'yyyy-mm-dd')||'', massimo => ''||TO_CHAR(r_Data,'yyyy-mm-dd')||'');
+                    gui.CHIUDIGRUPPOINPUT;
+
+                    gui.AGGIUNGIGRUPPOINPUT;
+                        gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica');
+                    gui.CHIUDIGRUPPOINPUT;
+                    gui.AGGIUNGIPARAGRAFO(Testo => 'Ultima modifica effettuata dal contabile: '||old_contabile);
+                gui.chiudiform;
             END IF;
-            IF(r_PopUp = 'noDataFound') THEN
-                gui.AGGIUNGIPOPUP(False, 'Errore: busta paga che si vuole modificare non esiste. Modifica non effettuata!');
-            END IF;
-        END IF;
-
-        gui.AGGIUNGIINTESTAZIONE(Testo => 'Modifica Busta Paga del dipendente '||r_FkDipendente, Dimensione=>'h1');
-
-        -- Controllo che la busta paga esista
-        IF(existBustaPaga (r_FkDipendente,  r_Data)) THEN
-            -- Recupero vecchio Importo e vecchio contabile
-            SELECT b.FK_CONTABILE, b.IMPORTO INTO old_contabile, old_importo
-            FROM BUSTEPAGA b
-            WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
-            -- Creo il form
-            gui.AGGIUNGIFORM();
-                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'idSess', value=>idSess);
-                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_FkDipendente', value => r_FkDipendente);
-                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'r_Data', value => r_Data);
-
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Importo', dimensione => 'h2');
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchio Importo: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => old_importo);
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuovo Importo: ', dimensione => 'h3');
-                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'new_Importo', placeholder => 'Inserire nuovo importo...');
-                gui.CHIUDIGRUPPOINPUT;
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Data', dimensione => 'h2');
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Vecchia Data: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => r_Data);
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Nuova Data: ', dimensione => 'h3');
-                    gui.AGGIUNGIINPUT(tipo=>'date', nome=>'new_Data', minimo=>''||TO_CHAR(SYSDATE,'yyyy-mm-dd')||'', massimo => ''||TO_CHAR(r_Data,'yyyy-mm-dd')||'');
-                gui.CHIUDIGRUPPOINPUT;
-
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Modifica');
-                gui.CHIUDIGRUPPOINPUT;
-                gui.AGGIUNGIPARAGRAFO(Testo => 'Ultima modifica effettuata dal contabile: '||old_contabile);
-            gui.chiudiform;
-        END IF;
-        -- Recupero il bonus in percentuale da dipendenti
-        SELECT d.BONUS INTO bonus_percent
-        FROM DIPENDENTI d
-        WHERE d.MATRICOLA = r_FkDipendente;
+            -- Recupero il bonus in percentuale da dipendenti
+            SELECT d.BONUS INTO bonus_percent
+            FROM DIPENDENTI d
+            WHERE d.MATRICOLA = r_FkDipendente;
 
         IF (new_Importo > 0 AND bonus_percent >= 0) THEN
             -- Aggiornamento del contabile, dell'importo e del bonus (ricalcolato da dipendenti)
@@ -878,148 +1027,148 @@ BEGIN
         gui.AGGIUNGIPOPUP(False,'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
-    gui.CHIUDIPAGINA();
+        gui.CHIUDIPAGINA();
 
     EXCEPTION
     WHEN NO_DATA_FOUND THEN
         ROLLBACK  TO sp1;
-        gui.REINDIRIZZA(U_ROOT||'.gruppo3modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
+        gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=noDataFound');
     WHEN DUP_VAL_ON_INDEX THEN
         ROLLBACK  TO sp1;
         gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_popUp=dubBusta');
 
 
-END modificaBustaPaga;
+    END modificaBustaPaga;
 
-procedure visualizzaBustePagaDipendente (
-    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_Data       in varchar2 default null,
-    r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-    r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
-) is
+    procedure visualizzaBustePagaDipendente (
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_Bonus      in BUSTEPAGA.BONUS%TYPE default null
+    ) is
 
-head gui.StringArray;
+    head gui.StringArray;
 
-BEGIN
+    BEGIN
 
-gui.apriPagina (titolo => 'visualizza buste paga dipendenti', idSessione=>idSess);
+    gui.apriPagina (titolo => 'visualizza buste paga dipendenti', idSessione=>idSess);
 
-/* Controllo i permessi di accesso */
-IF(sessionhandler.getRuolo(idSess) = 'Autista' OR sessionhandler.getRuolo(idSess) = 'Operatore' OR sessionhandler.getRuolo(idSess) = 'Contabile' OR sessionhandler.getRuolo(idSess) = 'Manager') THEN
+    /* Controllo i permessi di accesso */
+    IF(sessionhandler.getRuolo(idSess) = 'Autista' OR sessionhandler.getRuolo(idSess) = 'Operatore' OR sessionhandler.getRuolo(idSess) = 'Contabile' OR sessionhandler.getRuolo(idSess) = 'Manager') THEN
 
-    gui.APRIFORMFILTRO();
-        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-        gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-        gui.aggiungicampoformfiltro('submit', '', '','Filtra');
-    gui.CHIUDIFORMFILTRO;
+        gui.APRIFORMFILTRO();
+            gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+            gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+            gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
+            gui.aggiungicampoformfiltro('submit', '', '','Filtra');
+        gui.CHIUDIFORMFILTRO;
 
-    gui.aCapo;
+        gui.aCapo;
 
-    head := gui.StringArray('Data', 'Importo', 'Bonus');
-    gui.APRITABELLA (elementi => head);
+        head := gui.StringArray('Data', 'Importo', 'Bonus');
+        gui.APRITABELLA (elementi => head);
 
-    for busta_paga IN (
-        select data, importo, bonus
-        from bustepaga b
-        where ( b.fk_dipendente = sessionhandler.getiduser(idSess) )
-            and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
-            and ( b.importo = r_Importo or r_Importo is null )
-            and ( b.bonus = r_Bonus or r_Bonus is null )
-        order by data desc)
-    LOOP
-        gui.AGGIUNGIRIGATABELLA;
+        for busta_paga IN (
+            select data, importo, bonus
+            from bustepaga b
+            where ( b.fk_dipendente = sessionhandler.getiduser(idSess) )
+                and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
+            order by data desc)
+        LOOP
+            gui.AGGIUNGIRIGATABELLA;
 
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.IMPORTO, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.BONUS, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.IMPORTO, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(busta_paga.BONUS, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
 
-        gui.ChiudiRigaTabella;
-        end LOOP;
+            gui.ChiudiRigaTabella;
+            end LOOP;
 
         gui.ChiudiTabella;
 ELSE
     gui.AGGIUNGIPOPUP(False, 'Errore: non hai i permessi necessari per accedere alla pagina', costanti.URL||'gui.homepage?idsessione'||idSess);
 END IF;
 
-gui.CHIUDIPAGINA();
+    gui.CHIUDIPAGINA();
 
-END visualizzaBustePagaDipendente;
+    END visualizzaBustePagaDipendente;
 
 
-function existDipendente(r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE) return number IS
-    count_d NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO count_d FROM DIPENDENTI d WHERE d.Matricola = r_IdDipendente;
-    IF(count_d=0) THEN
-        return 0;
-    ELSE IF(count_d = 1) THEN
-            return 1;
-        ELSE
-            return 2;
+    function existDipendente(r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE) return number IS
+        count_d NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO count_d FROM DIPENDENTI d WHERE d.Matricola = r_IdDipendente;
+        IF(count_d=0) THEN
+            return 0;
+        ELSE IF(count_d = 1) THEN
+                return 1;
+            ELSE
+                return 2;
+            END IF;
         END IF;
-    END IF;
-END existDipendente;
+    END existDipendente;
 
-procedure inserimentoBustaPaga(
-    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
-    r_Data       in varchar2 default null,
-    r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
-    r_PopUp     in varchar2 default null
-) IS
+    procedure inserimentoBustaPaga(
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_FkDipendente in BUSTEPAGA.FK_DIPENDENTE%TYPE default null,
+        r_Data       in varchar2 default null,
+        r_Importo    in BUSTEPAGA.IMPORTO%TYPE default null,
+        r_PopUp     in varchar2 default null
+    ) IS
 
-bonus_percent NUMBER := 0;
+    bonus_percent NUMBER := 0;
 
-head gui.StringArray;
+    head gui.StringArray;
 
-dup_Val_Dipendenti EXCEPTION;
+    dup_Val_Dipendenti EXCEPTION;
 
-BEGIN
+    BEGIN
 
-    --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
-    htp.prn('<script>   const newUrl = "'||U_ROOT||'.inserimentoBustaPaga?idSess='||idSess||'";
-                    history.replaceState(null, null, newUrl);
-    </script>');
+        --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
+        htp.prn('<script>   const newUrl = "'||U_ROOT||'.inserimentoBustaPaga?idSess='||idSess||'";
+                        history.replaceState(null, null, newUrl);
+        </script>');
 
-    SAVEPOINT sp1;
+        SAVEPOINT sp1;
 
-     --Controllo i permessi di accesso
-    IF(sessionhandler.getRuolo(idSess) = 'Contabile') THEN
+        --Controllo i permessi di accesso
+        IF(sessionhandler.getRuolo(idSess) = 'Contabile') THEN
 
-        gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => idSess);
+            gui.APRIPAGINA(titolo => 'inserimentoBustaPaga', idSessione => idSess);
 
-        IF(r_PopUp = 'importoNegativo') THEN
-            gui.AGGIUNGIPOPUP(False, 'Errore: Non è possibile inserire un importo negativo. Inserimento busta paga non effettuato.');
-        END if;
-        -- noDataFound Exception
-        IF (r_PopUp = 'NoDataFound') THEN
-            gui.AGGIUNGIPOPUP(False, 'Errore: Non esiste un dipendente con la matricola inserita. Inserimento busta paga non effettuato.');
-        END IF;
-        -- tooManyRows Exception
-        IF (r_PopUp = 'dupVal') THEN
-            gui.AGGIUNGIPOPUP(False, 'Errore: Esistono più buste paga per quel dipendente alla solita data. Inserimento busta paga non effettuato.');
-        END IF;
+            IF(r_PopUp = 'importoNegativo') THEN
+                gui.AGGIUNGIPOPUP(False, 'Errore: Non è possibile inserire un importo negativo. Inserimento busta paga non effettuato.');
+            END if;
+            -- noDataFound Exception
+            IF (r_PopUp = 'NoDataFound') THEN
+                gui.AGGIUNGIPOPUP(False, 'Errore: Non esiste un dipendente con la matricola inserita. Inserimento busta paga non effettuato.');
+            END IF;
+            -- tooManyRows Exception
+            IF (r_PopUp = 'dupVal') THEN
+                gui.AGGIUNGIPOPUP(False, 'Errore: Esistono più buste paga per quel dipendente alla solita data. Inserimento busta paga non effettuato.');
+            END IF;
 
-        IF (r_PopUp = 'True') THEN
-            gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
-        END IF;
+            IF (r_PopUp = 'True') THEN
+                gui.AggiungiPopup(True, 'Busta paga inserita con successo!');
+            END IF;
 
         gui.AGGIUNGIFORM (url => U_ROOT||'.inserimentoBustaPaga');
 
-            gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
-            gui.ACAPO();
-            gui.AGGIUNGIGRUPPOINPUT;
-                gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'idSess', value => idSess);
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');
-                gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
-                gui.aggiungiinput(tipo=>'date', nome=>'r_Data');
-            gui.CHIUDIGRUPPOINPUT;
+                gui.aggiungiIntestazione(testo => 'Inserimento Busta Paga', dimensione => 'h2');
+                gui.ACAPO();
+                gui.AGGIUNGIGRUPPOINPUT;
+                    gui.AGGIUNGIINPUT(tipo=>'hidden', nome=>'idSess', value => idSess);
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-user', nome => 'r_FkDipendente', placeholder => 'Identificativo Dipendente');
+                    gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
+                    gui.aggiungiinput(tipo=>'date', nome=>'r_Data');
+                gui.CHIUDIGRUPPOINPUT;
 
-            gui.AGGIUNGIGRUPPOINPUT;
-                    gui.aggiungiBottoneSubmit (value => 'Inserisci');
-            gui.CHIUDIGRUPPOINPUT;
+                gui.AGGIUNGIGRUPPOINPUT;
+                        gui.aggiungiBottoneSubmit (value => 'Inserisci');
+                gui.CHIUDIGRUPPOINPUT;
 
         gui.CHIUDIFORM;
         IF(r_Importo IS NOT NULL) THEN
@@ -1060,64 +1209,64 @@ BEGIN
             gui.REINDIRIZZA(u_root||'.inserimentoBustaPaga?idSess='||idSess||'&r_popUp=dupVal');
         END IF;
 
-END inserimentoBustaPaga;
+    END inserimentoBustaPaga;
 
-procedure visualizzaRicaricheCliente (
-    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_Data       in varchar2 default null,
-    r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-    r_PopUp in varchar2 default null
-) is
+    procedure visualizzaRicaricheCliente (
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
+        r_Data       in varchar2 default null,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    ) is
 
-head gui.stringArray;
+    head gui.stringArray;
 
-BEGIN
+    BEGIN
 
 --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
     htp.prn('<script>   const newUrl = "'||U_ROOT||'.visualizzaRicaricheCliente?idSess='||idSess||'";
                     history.replaceState(null, null, newUrl);
     </script>');
 
-gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente', idSessione=>idSess);
+    gui.apriPagina (titolo => 'Visualizzazione Ricariche cliente', idSessione=>idSess);
 
-IF(r_PopUp IS NOT NULL) THEN
-    IF(r_PopUp = 'True') THEN
-        gui.AGGIUNGIPOPUP(True, 'Ricarica inserita con successo!');
-    ELSE
-        gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
+    IF(r_PopUp IS NOT NULL) THEN
+        IF(r_PopUp = 'True') THEN
+            gui.AGGIUNGIPOPUP(True, 'Ricarica inserita con successo!');
+        ELSE
+            gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
+        END IF;
     END IF;
-END IF;
 
 
-/* Controllo i permessi di accesso */
-IF(sessionhandler.getruolo(idSess) = 'Cliente') THEN
+    /* Controllo i permessi di accesso */
+    IF(sessionhandler.getruolo(idSess) = 'Cliente') THEN
 
-    gui.APRIFORMFILTRO();
-        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-        gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
-            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
-            gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
-        gui.ACAPO;
-    gui.CHIUDIFORMFILTRO;
+        gui.APRIFORMFILTRO();
+            gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+            gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
+                gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+                gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
+            gui.ACAPO;
+        gui.CHIUDIFORMFILTRO;
 
-    head := gui.StringArray('Identificativo','Importo', 'Data');
-    gui.APRITABELLA (elementi => head);
+        head := gui.StringArray('Identificativo','Importo', 'Data');
+        gui.APRITABELLA (elementi => head);
 
-    for ricarica IN (
-            select idricarica, importo,data
-            from ricariche r
-            where ( r.fk_cliente = sessionhandler.getiduser(idSess) )
-                and ( trunc(r.data) = TO_DATE(r_Data,'yyyy-mm-dd')  or r_Data is null )
-                and ( r.importo = r_Importo or r_Importo is null )
-            order by data desc
-        )
-    LOOP
-        gui.AGGIUNGIRIGATABELLA;
-            gui.aggiungielementotabella(elemento => ricarica.idricarica);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(ricarica.IMPORTO, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
-        gui.ChiudiRigaTabella;
-    end LOOP;
+        for ricarica IN (
+                select idricarica, importo,data
+                from ricariche r
+                where ( r.fk_cliente = sessionhandler.getiduser(idSess) )
+                    and ( trunc(r.data) = TO_DATE(r_Data,'yyyy-mm-dd')  or r_Data is null )
+                    and ( r.importo = r_Importo or r_Importo is null )
+                order by data desc
+            )
+        LOOP
+            gui.AGGIUNGIRIGATABELLA;
+                gui.aggiungielementotabella(elemento => ricarica.idricarica);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(ricarica.IMPORTO, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => ricarica.Data);
+            gui.ChiudiRigaTabella;
+        end LOOP;
 
         gui.ChiudiTabella;
         gui.BOTTONEAGGIUNGI(testo=>'Inserisci Ricarica', classe=>'bottone2', url=> U_ROOT||'.inserimentoRicarica?idSess='||idSess);
@@ -1126,15 +1275,15 @@ ELSE
 END IF;
 END visualizzaRicaricheCliente;
 
-procedure inserimentoRicarica (
-    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-    r_PopUp in varchar2 default null
-)IS
+    procedure inserimentoRicarica (
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
+        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+        r_PopUp in varchar2 default null
+    )IS
 
-head gui.StringArray;
+    head gui.StringArray;
 
-ImportoNegativo EXCEPTION;
+    ImportoNegativo EXCEPTION;
 
 BEGIN
     --QUESTO SERVE PER QUANDO SI REFRESHA LA PAGINA, IN MODO DA NON FAR RESTARE I POP UP
@@ -1142,17 +1291,17 @@ BEGIN
                     history.replaceState(null, null, newUrl);
     </script>');
 
-    gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
+        gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
 
-    IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
-            gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
-    END IF;
+        IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
+                gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
+        END IF;
 
-    IF(r_PopUp = 'ImportoNegativo') THEN
-        gui.AGGIUNGIPOPUP(False, 'Errore: Importo inserito non positivo. Ricarica non inserita.');
-    END IF;
+        IF(r_PopUp = 'ImportoNegativo') THEN
+            gui.AGGIUNGIPOPUP(False, 'Errore: Importo inserito non positivo. Ricarica non inserita.');
+        END IF;
 
-    SAVEPOINT sp1;
+        SAVEPOINT sp1;
 
     /* Controllo i permessi di accesso */
     IF(sessionhandler.getruolo(idSess) = 'Cliente' ) THEN
@@ -1163,11 +1312,11 @@ BEGIN
                 gui.AGGIUNGICAMPOFORM (classeIcona => 'fa fa-money-bill', nome => 'r_Importo', placeholder => 'Importo');
             gui.CHIUDIGRUPPOINPUT;
 
-            gui.AGGIUNGIGRUPPOINPUT;
-                gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci');
-            gui.CHIUDIGRUPPOINPUT;
+                gui.AGGIUNGIGRUPPOINPUT;
+                    gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci');
+                gui.CHIUDIGRUPPOINPUT;
 
-        gui.CHIUDIFORM;
+            gui.CHIUDIFORM;
 
         IF(r_importo IS NOT NULL) THEN
             /* Inserimento nuova ricarica */
@@ -1409,20 +1558,20 @@ BEGIN
     END IF;
 end ricaricheIsEmpty;
 
-procedure dettagliRicaricheClienti(
-    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-    r_DataInizio in varchar2 default null,
-    r_DataFine in varchar2 default null
-) IS
+    procedure dettagliRicaricheClienti(
+        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        r_DataInizio in varchar2 default null,
+        r_DataFine in varchar2 default null
+    ) IS
 
-    minDate varchar2(10);
-    maxDate varchar2(10);
-    totRicariche number := 0;
-    totRicaricheDataInizio number := 0;
-    totRicaricheDataFine number := 0;
-    trendPercent number := 0;
-    delta number := 0;
-    head gui.stringArray;
+        minDate varchar2(10);
+        maxDate varchar2(10);
+        totRicariche number := 0;
+        totRicaricheDataInizio number := 0;
+        totRicaricheDataFine number := 0;
+        trendPercent number := 0;
+        delta number := 0;
+        head gui.stringArray;
 
 BEGIN
     gui.APRIPAGINA(titolo=> 'dettagliRicaricheClienti', idSessione=>idSess);
@@ -1522,282 +1671,421 @@ BEGIN
     WHEN NO_DATA_FOUND THEN
         gui.AGGIUNGIPOPUP(False, 'Errore: nessun dato presente.');
 
-END dettagliRicaricheClienti;
+    END dettagliRicaricheClienti;
 
-  procedure visualizzaClienti(
-    idSess VARCHAR default NULL,
-    c_Nome VARCHAR2 default NULL,
-    c_Cognome VARCHAR2 default NULL,
-    c_DataNascita VARCHAR2 default NULL,
-    c_Sesso VARCHAR2 default NULL
-  ) IS
+    procedure visualizzaClienti(
+        idSess SESSIONICLIENTI.IDSESSIONE%TYPE default NULL,
+        c_Nome VARCHAR2 default NULL,
+        c_Cognome VARCHAR2 default NULL,
+        c_DataNascita VARCHAR2 default NULL,
+        c_Sesso VARCHAR2 default NULL
+    ) IS
 
-   head gui.StringArray; --parametri per headers della tabella
+    head gui.StringArray; --parametri per headers della tabella
 
-   BEGIN
-
-   head := gui.StringArray('Nome', 'Cognome', 'DataNascita', 'Sesso', 'Telefono', 'Email', ' ');
-
-    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
-        gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);
-        gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina');
-        return;
-    end if;
+    BEGIN
 
     gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
 
+    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
+            gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina;
+            return;
+        end if;
+
+
+        gui.APRIFORMFILTRO;
+            gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
+            gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
+            gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
+            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
+            gui.apriSelectFormFiltro ('c_Sesso', 'Sesso');
+            gui.aggiungiOpzioneSelect ('', true, '');
+            gui.aggiungiOpzioneSelect ('M', false , 'Maschio');
+            gui.aggiungiOpzioneSelect ('F', false , 'Femmina');
+            gui.chiudiSelectFormFiltro;
+            gui.aggiungicampoformfiltro(tipo => 'submit', value => 'Filtra', placeholder => 'filtra');
+        gui.CHIUDIFORMFILTRO;
+        gui.aCapo(2);
+
+        head := gui.StringArray('Nome', 'Cognome', 'Sesso', ' ');
+        gui.APRITABELLA (elementi => head);
+
+    for clienti IN
+    (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM CLIENTI
+            where ( CLIENTI.NOME = c_Nome or c_Nome is null )
+            and ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR c_DataNascita is null)
+            and ( CLIENTI.COGNOME = c_Cognome or c_Cognome is null )
+            and ( CLIENTI.SESSO = c_Sesso or c_Sesso is null )
+        )
+    LOOP
+        gui.AGGIUNGIRIGATABELLA;
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
+                gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
+
+                gui.APRIELEMENTOPULSANTI;
+                gui.aggiungiPulsanteGenerale (collegamento => ''''|| u_root || '.visualizzaProfilo?idSess='||idSess||'&id='||clienti.IDCLIENTE||'''', testo => 'Profilo');
+                gui.chiudiElementoPulsanti;
+        gui.ChiudiRigaTabella;
+        end LOOP;
+
+        gui.CHIUDITABELLA;
+        gui.ChiudiPagina;
+
+    END visualizzaClienti;
+
+    procedure visualizzaConvenzioni (
+        idSess varchar DEFAULT NULL,
+        c_DataInizio VARCHAR2 DEFAULT NULL,
+        c_DataFine VARCHAR2 DEFAULT NULL,
+        c_Ente VARCHAR2 DEFAULT NULL,
+        c_Cumulabile VARCHAR2 DEFAULT NULL) is
+
+        head gui.StringArray;
+
+    BEGIN
+
+        gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess);
+
+        if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Operatore') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
+            gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+            gui.chiudiPagina;
+            return;
+        end if;
+
+        if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+            head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile',' ');
+            else
+            head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile');
+    end if;
+
     gui.APRIFORMFILTRO;
-        gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-        gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
-		gui.aggiungicampoformfiltro( nome => 'c_Cognome', placeholder => 'Cognome');
-		gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_DataNascita', placeholder => 'Birth');
-        gui.apriSelectFormFiltro ('c_Sesso', 'Sesso');
-        gui.aggiungiOpzioneSelect ('', true, '');
-        gui.aggiungiOpzioneSelect ('M', false , 'Maschio');
-        gui.aggiungiOpzioneSelect ('F', false , 'Femmina');
-        gui.chiudiSelectFormFiltro;
-		gui.aggiungicampoformfiltro(tipo => 'submit', value => 'Filtra', placeholder => 'filtra');
+    gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
+    gui.AGGIUNGICAMPOFORMFILTRO (tipo => 'date', nome => 'c_DataInizio', placeholder => 'Data-inizio');
+    gui.AGGIUNGICAMPOFORMFILTRO (tipo => 'date', nome => 'c_DataFine', placeholder => 'Data-fine');
+    gui.AGGIUNGICAMPOFORMFILTRO (nome => 'c_Ente', placeholder => 'Ente');
+    gui.apriSelectFormFiltro ('c_Cumulabile', 'Cumulabile');
+            gui.aggiungiOpzioneSelect ('', true, '');
+            gui.aggiungiOpzioneSelect ('1', false , 'Si');
+            gui.aggiungiOpzioneSelect ('0', false , 'No');
+            gui.chiudiSelectFormFiltro;
+    gui.AggiungiCampoFormFiltro(tipo =>'submit', value => 'Filtra', placeholder => 'Filtra');
     gui.CHIUDIFORMFILTRO;
     gui.aCapo(2);
 
-    gui.APRITABELLA (elementi => head);
+    gui.APRITABELLA (head);
 
-   for clienti IN
-   (SELECT IDCLIENTE, Nome, Cognome, DataNascita, Sesso, Ntelefono, Email, Password FROM CLIENTI
-        where ( CLIENTI.NOME = c_Nome or c_Nome is null )
-		and ( trunc( CLIENTI.DATANASCITA) = to_date(c_DataNascita,'YYYY-MM-DD') OR c_DataNascita is null)
-		and ( CLIENTI.COGNOME = c_Cognome or c_Cognome is null )
-        and ( CLIENTI.SESSO = c_Sesso or c_Sesso is null )
+    for convenzioni IN
+    (SELECT * FROM CONVENZIONI where
+            ( trunc(CONVENZIONI.DATAINIZIO) = to_date(c_DataInizio,'YYYY-MM-DD') OR c_DataInizio is null)
+            and ( trunc(CONVENZIONI.DATAFINE) = to_date(c_DataFine,'YYYY-MM-DD') OR c_DataFine is null)
+            and ( CONVENZIONI.ENTE = c_Ente or c_Ente is null )
+            and ( CONVENZIONI.CUMULABILE = to_number(c_Cumulabile) or c_Cumulabile is null )
     )
-   LOOP
-    gui.AGGIUNGIRIGATABELLA;
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.nome);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Cognome);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.DataNascita);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Sesso);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Ntelefono);
-            gui.AGGIUNGIELEMENTOTABELLA(elemento => clienti.Email);
+    LOOP
+        gui.AGGIUNGIRIGATABELLA;
 
-            gui.APRIELEMENTOPULSANTI;
-            gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaCliente?idSess='||idSess||'&cl_id='||clientI.IDCLIENTE||'&cl_Email='||clienti.Email||'&cl_Password='||clienti.PASSWORD||'&cl_Telefono='||clienti.NTelefono||'');
-            gui.aggiungiPulsanteGenerale (collegamento => ''''|| u_root || '.visualizzaProfilo?idSess='||idSess||'&id='||clienti.IDCLIENTE||'''', testo => 'Profilo');
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Nome);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Ente);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Sconto);
 
-            gui.chiudiElementoPulsanti;
-    gui.ChiudiRigaTabella;
-    end LOOP;
+                    if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.CodiceAccesso);
+                    end if;
 
-     gui.CHIUDITABELLA;
-    gui.ChiudiPagina;
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataInizio);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataFine);
+                    gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Cumulabile);
 
-END visualizzaClienti;
+                    if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
+                        if (convenzioni.DataInizio >= SYSDATE AND convenzioni.dataFine > SYSDATE) then 
+                            gui.apriElementoPulsanti;
+                                gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaConvenzione?idSess='||idSess||'&c_id='||convenzioni.IDCONVENZIONE||'');
+                            gui.chiudiElementoPulsanti;
+                        end if; 
+                    end if;
 
-procedure visualizzaConvenzioni (
-    idSess varchar DEFAULT NULL,
-    c_DataInizio VARCHAR2 DEFAULT NULL,
-    c_DataFine VARCHAR2 DEFAULT NULL,
-    c_Ente VARCHAR2 DEFAULT NULL,
-    c_Cumulabile VARCHAR2 DEFAULT NULL) is
+        gui.ChiudiRigaTabella;
+        end LOOP;
 
-    head gui.StringArray;
-
-BEGIN
-
-    gui.apriPagina (titolo => 'visualizza Convenzioni', idSessione => idSess, scriptjs => costanti.tablesortscript);
-
-    if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Operatore') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) then
-        gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla seguente pagina');
-        return;
-    end if;
-
-   if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
-        head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'CodiceAccesso', 'DataInizio', 'DataFine', 'Cumulabile',' ');
-        else
-        head := gui.StringArray ('Nome', 'Ente', 'Sconto', 'DataInizio', 'DataFine', 'Cumulabile');
-   end if;
-
-   gui.APRIFORMFILTRO;
-   gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
-   gui.AGGIUNGICAMPOFORMFILTRO (tipo => 'date', nome => 'c_DataInizio', placeholder => 'Data-inizio');
-   gui.AGGIUNGICAMPOFORMFILTRO (tipo => 'date', nome => 'c_DataFine', placeholder => 'Data-fine');
-   gui.AGGIUNGICAMPOFORMFILTRO (nome => 'c_Ente', placeholder => 'Ente');
-   gui.apriSelectFormFiltro ('c_Cumulabile', 'Cumulabile');
-        gui.aggiungiOpzioneSelect ('', true, '');
-        gui.aggiungiOpzioneSelect ('1', false , 'Si');
-        gui.aggiungiOpzioneSelect ('0', false , 'No');
-        gui.chiudiSelectFormFiltro;
-   gui.AggiungiCampoFormFiltro(tipo =>'submit', value => 'Filtra', placeholder => 'Filtra');
-   gui.CHIUDIFORMFILTRO;
-   gui.aCapo(2);
-
-   gui.APRITABELLA (head);
-
-   for convenzioni IN
-   (SELECT * FROM CONVENZIONI where
-		 ( trunc(CONVENZIONI.DATAINIZIO) = to_date(c_DataInizio,'YYYY-MM-DD') OR c_DataInizio is null)
-        and ( trunc(CONVENZIONI.DATAFINE) = to_date(c_DataFine,'YYYY-MM-DD') OR c_DataFine is null)
-		and ( CONVENZIONI.ENTE = c_Ente or c_Ente is null )
-        and ( CONVENZIONI.CUMULABILE = to_number(c_Cumulabile) or c_Cumulabile is null )
-   )
-   LOOP
-    gui.AGGIUNGIRIGATABELLA;
-
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Nome);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Ente);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Sconto);
-
-                if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.CodiceAccesso);
-                end if;
-
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataInizio);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.DataFine);
-                gui.AGGIUNGIELEMENTOTABELLA(elemento => convenzioni.Cumulabile);
-
-                if SESSIONHANDLER.checkRuolo (idSess, 'Manager') then
-                gui.apriElementoPulsanti;
-                    gui.aggiungiPulsanteModifica (collegamento => u_root || '.modificaConvenzione?idSess='||idSess||'&c_id='||convenzioni.IDCONVENZIONE||'');
-                gui.chiudiElementoPulsanti;
-                end if;
-
-    gui.ChiudiRigaTabella;
-    end LOOP;
-
-    gui.ChiudiTabella;
-    gui.aCapo(2);
-    gui.chiudiPagina;
-
-END visualizzaConvenzioni;
-
-procedure dettagliConvenzioni (
-		idSess varchar default null,
-        c_nome CONVENZIONI.NOME%TYPE default null
-	) IS
-    c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
-    c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
-    num_clienti int := 0;
-    totale_clienti int := 0;
-    percentage decimal (10,2) := 0;
-    BEGIN
-        gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess);
-
-        --controllo manager
-        if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
-            gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina');
-            return;
-        END IF;
-
-
-        if c_nome is not NULL THEN
-            SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
-            if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
-
-                --prelevo i dati
-                SELECT COUNT(IDCLIENTE) INTO totale_clienti FROM CLIENTI;
-                if totale_clienti <> 0 then
-                    SELECT COUNT(FK_CLIENTE) INTO num_clienti FROM CONVENZIONICLIENTI WHERE FK_CONVENZIONE = c_id;
-                    percentage := (num_clienti / totale_clienti) * 100.0;
-                end if;
-
-                else
-                gui.aggiungiPopup (False, 'Convenzione non esistente');
-                gui.aCapo(2);
-                c_check:=false;
-            end if;
-        END IF;
-
-        gui.aggiungiForm;
-            gui.aggiungiIntestazione (testo => 'Dettagli statistici');
-            gui.aggiungiIntestazione (testo => 'convenzioni');
-            gui.aCapo();
-
-            gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
-            --gui.aCapo();
-
-            --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
-            gui.apriFormFiltro;
-                gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
-                gui.aggiungiCampoFormFiltro (nome => 'c_nome', placeholder => 'Nome convenzione');
-                gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
-            gui.chiudiFormFiltro;
-            gui.aCapo(2);
-
-
-            if c_nome IS NOT NULL AND c_check then
-            --visualizzo i dati
-            gui.aggiungiGruppoInput;
-                gui.aggiungiIntestazione( testo => 'Dati su clienti', dimensione => 'h1');
-
-                gui.aCapo(2);
-                gui.apridiv (classe => 'flex-container');
-                    gui.apridiv (classe => 'left');
-                        gui.aggiungiIntestazione( testo => 'Clienti che la usano', dimensione => 'h2');
-                    gui.chiudiDiv;
-                    gui.apridiv (classe => 'right');
-                        gui.aggiungiIntestazione( testo => ''||num_clienti||'', dimensione => 'h2');
-                    gui.chiudiDiv;
-
-                    gui.aCapo(2);
-
-                    gui.apridiv (classe => 'left');
-                        gui.aggiungiIntestazione( testo => 'In percentuale', dimensione => 'h2');
-                    gui.chiudiDiv;
-                    gui.apridiv (classe => 'right');
-                        gui.aggiungiIntestazione( testo => ''||percentage||'%', dimensione => 'h2');
-                    gui.chiudiDiv;
-
-                    --tabella che visualizza le prime tre convenzioni più utilizzate
-
-                    gui.aggiungiIntestazione( testo => 'Top 3 convenzioni più usate', dimensione => 'h2');
-                    gui.aCapo;
-                    gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale', 'Numero clienti'));
-                    for convenzione in (
-                        SELECT c.IDconvenzione,
-                                        c.Nome,
-                                        COUNT(ci.FK_Convenzione) AS NumeroClientiUtilizzatori
-                                        FROM CONVENZIONI c
-                                        JOIN CONVENZIONICLIENTI ci ON c.IDconvenzione = ci.FK_Convenzione
-                                        GROUP BY c.IDconvenzione, c.Nome, c.Ente
-                                        ORDER BY COUNT(ci.FK_Convenzione) DESC
-                                        FETCH FIRST 3 ROWS ONLY
-
-                    ) LOOP
-                    gui.AggiungiRigaTabella;
-
-                        gui.aggiungiElementoTabella (elemento => convenzione.Nome);
-                        gui.aggiungiElementoTabella (elemento => ''||(convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0||'%');
-                        gui.aggiungiElementoTabella (elemento => convenzione.NumeroClientiUtilizzatori);
-
-                    gui.chiudiRigaTabella;
-                    END LOOP;
-                    gui.chiudiTabella;
-
-                gui.chiudiDiv; --flex-container
-            gui.chiudiGruppoInput;
-            end if;
-
-        gui.chiudiForm;
-
+        gui.ChiudiTabella;
         gui.aCapo(2);
         gui.chiudiPagina;
 
-        EXCEPTION
-            when NO_DATA_FOUND THEN
-            gui.aggiungiPopup (False, 'Convenzione non esistente');
-        END dettagliConvenzioni;
+    END visualizzaConvenzioni;
+
+    procedure dettagliConvenzioni (
+            idSess SESSIONIDIPENDENTI.IDSESSIONE%TYPE default null,
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
+        ) IS
+        c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
+        c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+        num_clienti int := 0;
+        totale_clienti int := 0;
+        percentage decimal (10,2) := 0;
+        BEGIN
+            gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess);
+
+            --controllo manager
+            if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina;
+                return;
+            END IF;
+
+            if err_popup IS NOT NULL THEN
+                if err_popup = 'N' then
+                    gui.aggiungiPopup (False, 'Convenzione non trovata');
+                    gui.aCapo(2);
+                end if;
+            END IF;
+
+            if c_nome is not NULL THEN
+                SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
+                if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
+
+                    --prelevo i dati
+                    SELECT COUNT(IDCLIENTE) INTO totale_clienti FROM CLIENTI;
+                    if totale_clienti <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clienti FROM CONVENZIONICLIENTI WHERE FK_CONVENZIONE = c_id;
+                        percentage := (num_clienti / totale_clienti) * 100.0;
+                    end if;
+
+                    else
+                    gui.aggiungiPopup (False, 'Convenzione non esistente');
+                    gui.aCapo(2);
+                    c_check:=false;
+                end if;
+            END IF;
+
+            gui.aggiungiForm;
+                gui.aggiungiIntestazione (testo => 'Dettagli statistici');
+                gui.aggiungiIntestazione (testo => 'convenzioni');
+                gui.aCapo();
+
+                gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
+                --gui.aCapo();
+
+                --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
+                gui.apriFormFiltro;
+                    gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
+                    gui.aggiungiCampoFormFiltro (nome => 'c_nome', placeholder => 'Nome convenzione');
+                    gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
+                gui.chiudiFormFiltro;
+                gui.aCapo(2);
 
 
-/* DA RIVEDERE CON L'ALTRO GRUPPO */procedure inserimentoContabile (
-    idSessManager varchar2 default null,
-    r_FkDipendente varchar2 default null
-)
-IS
-BEGIN
+                if c_nome IS NOT NULL AND c_check then
+                --visualizzo i dati
+                gui.aggiungiGruppoInput;
+                    gui.aggiungiIntestazione( testo => 'Dati su clienti', dimensione => 'h1');
 
-    INSERT INTO RESPONSABILI VALUES (TO_NUMBER(r_FkDipendente),1);
+                    gui.aCapo(2);
+                    gui.apridiv (classe => 'flex-container');
+                        gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Clienti che la usano', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||num_clienti||'', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                        gui.aCapo(2);
+
+                        gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'In percentuale', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentage||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                        --tabella che visualizza le prime tre convenzioni più utilizzate
+
+                        gui.aggiungiIntestazione( testo => 'Top 3 convenzioni più usate', dimensione => 'h2');
+                        gui.aCapo;
+                        gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale', 'Numero clienti'));
+                        for convenzione in (
+                            SELECT c.IDconvenzione,
+                                            c.Nome,
+                                            COUNT(ci.FK_Convenzione) AS NumeroClientiUtilizzatori
+                                            FROM CONVENZIONI c
+                                            JOIN CONVENZIONICLIENTI ci ON c.IDconvenzione = ci.FK_Convenzione
+                                            GROUP BY c.IDconvenzione, c.Nome, c.Ente
+                                            ORDER BY COUNT(ci.FK_Convenzione) DESC
+                                            FETCH FIRST 3 ROWS ONLY
+
+                        ) LOOP
+                        gui.AggiungiRigaTabella;
+
+                            gui.aggiungiElementoTabella (elemento => convenzione.Nome);
+                            gui.aggiungiElementoTabella (elemento => ''||(convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0||'%');
+                            gui.aggiungiElementoTabella (elemento => convenzione.NumeroClientiUtilizzatori);
+
+                        gui.chiudiRigaTabella;
+                        END LOOP;
+                        gui.chiudiTabella;
+
+                    gui.chiudiDiv; --flex-container
+                gui.chiudiGruppoInput;
+                end if;
+
+            gui.chiudiForm;
+
+            gui.aCapo(2);
+            gui.chiudiPagina;
+
+            EXCEPTION
+                when NO_DATA_FOUND THEN
+                gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
+            END dettagliConvenzioni;
+
+procedure dettaglifasceConvenzioni(
+            idSess varchar default null,
+            c_nome CONVENZIONI.NOME%TYPE default null,
+            err_popup varchar2 default null
+        ) IS
+        c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
+        c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
+        num_clientifascia1 int := 0;
+        num_clientifascia2 int := 0;
+        num_clientifascia3 int := 0;
+        totale_clientifascia1 int := 0;
+        totale_clientifascia2 int := 0;
+        totale_clientifascia3 int := 0;
+        percentagefascia1 decimal (10,2) := 0;
+        percentagefascia2 decimal (10,2) := 0;
+        percentagefascia3 decimal (10,2) := 0;
+        BEGIN
+            gui.apriPagina (titolo => 'Dettagli fasce convenzioni', idSessione => idSess);
+
+            --controllo manager
+            if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
+                gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
+                gui.chiudiPagina;
+                return;
+            END IF;
+
+            if err_popup IS NOT NULL THEN
+                if err_popup = 'N' then
+                    gui.aggiungiPopup (False, 'Convenzione non trovata');
+                    gui.aCapo(2);
+                end if;
+            END IF;
+
+            if c_nome is not NULL THEN
+                SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
+                if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
+
+                    --prelevo i dati /*fascia dai 18-25*/
+                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia1 FROM CLIENTI
+                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25 ;
+                    if totale_clientifascia1 <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia1 FROM CONVENZIONICLIENTI cconv
+                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25);
+                        percentagefascia1 := (num_clientifascia1 / totale_clientifascia1) * 100.0;
+                    end if;
+                    --fascia2
+                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia2 FROM CLIENTI
+                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50;
+                    if totale_clientifascia2 <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia2 FROM CONVENZIONICLIENTI cconv
+                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50);
+                        percentagefascia2 := (num_clientifascia2 / totale_clientifascia2) * 100.0;
+                    end if;
+                    --fascia3
+                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia3 FROM CLIENTI
+                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50;
+                     if totale_clientifascia3 <> 0 then
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia3 FROM CONVENZIONICLIENTI cconv
+                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50);
+                        percentagefascia3 := (num_clientifascia3 / totale_clientifascia3) * 100.0;
+                    end if;
+                    else
+                    gui.aggiungiPopup (False, 'Convenzione non esistente');
+                    gui.aCapo(2);
+                    c_check:=false;
+                end if;
+            END IF;
+            --fin qui ok
+            gui.aggiungiForm;
+                gui.aggiungiIntestazione (testo => 'Dettagli statistici');
+                gui.aggiungiIntestazione (testo => 'fasce convenzioni');
+                gui.aCapo();
+
+                gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
+                --gui.aCapo();
+
+                --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
+                gui.apriFormFiltro;
+                    gui.aggiungiInput (tipo => 'hidden', nome => 'idSess', value => idSess);
+                    gui.aggiungiCampoFormFiltro (nome => 'c_nome', placeholder => 'Nome convenzione');
+                    gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
+                gui.chiudiFormFiltro;
+                gui.aCapo(2);
 
 
-END inserimentoContabile;
+                if c_nome IS NOT NULL AND c_check then
+                --visualizzo i dati
+                gui.aggiungiGruppoInput;
+                    gui.aggiungiIntestazione( testo => 'Dati sulle fasce di età', dimensione => 'h1');
+
+                    gui.aCapo(2);
+                    gui.apridiv (classe => 'flex-container');
+                        gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Cienti dai 18 ai 25', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentagefascia1||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                        gui.aCapo(2);
+
+                          gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Clienti dai 25 ai 50)', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentagefascia2||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
+
+                        gui.aCapo(2);
+
+                         gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Clienti Over 50)', dimensione => 'h2');
+                        gui.chiudiDiv;
+                        gui.apridiv (classe => 'right');
+                            gui.aggiungiIntestazione( testo => ''||percentagefascia3||'%', dimensione => 'h2');
+                        gui.chiudiDiv;
 
 
-end gruppo3;
+                    gui.chiudiDiv; --flex-container
+                gui.chiudiGruppoInput;
+                end if;
+
+            gui.chiudiForm;
+
+            gui.aCapo(2);
+            gui.chiudiPagina;
+
+            EXCEPTION
+                when NO_DATA_FOUND THEN
+       gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
+  END dettaglifasceConvenzioni;
+
+
+    /* DA RIVEDERE CON L'ALTRO GRUPPO */procedure inserimentoContabile (
+        idSessManager varchar2 default null,
+        r_FkDipendente varchar2 default null
+    )
+    IS
+    BEGIN
+
+        INSERT INTO RESPONSABILI VALUES (TO_NUMBER(r_FkDipendente),1);
+
+
+    END inserimentoContabile;
+
+
+    end gruppo3;
 
