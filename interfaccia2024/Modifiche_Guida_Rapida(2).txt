@@ -1,0 +1,85 @@
+﻿Modificato popup di conferma nei pulsanti cancellazione e generale;
+
+AggiungiSelezioneMultipla: Aggiunto "parametriSelezionati" che permette di passare uno 
+	StringArray di valori da visualizzare come già selezionati. I "parametriSelezionati"
+	devono essere presenti in "ids".
+
+Esempio: 
+    gui.AggiungiCampoFormHidden('text', 'Test', '');
+    gui.aggiungiselezionemultipla('Seleziona', 'Ciao', ids =>  gui.StringArray('Prima', 'Seconda', 'Terza'), names => gui.StringArray('Uno', 'Due', 'Tre'), hiddenparameter => 'Test', parametriSelezionati =>  gui.StringArray('Prima'));
+
+AggiungiPopup: Il parametro "indirizzo" ora viene usato per sostituire il valore "chiudi"
+	del bottone con "Torna indietro" e quando cliccato rimanda al link dato in indirizzo.
+
+Modificata la homepage
+
+Aggiunto parametro "SQLpagination boolean default false" per la paginazione via PL/SQL in chiudiTabella();
+
+Per non usare la paginazione via SQL basta lasciare tutto invariato e skippare l'esempio qui sotto.
+
+Esempio di implementazione :
+
+- 1 - Aggiungere il parametro p_offset ai parametri della procedura
+- 2 - Aggiungere l'offset alla query
+- 3 - Impostare SQLpagination a true
+
+procedure nome_procedura( ... p_offset int default 0 ... )
+	...
+	ApriTabella(elementi=> gui.stringArray('ID', ...) , ident => 'myTab'); -- Se avete una tabella sola potete omettere il parametro ident
+
+	-- Aggiungere in fondo alla query l'offset 
+	Query ( ...
+		ORDER BY ...
+		OFFSET BY p_offset
+		FETCH FIRST 30 rows only  -- Non garantisco il funzionamento per numeri diversi da 30
+	)
+
+	chiudiTabella(ident => 'myTab', SQLpagination => true);
+	...
+	Ripetere gli step 2 e 3 sulle 
+	...
+end nome_procedura;
+
+Aggiunta aggiungiChart(ident varchar2, dataObject varchar2) per le statistiche con la libreria chart.js
+
+dataObject è un oggetto javascript che contiene le informazioni necessarie a far disegnare vari tipi di grafici
+
+Documentazione su https://www.chartjs.org
+
+Esempio
+	...
+	gui.aggiungiChart('myChart', '
+		{
+		    type: 'bar',
+		    data: {
+		      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+		      datasets: [{
+		        label: '# of Votes',
+		        data: [12, 19, 3, 5, 2, 3],
+		        borderWidth: 1
+		      }]
+		    },
+		    options: {
+		      scales: {
+		        y: {
+		          beginAtZero: true
+		        }
+		      }
+		    }
+		}
+	');
+	...
+
+modificata ApriPagina, aggiunto parametro "defaultModal boolean default true" : 
+
+Chi vuole il popup "si no" normale può lasciare tutto com'è, per chi volesse fare altrimenti c'è l'esempio sotto;
+
+Esempio :
+...
+gui.ApriPagina(..., defaultModal => false);
+...
+gui.apriModalPopup(testo => 'Vuoi confermare?');
+	...
+	...
+gui.chiudiModalPopup();
+

@@ -6,7 +6,12 @@ type StringArray is table of varchar2(100) not null;
 
 emptyArray StringArray;
 
-procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione VARCHAR default '-1',  scriptJS VARCHAR2 default '');
+	procedure ApriPagina(
+		titolo varchar2 default 'Senza titolo',
+		idSessione VARCHAR default '-1',
+		scriptJS VARCHAR2 default '',
+		defaultModal boolean default true
+	);
 
 	procedure indirizzo(indirizzo VARCHAR2 default '');
 	procedure chiudiIndirizzo;
@@ -18,7 +23,8 @@ procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione VARCHAR 
 		volte number default 1
 	);
 	procedure apribody (
-		idsessione varchar2
+		idsessione varchar2,
+		defaultModal boolean default true
 	);
 
 	procedure chiudipagina (
@@ -65,6 +71,9 @@ procedure ApriPagina(titolo varchar2 default 'Senza titolo', idSessione VARCHAR 
 		indirizzo varchar2 default ''
 	);
 
+	procedure modalPopup (
+		testo varchar2 default ''
+	); 
 -- Procedure per Tabella
 /*ApriTabella ora contiene apri header, aggiungi header, chiudi header e apri body*/
 	procedure apritabella (
@@ -151,6 +160,7 @@ procedure chiudiElementoPulsanti;
 		hiddenparameter varchar2 default ''
 	);
 --Footer
+
 	procedure footer;
 
 --Form
@@ -169,14 +179,22 @@ procedure aggiungiCampoForm (tipo VARCHAR2 default 'text', classeIcona VARCHAR2 
 	nome VARCHAR2, required BOOLEAN default true, ident VARCHAR2 default '', placeholder VARCHAR2 default '',
 	value VARCHAR2 default '', pattern VARCHAR2 default '', minimo VARCHAR2 default '', massimo VARCHAR2 default '', readonly boolean default False, selected boolean default false, step varchar default null);
 procedure aggiungiSelezioneSingola(elementi StringArray, valoreEffettivo StringArray default null, titolo varchar2 default '', ident varchar2, optionSelected varchar2 default null, firstNull boolean default true);
-procedure aggiungiSelezioneMultipla(testo VARCHAR2 default 'testo', placeholder VARCHAR2 default 'testo', ids stringArray default emptyArray ,names stringArray default emptyArray, hiddenParameter varchar2 default '');
 
+PROCEDURE aggiungiSelezioneMultipla(
+	testo VARCHAR2 DEFAULT 'testo',
+	placeholder VARCHAR2 DEFAULT 'testo',
+	ids stringArray DEFAULT emptyArray,
+	names stringArray DEFAULT emptyArray,
+	hiddenParameter VARCHAR2 DEFAULT '',
+	parametriSelezionati StringArray default gui.StringArray()
+);
 -------------------
-	procedure aggiungicampoformhidden (
-		tipo  varchar2 default 'text',
-		nome  varchar2,
-		value varchar2 default ''
+	procedure AggiungiCampoFormHidden(tipo VARCHAR2 default 'text', 
+	nome VARCHAR2, 
+	value VARCHAR2 default '', 
+	ident varchar2 default ''
 	);
+	
 	procedure aggiungibottonesubmit (
 		value varchar2 default ''
 	);
@@ -211,5 +229,20 @@ procedure aggiungiSelezioneMultipla(testo VARCHAR2 default 'testo', placeholder 
 		iduser int,
 		ruolo  varchar2
 	);
+
+---------------------- Statistiche
+
+	procedure AggiungiChart(
+		ident varchar2,
+		dataObject varchar2
+	);
+
+----------------------- Modal
+
+	procedure apriModalPopup (
+		testo varchar2 default ''
+	);
+
+	procedure chiudiModalPopup;
 
 end gui;

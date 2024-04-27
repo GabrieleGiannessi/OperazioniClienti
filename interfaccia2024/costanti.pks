@@ -1,7 +1,7 @@
 SET DEFINE OFF;
 create or replace PACKAGE costanti as
 
-  URL CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/g_giannessi.';
+  URL CONSTANT VARCHAR(100) := 'http://131.114.73.203:8080/apex/d_commiso.';
 
   -- Funzione Arcangelo;
   dropdownScript constant VARCHAR2(32767) := '
@@ -82,46 +82,80 @@ create or replace PACKAGE costanti as
     }
   }
 
-function mostraConferma(riga, url) {
-    // Controlla se la riga di conferma è già presente altrimenti la crea
-    if (!riga.nextElementSibling || !riga.nextElementSibling.classList.contains('rigaConferma')) {
-        var nuovaRiga = document.createElement("tr");
-        nuovaRiga.classList.add('rigaConferma'); 
-        var nuovaCella = nuovaRiga.insertCell(0);
-        nuovaCella.colSpan = riga.cells.length; //Non funziona
-        
-        nuovaCella.innerHTML = "Confermi? " + 
-                                "<button onclick=\"apriURL('" + url + "')\">Sì</button> " + 
+function mostraConferma(url) {
+
+   var modal = document.getElementById("modal-wrapper");
+
+   modal.querySelector("#modal-button").innerHTML = "<button onclick=\"apriURL('" + url + "')\">Sì</button> " + 
                                 "<button onclick=\"annullaEliminazione(this.parentNode.parentNode)\">No</button>";
-        
-        // Inserisci la nuova riga dopo la riga corrente
-        riga.parentNode.insertBefore(nuovaRiga, riga.nextSibling);
-    }
+   modal.style.display = "flex";
   }
 
-    function apriURL(url) {
-      window.location.href = url; // Apre l'URL nella stessa finestra
-    }
+  function apriURL(url) {
+    window.location.href = url; // Apre l'URL nella stessa finestra
+  }
 
-function annullaEliminazione(rigaConferma) {
-    // Rimuove la riga di conferma se viene cliccato no
-    rigaConferma.parentNode.removeChild(rigaConferma);
-}
+  function annullaEliminazione(modal) {
+      // Rimuove la riga di conferma se viene cliccato no
+      modal.parentNode.style.display = "none";
+  }
 
-  function mostraPopup() {
+  // Funzione per nascondere il popup
+  function nascondiPopup() {
       var popup = document.getElementById("popup-message");
-      popup.style.display = "block";
+      popup.style.display = "none";
   }
-
-// Funzione per nascondere il popup
-function nascondiPopup() {
-    var popup = document.getElementById("popup-message");
-    popup.style.display = "none";
-}
-
   ]';
 
   stile constant varchar(32767) := '
+   
+  #modal-wrapper{
+    position : fixed;
+    display : none;
+    left: 0px;
+    top:0px;
+    height:100vh;
+    width:100vw;
+    z-index: 989;
+    background-color: rgba(0, 0, 0, 0.65);
+    justify-content: center;
+    align-items: center;
+  }
+
+
+  #modal { 
+    width : 30vw; 
+    height : 20vh; 
+    background-color : white; 
+    color : black;
+    border-radius: 30px;
+    padding : 1.5em;
+    transition : opacity 0.2s ease-out;
+    z-index: 990;
+  }
+
+  #modal h1{
+    text-align : center; 
+  }
+
+  #modal-button{
+    display: block; 
+    height : 4em;
+    padding : 1.1em; 
+  }
+
+  #modal-button button{
+      width : 20%; 
+      height: 50%; 
+      background-color : black; 
+      color : white; 
+      text-decoration : none; 
+      border-radius : 10px; 
+    }
+
+  #modal-button button:last-child{ 
+      float:right;
+    }
 
   html{
     margin:0px;
@@ -147,10 +181,6 @@ function nascondiPopup() {
     width: fit-content;
     word-break: break-word;
     border: none;
-  }
-
-  .bottone:last-child{
-    margin:0px !important;
   }
 
 .bottone2 {
@@ -195,7 +225,7 @@ function nascondiPopup() {
   padding: 1px 0px 1px 0px;
   top:0px;
   left:0px;
-  z-index:999; /*mi assicuro che la top bar sia sempre il primo elemento della pagina*/   
+  z-index:1; /*mi assicuro che la top bar sia sempre il primo elemento della pagina*/   
 }
 
 a{
@@ -212,7 +242,7 @@ a{
 .bottoniDestra {
   display: flex; /* Make the wrapper a flexbox container */
   flex-shrink: 0; /* Prevent wrapper from shrinking */
-  padding-right: 10px;  
+  padding-right: 10px;   
 }
 
   /* CSS */
@@ -285,6 +315,7 @@ body{
   background-color: #e3e3e3;
   box-sizing: border-box;
   overflow-x:hidden;
+  z-index : 1;
 }
 
   .container{
@@ -887,7 +918,8 @@ body{
   }
 
   .topbardropdown-content {
-   /* overflow: hidden;*/
+    overflow-y: scroll;
+    max-height: 400px;
     display: none;
     position: absolute;
     background-color: #f9f9f9;
@@ -1148,9 +1180,11 @@ body{
   }
 
   .taxi-img{
-    height:70vh;
-    transform: translateX(-120%);
-    animation: slidein 10s linear 0s infinite;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+    
   }
 
   @keyframes slidein {
@@ -1201,6 +1235,5 @@ body{
   .datatable-wrapper.no-footer .datatable-container {
     border-bottom: 0px solid !important;
   }
-
 ';
 end costanti;
