@@ -714,7 +714,7 @@ procedure visualizzaBustePaga(
         gui.APRIFORMFILTRO();
             gui.aggiungiinput(tipo=> 'hidden', nome => 'idSess', value=>idSess);
             gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
-            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
+            /*gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');*/
             gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
             gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
             gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
@@ -731,8 +731,8 @@ procedure visualizzaBustePaga(
             where ( b.fk_dipendente = r_FkDipendente or r_FkDipendente is null )
               and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
               and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
-              and ( b.importo = r_Importo or r_Importo is null )
-              and ( b.bonus = r_Bonus or r_Bonus is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
             )
             LOOP

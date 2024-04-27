@@ -78,12 +78,11 @@ create or replace package Gruppo3 as
 	);
 
 	procedure modificacliente (
-		idsess      varchar default null,  -- identifica chi sta facendo l'accesso
-		cl_id       varchar2 default null, -- identifica l'id del cliente a cui facciamo le modifiche
-		cl_email    varchar2 default null,
-		cl_password varchar2 default null,
-		cl_telefono varchar2 default null,  -- questi parametri servono per le update dei campi
-		err_popup   varchar2 default null
+		idSess VARCHAR DEFAULT NULL,
+        cl_id VARCHAR2 DEFAULT NULL,
+        cl_Email VARCHAR2 DEFAULT NULL,
+        cl_Password VARCHAR2 DEFAULT NULL,
+        cl_Telefono VARCHAR2 DEFAULT NULL
 	);
 
 	procedure visualizzaclienti (
@@ -102,10 +101,10 @@ create or replace package Gruppo3 as
 
 	--procedure convenzioni
 
-	procedure inserisciConvenzione (
+	/*procedure inserisciConvenzione (
 		idsess varchar, --per accedere devi essere loggato (e ruolo = operatore)
 		popup varchar2 default null
-	);
+	);*/
 
 	procedure inseriscidaticonvenzione (
         idSess 			varchar2,
@@ -127,9 +126,8 @@ create or replace package Gruppo3 as
 	);
 
 	procedure associaConvenzione (
-		idSess varchar default null,
-		c_Nome varchar2 default null,
-		err_popup varchar2 default null
+		idSess varchar default null, --CLIENTE
+        c_Nome varchar2 default null
 	); 
 
 	procedure modificaConvenzione (
