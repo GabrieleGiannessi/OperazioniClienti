@@ -2084,20 +2084,6 @@ procedure dettaglifasceConvenzioni(
                 when NO_DATA_FOUND THEN
        gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
   END dettaglifasceConvenzioni;
-
-
-    /* DA RIVEDERE CON L'ALTRO GRUPPO */procedure inserimentoContabile (
-        idSessManager varchar2 default null,
-        r_FkDipendente varchar2 default null
-    )
-    IS
-    BEGIN
-
-        INSERT INTO RESPONSABILI VALUES (TO_NUMBER(r_FkDipendente),1);
-
-
-    END inserimentoContabile;
-
-
+  
     end gruppo3;
 

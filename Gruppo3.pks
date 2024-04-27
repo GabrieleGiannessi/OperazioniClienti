@@ -156,11 +156,7 @@ create or replace package Gruppo3 as
         );
 
 	---------------------------------------------
-	procedure inserimentocontabile (
-		idSessmanager varchar2 default null,
-		r_fkdipendente      varchar2 default null
-	);
-
+	
     function existdipendente (
         r_IdDipendente in DIPENDENTI.MATRICOLA%TYPE
     ) return number;
