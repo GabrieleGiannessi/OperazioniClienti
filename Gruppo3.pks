@@ -52,7 +52,7 @@ create or replace package Gruppo3 as
     );
 
     procedure visualizzaricarichecliente (
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null

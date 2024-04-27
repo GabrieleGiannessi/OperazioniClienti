@@ -862,11 +862,11 @@ procedure visualizzaBustePaga(
 
             gui.APRIFORMFILTRO();
                 gui.aggiungiinput(tipo=> 'hidden', nome => 'idSess', value=>idSess);
-                gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
+                gui.aggiungicampoformfiltro(nome => 'r_FkDipendente', placeholder => 'Dipendente');
                 gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
                 gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
                 gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-                gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
+                gui.aggiungicampoformfiltro(nome => 'r_FkContabile', placeholder => 'Contabile');
                 gui.aggiungicampoformfiltro('submit', '','','Filtra');
             gui.CHIUDIFORMFILTRO;
 
@@ -883,6 +883,16 @@ procedure visualizzaBustePaga(
                 and ( b.importo = r_Importo or r_Importo is null )
                 and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
+
+            /*
+            select data, importo, bonus
+            from bustepaga b
+            where ( b.fk_dipendente = sessionhandler.getiduser(idSess) )
+                and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
+            order by data desc)
+            */
         )
         LOOP
             gui.AGGIUNGIRIGATABELLA;
@@ -894,7 +904,7 @@ procedure visualizzaBustePaga(
                     gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_Data='||busta_paga.Data);
                 gui.chiudiElementoPulsanti;
 
             gui.CHIUDIRIGATABELLA;
@@ -915,7 +925,7 @@ procedure visualizzaBustePaga(
         count_b NUMBER := 0;
     BEGIN
         SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
-        IF(count_b=0) THEN
+        IF(count_b=1) THEN
             return TRUE;
         ELSE
             return FALSE;
@@ -1275,11 +1285,11 @@ ELSE
 END IF;
 END visualizzaRicaricheCliente;
 
-    procedure inserimentoRicarica (
-        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
-        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-        r_PopUp in varchar2 default null
-    )IS
+procedure inserimentoRicarica (
+    idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
+    r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+    r_PopUp in varchar2 default null
+)IS
 
     head gui.StringArray;
 
@@ -1291,17 +1301,17 @@ BEGIN
                     history.replaceState(null, null, newUrl);
     </script>');
 
-        gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
+    gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
 
-        IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
-                gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
-        END IF;
+    IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
+            gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
+    END IF;
 
-        IF(r_PopUp = 'ImportoNegativo') THEN
-            gui.AGGIUNGIPOPUP(False, 'Errore: Importo inserito non positivo. Ricarica non inserita.');
-        END IF;
+    IF(r_PopUp = 'ImportoNegativo') THEN
+        gui.AGGIUNGIPOPUP(False, 'Errore: Importo inserito non positivo. Ricarica non inserita.');
+    END IF;
 
-        SAVEPOINT sp1;
+    SAVEPOINT sp1;
 
     /* Controllo i permessi di accesso */
     IF(sessionhandler.getruolo(idSess) = 'Cliente' ) THEN
@@ -1315,8 +1325,7 @@ BEGIN
                 gui.AGGIUNGIGRUPPOINPUT;
                     gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci');
                 gui.CHIUDIGRUPPOINPUT;
-
-            gui.CHIUDIFORM;
+        gui.CHIUDIFORM;
 
         IF(r_importo IS NOT NULL) THEN
             /* Inserimento nuova ricarica */
@@ -1335,10 +1344,11 @@ BEGIN
     EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE = -2290 THEN
-            -- vincolo check violato
+            -- vincolo check importo>0 violato
             ROLLBACK TO sp1;
-            gui.REINDIRIZZA(U_ROOT||'inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
+            gui.REINDIRIZZA(U_ROOT||'.inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
         END IF;
+
 end inserimentoRicarica;
 
 function bustePagaIsEmpty return BOOLEAN IS
@@ -1587,7 +1597,7 @@ BEGIN
             SELECT SUM(r.IMPORTO) INTO totRicariche
             FROM RICARICHE r
             WHERE (r.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                AND (r.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') +1 or r_DataFine is null);
+                AND ((r.data <= (TO_DATE(r_DataFine, 'yyyy-mm-dd') +1)) or r_DataFine is null);
             -- totRicaricheDataInizio e totRicaricheDataFine
             IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
                 SELECT SUM(r.IMPORTO) INTO totRicaricheDataInizio
@@ -1606,7 +1616,9 @@ BEGIN
             END IF;
             -- trend
             delta :=  totRicaricheDataFine - totRicaricheDataInizio;
+            htp.prn(delta);
             trendPercent := ((delta * 100) /totRicaricheDataInizio);
+            htp.prn(trendPercent);
             -- gui
             gui.AGGIUNGIFORM();
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Ricariche Clienti', dimensione => 'h1');
