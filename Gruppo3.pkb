@@ -729,14 +729,14 @@ procedure visualizzaBustePaga(
             select *
             from bustepaga b
             where ( b.fk_dipendente = r_FkDipendente or r_FkDipendente is null )
-                and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
-                and ( trunc(b.DATA) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
-                and ( b.importo = r_Importo or r_Importo is null )
-                and ( b.bonus = r_Bonus or r_Bonus is null )
+              and ( b.fk_contabile = r_FkContabile or r_FkContabile is null )
+              and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
+              and ( b.importo = r_Importo or r_Importo is null )
+              and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
-        )
-        LOOP
-            gui.AGGIUNGIRIGATABELLA;
+            )
+            LOOP
+                gui.AGGIUNGIRIGATABELLA;
 
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_DIPENDENTE);
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.Data);
@@ -745,13 +745,13 @@ procedure visualizzaBustePaga(
                 gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_Data='||busta_paga.Data);
                 gui.chiudiElementoPulsanti;
 
-            gui.CHIUDIRIGATABELLA;
-        END LOOP;
-            gui.ChiudiTabella;
-        ELSE
+                gui.CHIUDIRIGATABELLA;
+            END LOOP;
+        gui.CHIUDITABELLA();
+    ELSE
             gui.AGGIUNGIPOPUP(FALSE, 'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
     END IF;
 
@@ -766,7 +766,7 @@ function existBustaPaga(
     count_b NUMBER := 0;
 BEGIN
     SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
-    IF(count_b=0) THEN
+    IF(count_b=1) THEN
         return TRUE;
     ELSE
         return FALSE;
