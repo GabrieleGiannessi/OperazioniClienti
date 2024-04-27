@@ -1,5 +1,5 @@
 create or replace package Gruppo3 as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
 	u_root constant varchar(100) := u_user || '.gruppo3';
 
     procedure visualizzabustepaga (
@@ -52,7 +52,7 @@ create or replace package Gruppo3 as
     );
 
     procedure visualizzaricarichecliente (
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
@@ -145,9 +145,9 @@ create or replace package Gruppo3 as
 
 	procedure dettagliConvenzioni (
 		idSess SESSIONIDIPENDENTI.IDSESSIONE%TYPE default null,
-		c_nome CONVENZIONI.NOME%TYPE default null, 
+		c_nome CONVENZIONI.NOME%TYPE default null,
 		err_popup varchar2 default null
-	); 
+	);
 
 	procedure dettaglifasceConvenzioni(
             idSess varchar default null,
