@@ -10,27 +10,27 @@
 
         gui.APRIPAGINA(titolo => 'Registrazione');
 
-        if err_popup is not null then 
+        if err_popup is not null then
 
             --cliente già presente
-            if err_popup = 'D' then 
+            if err_popup = 'D' then
                     gui.AggiungiPopup(False, 'Registrazione fallita, cliente già presente sul sito!');
-                    gui.aCapo(2); 
+                    gui.aCapo(2);
                 end if;
 
                 --dataNascita
-                if err_popup = 'B' then 
+                if err_popup = 'B' then
                     gui.AggiungiPopup(False, 'Data di nascita non valida!');
-                    gui.aCapo(2); 
+                    gui.aCapo(2);
                 end if;
 
                 --password
-                if err_popup = 'P' then 
+                if err_popup = 'P' then
                     gui.AggiungiPopup(False, 'Password troppo corta! Deve essere di almeno 8 caratteri');
-                    gui.aCapo(2); 
+                    gui.aCapo(2);
                 end if;
-        end if; 
-         
+        end if;
+
         gui.AGGIUNGIFORM (url => u_root || '.inserisciDati');
 
 
@@ -107,10 +107,10 @@
             if DataNascita > SYSDATE then
                  gui.reindirizza (u_root || '.registrazioneCliente?err_popup=B');
                  return;
-            end if; 
+            end if;
 
             --password troppo corta
-            if length (Password) < 8 then 
+            if length (Password) < 8 then
                 gui.reindirizza (u_root || '.registrazioneCliente?err_popup=P');
                 return;
             end if;
@@ -223,7 +223,7 @@
 
         procedure associaConvenzione (
             idSess SESSIONICLIENTI.IDSESSIONE%TYPE default null, --CLIENTE
-            c_Codice varchar2 default null, 
+            c_Codice varchar2 default null,
             err_popup varchar2 default null
         ) IS
             data_fine CONVENZIONI.DATAFINE%TYPE := NULL;
@@ -237,16 +237,16 @@
             --controllo che l'utente sia un cliente
             if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Cliente')) then
                 gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-                gui.chiudiPagina; 
+                gui.chiudiPagina;
                 return;
             end if;
 
-            if err_popup IS NOT NULL then 
+            if err_popup IS NOT NULL then
 
                 if err_popup = 'N' then --nodatafound : mandiamo il messaggio di errore 'convenzione non trovata'
-                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
+                    gui.aggiungiPopup (False, 'Convenzione non trovata');
                     gui.acapo(2);
-                end if; 
+                end if;
 
                 if err_popup = 'D' then --dupvalonindex : mandiamo il messaggio di errore 'convenzione già associata'
                     gui.aggiungiPopup (False, 'Convenzione già associata ad ' || SESSIONHANDLER.getUsername     (idSess)|| '');
@@ -329,7 +329,7 @@
             --controllo che l'utente sia un manager
             if (NOT SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
                 gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere alla pagina!', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-                gui.chiudiPagina; 
+                gui.chiudiPagina;
                 return;
             end if;
 
@@ -357,22 +357,22 @@
             end if;
 
             if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
-            --controlli 
-                if c_dataInizio < SYSDATE then 
+            --controlli
+                if c_dataInizio < SYSDATE then
                     error_check:=true;
-                end if; 
+                end if;
 
-                if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
-                    if c_dataInizio > c_dataFine then 
+                if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
+                    if c_dataInizio > c_dataFine then
                         error_check:=true;
-                    end if; 
+                    end if;
 
-                    else 
+                    else
                         if c_dataInizio > d_fine then
                             error_check:=true;
                         end if;
-                end if; 
-                
+                end if;
+
                 UPDATE CONVENZIONI
                 SET DATAINIZIO = c_dataInizio
                 WHERE IDConvenzione = c_id;
@@ -380,27 +380,27 @@
 
             end if;
 
-            if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then 
+            if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
             --controlli
                 if c_dataFine < SYSDATE then
                      error_check:=true;
-                end if; 
+                end if;
 
                 if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
-                    if c_dataFine < c_dataInizio then 
+                    if c_dataFine < c_dataInizio then
                         error_check:=true;
-                    end if; 
+                    end if;
 
-                    else 
-                        if c_dataFine < d_inizio then 
+                    else
+                        if c_dataFine < d_inizio then
                             error_check:=true;
-                        end if; 
-                end if; 
+                        end if;
+                end if;
 
             UPDATE CONVENZIONI
                 SET DATAFINE = c_dataFine
                 WHERE IDConvenzione = c_id;
-            end if; 
+            end if;
 
             if c_Cumulabile IS NOT NULL AND c_cumulabile <> current_cumulabile then       
                 UPDATE CONVENZIONI
@@ -495,7 +495,7 @@
         --accedo alla pagina (se sono cliente o operatore)
         if NOT (SESSIONHANDLER.checkRuolo(idSess, 'Cliente')) then
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-            gui.chiudiPagina; 
+            gui.chiudiPagina;
             return;
         end if;
 
@@ -516,7 +516,7 @@
         --un cliente non può accedere alla pagina modificaCliente di un altro cliente
         if  SESSIONHANDLER.checkRuolo(idSess, 'Cliente') AND cl_id IS NOT NULL AND SESSIONHANDLER.getIDUSER(idSess)<>to_number(cl_id) then
             gui.aggiungiPopup (False, 'Non hai i permessi per accedere alla pagina di modifica di altri clienti', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-            gui.chiudiPagina; 
+            gui.chiudiPagina;
             return;
         end if;
 
@@ -543,7 +543,7 @@
                 
                 ROLLBACK TO sp1; 
                 gui.REINDIRIZZA(u_root||'.modificaCliente?idSess='||idSess||'&cl_id='||sessionHandler.getIDUser(idSess)||'&err_popup=P');
-                return; 
+                return;
 
                 else 
                     UPDATE CLIENTI
@@ -596,7 +596,7 @@
         gui.bottoneAggiungi (testo => 'Torna indietro', url => u_root || '.visualizzaProfilo?idSess='||idSess||'');
         gui.aCapo(2);
         end if;
-       
+
         gui.AGGIUNGIGRUPPOINPUT;
             gui.AGGIUNGIINTESTAZIONE (testo => 'Email', dimensione => 'h2');
             gui.AGGIUNGIINTESTAZIONE (testo => 'Email corrente: ', dimensione => 'h3');
@@ -656,7 +656,7 @@
 
             if NOT (SESSIONHANDLER.checkRuolo (idSess, 'Cliente') OR SESSIONHANDLER.checkRuolo (idSess, 'Manager')) then
                 gui.aggiungiPopup (False, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-                gui.chiudiPagina; 
+                gui.chiudiPagina;
                 return;
             end if;
 
@@ -739,7 +739,7 @@
                                 gui.apriDiv (classe => 'right');
                                     gui.aggiungiIntestazione (testo => c_Saldo || '€', dimensione => 'h2');
                                 gui.chiudiDiv;
-                                
+
 
                                 IF (SESSIONHANDLER.CheckRuolo(idSess, 'Cliente')) THEN
                                 gui.apriDiv(classe => 'left');
@@ -789,7 +789,7 @@
                                         gui.apriDiv(classe => 'right');
                                         gui.aggiungiIntestazione(testo => 'data di scadenza : ' || j.DATAFINE || '', dimensione => 'h3');
                                         gui.chiudiDiv;
-                                        end if; 
+                                        end if;
                                     END LOOP;
                                 END LOOP;
 
@@ -862,11 +862,11 @@ procedure visualizzaBustePaga(
 
             gui.APRIFORMFILTRO();
                 gui.aggiungiinput(tipo=> 'hidden', nome => 'idSess', value=>idSess);
-                gui.aggiungicampoformfiltro(nome => 'r_Dipendente', placeholder => 'Dipendente');
+                gui.aggiungicampoformfiltro(nome => 'r_FkDipendente', placeholder => 'Dipendente');
                 gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_Data', placeholder => 'Data');
                 gui.aggiungicampoformfiltro(nome => 'r_Importo', placeholder => 'Importo');
                 gui.aggiungicampoformfiltro(nome => 'r_Bonus', placeholder => 'Bonus');
-                gui.aggiungicampoformfiltro(nome => 'r_Contabile', placeholder => 'Contabile');
+                gui.aggiungicampoformfiltro(nome => 'r_FkContabile', placeholder => 'Contabile');
                 gui.aggiungicampoformfiltro('submit', '','','Filtra');
             gui.CHIUDIFORMFILTRO;
 
@@ -883,6 +883,16 @@ procedure visualizzaBustePaga(
                 and ( b.importo = r_Importo or r_Importo is null )
                 and ( b.bonus = r_Bonus or r_Bonus is null )
             order by data desc
+
+            /*
+            select data, importo, bonus
+            from bustepaga b
+            where ( b.fk_dipendente = sessionhandler.getiduser(idSess) )
+                and ( trunc(b.data) = TO_DATE(r_Data, 'yyyy-mm-dd') or r_Data is null )
+                and ( b.importo = r_Importo or r_Importo is null )
+                and ( b.bonus = r_Bonus or r_Bonus is null )
+            order by data desc)
+            */
         )
         LOOP
             gui.AGGIUNGIRIGATABELLA;
@@ -894,7 +904,7 @@ procedure visualizzaBustePaga(
                     gui.AGGIUNGIELEMENTOTABELLA(elemento => busta_paga.FK_CONTABILE);
 
                 gui.apriElementoPulsanti;
-                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_FkContabile='||busta_paga.FK_CONTABILE|| '&r_Data='||busta_paga.Data||'&r_Importo='||busta_paga.Importo||'&r_Bonus='||busta_paga.Bonus);
+                gui.AGGIUNGIPULSANTEMODIFICA(collegamento => U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||busta_paga.FK_DIPENDENTE||'&r_Data='||busta_paga.Data);
                 gui.chiudiElementoPulsanti;
 
             gui.CHIUDIRIGATABELLA;
@@ -915,7 +925,7 @@ procedure visualizzaBustePaga(
         count_b NUMBER := 0;
     BEGIN
         SELECT COUNT(*) INTO count_b FROM BUSTEPAGA b WHERE b.FK_DIPENDENTE = r_FkDipendente AND TRUNC(b.Data) = TRUNC(r_Data);
-        IF(count_b=0) THEN
+        IF(count_b=1) THEN
             return TRUE;
         ELSE
             return FALSE;
@@ -1212,7 +1222,7 @@ END IF;
     END inserimentoBustaPaga;
 
     procedure visualizzaRicaricheCliente (
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
         r_Data       in varchar2 default null,
         r_Importo    in RICARICHE.IMPORTO%TYPE default null,
         r_PopUp in varchar2 default null
@@ -1275,11 +1285,11 @@ ELSE
 END IF;
 END visualizzaRicaricheCliente;
 
-    procedure inserimentoRicarica (
-        idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
-        r_Importo    in RICARICHE.IMPORTO%TYPE default null,
-        r_PopUp in varchar2 default null
-    )IS
+procedure inserimentoRicarica (
+    idSess in SESSIONICLIENTI.IDSESSIONE%TYPE,
+    r_Importo    in RICARICHE.IMPORTO%TYPE default null,
+    r_PopUp in varchar2 default null
+)IS
 
     head gui.StringArray;
 
@@ -1291,17 +1301,17 @@ BEGIN
                     history.replaceState(null, null, newUrl);
     </script>');
 
-        gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
+    gui.APRIPAGINA(titolo => 'inserimentoRicarica', idSessione=>idSess);
 
-        IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
-                gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
-        END IF;
+    IF(r_PopUp IS NOT NULL AND r_PopUp = 'False') THEN
+            gui.AGGIUNGIPOPUP(False, 'Ricarica non inserita!');
+    END IF;
 
-        IF(r_PopUp = 'ImportoNegativo') THEN
-            gui.AGGIUNGIPOPUP(False, 'Errore: Importo inserito non positivo. Ricarica non inserita.');
-        END IF;
+    IF(r_PopUp = 'ImportoNegativo') THEN
+        gui.AGGIUNGIPOPUP(False, 'Errore: Importo inserito non positivo. Ricarica non inserita.');
+    END IF;
 
-        SAVEPOINT sp1;
+    SAVEPOINT sp1;
 
     /* Controllo i permessi di accesso */
     IF(sessionhandler.getruolo(idSess) = 'Cliente' ) THEN
@@ -1315,8 +1325,7 @@ BEGIN
                 gui.AGGIUNGIGRUPPOINPUT;
                     gui.AGGIUNGIBOTTONESUBMIT (value => 'Inserisci');
                 gui.CHIUDIGRUPPOINPUT;
-
-            gui.CHIUDIFORM;
+        gui.CHIUDIFORM;
 
         IF(r_importo IS NOT NULL) THEN
             /* Inserimento nuova ricarica */
@@ -1335,10 +1344,11 @@ BEGIN
     EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE = -2290 THEN
-            -- vincolo check violato
+            -- vincolo check importo>0 violato
             ROLLBACK TO sp1;
-            gui.REINDIRIZZA(U_ROOT||'inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
+            gui.REINDIRIZZA(U_ROOT||'.inserimentoRicarica?idSess='||idSess||'&r_PopUp=ImportoNegativo');
         END IF;
+
 end inserimentoRicarica;
 
 function bustePagaIsEmpty return BOOLEAN IS
@@ -1587,7 +1597,7 @@ BEGIN
             SELECT SUM(r.IMPORTO) INTO totRicariche
             FROM RICARICHE r
             WHERE (r.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                AND (r.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') +1 or r_DataFine is null);
+                AND ((r.data <= (TO_DATE(r_DataFine, 'yyyy-mm-dd') +1)) or r_DataFine is null);
             -- totRicaricheDataInizio e totRicaricheDataFine
             IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
                 SELECT SUM(r.IMPORTO) INTO totRicaricheDataInizio
@@ -1606,7 +1616,9 @@ BEGIN
             END IF;
             -- trend
             delta :=  totRicaricheDataFine - totRicaricheDataInizio;
+            htp.prn(delta);
             trendPercent := ((delta * 100) /totRicaricheDataInizio);
+            htp.prn(trendPercent);
             -- gui
             gui.AGGIUNGIFORM();
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Ricariche Clienti', dimensione => 'h1');
@@ -1684,7 +1696,7 @@ BEGIN
     head gui.StringArray; --parametri per headers della tabella
 
     BEGIN
-    
+
     gui.apriPagina (titolo => 'visualizza clienti', idSessione => idSess);  --se non loggato porta all'homePage
 
     if (NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager') OR SESSIONHANDLER.checkRuolo(idSess, 'Operatore'))) then
@@ -1694,7 +1706,7 @@ BEGIN
             return;
         end if;
 
-    
+
         gui.APRIFORMFILTRO;
             gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
             gui.aggiungicampoformfiltro(nome => 'c_Nome', placeholder => 'Nome');
@@ -1832,16 +1844,16 @@ BEGIN
             --controllo manager
             if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
                 gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-                gui.chiudiPagina; 
+                gui.chiudiPagina;
                 return;
             END IF;
 
-            if err_popup IS NOT NULL THEN 
-                if err_popup = 'N' then 
-                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
-                    gui.aCapo(2); 
-                end if; 
-            END IF; 
+            if err_popup IS NOT NULL THEN
+                if err_popup = 'N' then
+                    gui.aggiungiPopup (False, 'Convenzione non trovata');
+                    gui.aCapo(2);
+                end if;
+            END IF;
 
             if c_nome is not NULL THEN
                 SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
@@ -1953,7 +1965,7 @@ procedure dettaglifasceConvenzioni(
         num_clientifascia3 int := 0;
         totale_clientifascia1 int := 0;
         totale_clientifascia2 int := 0;
-        totale_clientifascia3 int := 0; 
+        totale_clientifascia3 int := 0;
         percentagefascia1 decimal (10,2) := 0;
         percentagefascia2 decimal (10,2) := 0;
         percentagefascia3 decimal (10,2) := 0;
@@ -1963,16 +1975,16 @@ procedure dettaglifasceConvenzioni(
             --controllo manager
             if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
                 gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
-                gui.chiudiPagina; 
+                gui.chiudiPagina;
                 return;
             END IF;
 
-            if err_popup IS NOT NULL THEN 
-                if err_popup = 'N' then 
-                    gui.aggiungiPopup (False, 'Convenzione non trovata'); 
-                    gui.aCapo(2); 
-                end if; 
-            END IF; 
+            if err_popup IS NOT NULL THEN
+                if err_popup = 'N' then
+                    gui.aggiungiPopup (False, 'Convenzione non trovata');
+                    gui.aCapo(2);
+                end if;
+            END IF;
 
             if c_nome is not NULL THEN
                 SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
@@ -1982,7 +1994,7 @@ procedure dettaglifasceConvenzioni(
                     SELECT COUNT(IDCLIENTE) INTO totale_clientifascia1 FROM CLIENTI
                     WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25 ;
                     if totale_clientifascia1 <> 0 then
-                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia1 FROM CONVENZIONICLIENTI cconv 
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia1 FROM CONVENZIONICLIENTI cconv
                         INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25);
                         percentagefascia1 := (num_clientifascia1 / totale_clientifascia1) * 100.0;
                     end if;
@@ -1990,7 +2002,7 @@ procedure dettaglifasceConvenzioni(
                     SELECT COUNT(IDCLIENTE) INTO totale_clientifascia2 FROM CLIENTI
                     WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50;
                     if totale_clientifascia2 <> 0 then
-                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia2 FROM CONVENZIONICLIENTI cconv 
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia2 FROM CONVENZIONICLIENTI cconv
                         INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50);
                         percentagefascia2 := (num_clientifascia2 / totale_clientifascia2) * 100.0;
                     end if;
@@ -1998,7 +2010,7 @@ procedure dettaglifasceConvenzioni(
                     SELECT COUNT(IDCLIENTE) INTO totale_clientifascia3 FROM CLIENTI
                     WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50;
                      if totale_clientifascia3 <> 0 then
-                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia3 FROM CONVENZIONICLIENTI cconv 
+                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia3 FROM CONVENZIONICLIENTI cconv
                         INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50);
                         percentagefascia3 := (num_clientifascia3 / totale_clientifascia3) * 100.0;
                     end if;
@@ -2058,7 +2070,7 @@ procedure dettaglifasceConvenzioni(
                             gui.aggiungiIntestazione( testo => ''||percentagefascia3||'%', dimensione => 'h2');
                         gui.chiudiDiv;
 
-                
+
                     gui.chiudiDiv; --flex-container
                 gui.chiudiGruppoInput;
                 end if;
