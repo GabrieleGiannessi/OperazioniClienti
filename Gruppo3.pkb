@@ -1705,7 +1705,7 @@ BEGIN
             gui.chiudiPagina;
             return;
         end if;
-
+        
 
         gui.APRIFORMFILTRO;
             gui.aggiungiInput (tipo => 'hidden', value => idSess, nome => 'idSess');
