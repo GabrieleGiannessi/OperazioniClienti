@@ -1955,17 +1955,14 @@ BEGIN
 
 procedure dettaglifasceConvenzioni(
             idSess varchar default null,
-            c_nome CONVENZIONI.NOME%TYPE default null,
-            err_popup varchar2 default null
+            cat_datainizio varchar2 default null,
+            cat_datafine varchar2 default null,
+            cat_nome varchar2 default null
         ) IS
-        c_check boolean := true; --flag per il controllo dell'esistenza della convenzione
-        c_id CONVENZIONI.IDCONVENZIONE%TYPE := NULL;
         num_clientifascia1 int := 0;
         num_clientifascia2 int := 0;
         num_clientifascia3 int := 0;
-        totale_clientifascia1 int := 0;
-        totale_clientifascia2 int := 0;
-        totale_clientifascia3 int := 0;
+        tot_clientiConv int := 0;
         percentagefascia1 decimal (10,2) := 0;
         percentagefascia2 decimal (10,2) := 0;
         percentagefascia3 decimal (10,2) := 0;
@@ -1979,54 +1976,59 @@ procedure dettaglifasceConvenzioni(
                 return;
             END IF;
 
-            if err_popup IS NOT NULL THEN
-                if err_popup = 'N' then
-                    gui.aggiungiPopup (False, 'Convenzione non trovata');
-                    gui.aCapo(2);
-                end if;
-            END IF;
+--clienti che usano convenzioni in un range di date
+        SELECT COUNT(cc.FK_CLIENTE) INTO tot_clientiConv
+        FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
+        WHERE (cl.DataNascita >= TO_DATE(cat_datainizio,'DD-MM-YYYY') OR cat_datainizio IS NULL )
+            AND (cl.DataNascita <= TO_DATE(cat_datafine,'DD-MM-YYYY') OR cat_datafine IS NULL)
+            AND (cl.Nome = cat_nome OR cat_nome IS NULL);
+    
+    /* dettagli convenzione           
+    if tot_clientiConv <> 0  then
+            --fascia 18-25
+                SELECT COUNT(cc.FK_CLIENTE) INTO num_clientifascia1
+                FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
+                INNER JOIN CONVENZIONI c ON cc.FK_CONVENZIONE = c.IDCONVENZIONE
+                WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, cl.DataNascita) / 12) BETWEEN 18 and 25
+                    AND c.DataInizio <= TO_DATE(cat_datainizio,'YYYY-MM-DD')
+                        AND c.DataFine >= TO_DATE(cat_datafine,'YYYY-MM-DD');
 
-            if c_nome is not NULL THEN
-                SELECT IDCONVENZIONE INTO c_id FROM CONVENZIONI WHERE NOME = c_nome;
-                if SQL%ROWCOUNT > 0 THEN --esiste, faccio il calcolo del numero dei clienti e della percentuale
+                percentagefascia1 := (num_clientifascia1 / tot_clientiConv) * 100.0;
+            --fascia 26-60
+                SELECT COUNT(cc.FK_CLIENTE) INTO num_clientifascia2
+                FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
+                INNER JOIN CONVENZIONI c ON cc.FK_CONVENZIONE = c.IDCONVENZIONE
+                WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, cl.DataNascita) / 12) BETWEEN 26 and 60
+                    AND c.DataInizio <= TO_DATE(cat_datainizio,'YYYY-MM-DD')
+                        AND c.DataFine >= TO_DATE(cat_datafine,'YYYY-MM-DD');
 
-                    --prelevo i dati /*fascia dai 18-25*/
-                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia1 FROM CLIENTI
-                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25 ;
-                    if totale_clientifascia1 <> 0 then
-                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia1 FROM CONVENZIONICLIENTI cconv
-                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 18 and 25);
-                        percentagefascia1 := (num_clientifascia1 / totale_clientifascia1) * 100.0;
-                    end if;
-                    --fascia2
-                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia2 FROM CLIENTI
-                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50;
-                    if totale_clientifascia2 <> 0 then
-                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia2 FROM CONVENZIONICLIENTI cconv
-                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) BETWEEN 25 and 50);
-                        percentagefascia2 := (num_clientifascia2 / totale_clientifascia2) * 100.0;
-                    end if;
-                    --fascia3
-                    SELECT COUNT(IDCLIENTE) INTO totale_clientifascia3 FROM CLIENTI
-                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50;
-                     if totale_clientifascia3 <> 0 then
-                        SELECT COUNT(FK_CLIENTE) INTO num_clientifascia3 FROM CONVENZIONICLIENTI cconv
-                        INNER JOIN CLIENTI c ON cconv.FK_CLIENTE = c.IDCLIENTE WHERE  FK_CONVENZIONE = c_id AND (TRUNC(MONTHS_BETWEEN(SYSDATE, DataNascita) / 12) > 50);
-                        percentagefascia3 := (num_clientifascia3 / totale_clientifascia3) * 100.0;
-                    end if;
-                    else
-                    gui.aggiungiPopup (False, 'Convenzione non esistente');
-                    gui.aCapo(2);
-                    c_check:=false;
-                end if;
-            END IF;
+                percentagefascia2 := (num_clientifascia2 / tot_clientiConv) * 100.0;
+            --fascia over 60
+                SELECT COUNT(cc.FK_CLIENTE) INTO num_clientifascia3
+                FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
+                INNER JOIN CONVENZIONI c ON cc.FK_CONVENZIONE = c.IDCONVENZIONE
+                WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, cl.DataNascita) / 12) > 60
+                    AND c.DataInizio <= TO_DATE(cat_datainizio,'YYYY-MM-DD')
+                        AND c.DataFine >= TO_DATE(cat_datafine,'YYYY-MM-DD');
+
+                percentagefascia3 := (num_clientifascia3 / tot_clientiConv) * 100.0;    
+    end if;
+    */
             --fin qui ok
             gui.aggiungiForm;
                 gui.aggiungiIntestazione (testo => 'Dettagli statistici');
                 gui.aggiungiIntestazione (testo => 'fasce convenzioni');
                 gui.aCapo();
 
-                gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
+            gui.APRIFORMFILTRO();
+                gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+                    gui.aggiungicampoformfiltro(nome => 'cat_nome', placeholder => 'Nome');
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'cat_datainizio', placeholder => 'Data Inizio');
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'cat_datafine', placeholder => 'Data Fine');
+                    gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
+                gui.ACAPO;
+            gui.CHIUDIFORMFILTRO;
+              /*  gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
                 --gui.aCapo();
 
                 --filtro per nome le convenzioni e guardo quanti clienti le utilizzano
@@ -2036,9 +2038,8 @@ procedure dettaglifasceConvenzioni(
                     gui.aggiungiCampoFormFiltro (tipo => 'submit', placeholder => 'filtra');
                 gui.chiudiFormFiltro;
                 gui.aCapo(2);
-
-
-                if c_nome IS NOT NULL AND c_check then
+*/
+    if tot_clientiConv <> 0 then
                 --visualizzo i dati
                 gui.aggiungiGruppoInput;
                     gui.aggiungiIntestazione( testo => 'Dati sulle fasce di età', dimensione => 'h1');
@@ -2046,34 +2047,29 @@ procedure dettaglifasceConvenzioni(
                     gui.aCapo(2);
                     gui.apridiv (classe => 'flex-container');
                         gui.apridiv (classe => 'left');
-                            gui.aggiungiIntestazione( testo => 'Cienti dai 18 ai 25', dimensione => 'h2');
+                            gui.aggiungiIntestazione( testo => 'Cienti dai 18 ai 25 anni', dimensione => 'h2');
                         gui.chiudiDiv;
                         gui.apridiv (classe => 'right');
-                            gui.aggiungiIntestazione( testo => ''||percentagefascia1||'%', dimensione => 'h2');
+                            gui.aggiungiIntestazione( testo => ''||tot_clientiConv||'%', dimensione => 'h2');
                         gui.chiudiDiv;
-
-                        gui.aCapo(2);
-
-                          gui.apridiv (classe => 'left');
-                            gui.aggiungiIntestazione( testo => 'Clienti dai 25 ai 50)', dimensione => 'h2');
+                        gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Cienti dai 26 ai 60 anni', dimensione => 'h2');
                         gui.chiudiDiv;
                         gui.apridiv (classe => 'right');
                             gui.aggiungiIntestazione( testo => ''||percentagefascia2||'%', dimensione => 'h2');
                         gui.chiudiDiv;
-
-                        gui.aCapo(2);
-
-                         gui.apridiv (classe => 'left');
-                            gui.aggiungiIntestazione( testo => 'Clienti Over 50)', dimensione => 'h2');
+                        gui.apridiv (classe => 'left');
+                            gui.aggiungiIntestazione( testo => 'Cienti over 60', dimensione => 'h2');
                         gui.chiudiDiv;
                         gui.apridiv (classe => 'right');
                             gui.aggiungiIntestazione( testo => ''||percentagefascia3||'%', dimensione => 'h2');
                         gui.chiudiDiv;
 
+                        gui.aCapo(2);
 
                     gui.chiudiDiv; --flex-container
                 gui.chiudiGruppoInput;
-                end if;
+    end if;
 
             gui.chiudiForm;
 
