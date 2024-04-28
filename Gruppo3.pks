@@ -149,11 +149,12 @@ create or replace package Gruppo3 as
 		err_popup varchar2 default null
 	);
 
-	procedure dettaglifasceConvenzioni(
+	procedure dettagliClienti(
             idSess varchar default null,
-            cat_datainizio varchar2 default null,
-            cat_datafine varchar2 default null,
-			cat_nome varchar2 default null
+            c_datainizio varchar2 default null,
+            c_datafine varchar2 default null,
+			c_nome varchar2 default null,
+			err_popup varchar2 default null
         );
 	---------------------------------------------
 	
