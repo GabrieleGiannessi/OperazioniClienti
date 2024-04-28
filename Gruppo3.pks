@@ -151,10 +151,10 @@ create or replace package Gruppo3 as
 
 	procedure dettaglifasceConvenzioni(
             idSess varchar default null,
-            c_nome CONVENZIONI.NOME%TYPE default null,
-            err_popup varchar2 default null
+            cat_datainizio varchar2 default null,
+            cat_datafine varchar2 default null,
+			cat_nome varchar2 default null
         );
-
 	---------------------------------------------
 	
     function existdipendente (
