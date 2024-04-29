@@ -1030,7 +1030,7 @@ procedure visualizzaBustePaga(
         END IF;
 
         IF (new_Importo < 0) THEN
-            gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
+            gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=importoNegativo');
         END IF;
 
     ELSE
@@ -1411,6 +1411,23 @@ BEGIN
             FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
             WHERE r.RUOLO = 0 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
               AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+            -- Controllo valori restituiti
+            IF(totStipAutisti IS NULL) THEN
+                totStipAutisti := 0;
+            end if;
+            IF(totStipOperatori IS NULL) THEN
+                totStipOperatori := 0;
+            end if;
+            IF(totStipContabili IS NULL) THEN
+                totStipContabili := 0;
+            end if;
+            IF(totStipManager IS NULL) THEN
+                totStipManager := 0;
+            end if;
+            IF(totStipGeneral IS NULL) THEN
+                totStipGeneral := 0;
+            end if;
+            -- interfaccia
             gui.AGGIUNGIFORM();
             gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Stipendi Personale', dimensione => 'h1');
             gui.APRIFORMFILTRO();
@@ -1614,11 +1631,19 @@ BEGIN
                 FROM RICARICHE r
                 WHERE (trunc(r.data) = TO_DATE(maxDate, 'yyyy-mm-dd'));
             END IF;
-            -- trend
+            -- Controlli sui valori restituiti
+            IF(totRicaricheDataInizio IS NULL) THEN
+                totRicaricheDataInizio:=1;
+            END IF;
+            IF(totRicaricheDataFine IS NULL) THEN
+                totRicaricheDataFine:=1;
+            END IF;
+            IF(totRicariche IS NULL) THEN
+                totRicariche:=0;
+            END IF;
+            -- Trend
             delta :=  totRicaricheDataFine - totRicaricheDataInizio;
-            htp.prn(delta);
             trendPercent := ((delta * 100) /totRicaricheDataInizio);
-            htp.prn(trendPercent);
             -- gui
             gui.AGGIUNGIFORM();
                 gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Ricariche Clienti', dimensione => 'h1');
@@ -1632,9 +1657,9 @@ BEGIN
                 gui.AGGIUNGIGRUPPOINPUT;
                     gui.AGGIUNGIINTESTAZIONE (testo => 'Incasso Ricariche', dimensione => 'h2');
                     IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale tra le date (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
                     ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(minDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(maxDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale tra le date (' ||TO_CHAR(TO_DATE(minDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(maxDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
                     END IF;
                     gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totRicariche, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
                     gui.AGGIUNGIINTESTAZIONE (testo => 'Trend percentuale', dimensione => 'h2');
