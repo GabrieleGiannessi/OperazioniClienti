@@ -1925,7 +1925,7 @@
                     if c_nome IS NOT NULL AND c_check then
                     --visualizzo i dati
                     gui.aggiungiGruppoInput;
-                        gui.aggiungiIntestazione( testo => 'Dati su clienti', dimensione => 'h1');
+                        gui.aggiungiIntestazione( testo => 'Dati su '|| c_nome || '', dimensione => 'h1');
 
                         gui.aCapo(2);
                         gui.apridiv (classe => 'flex-container');
@@ -1989,13 +1989,16 @@
                 idSess varchar default null,
                 c_datainizio varchar2 default null,
                 c_datafine varchar2 default null,
-                c_nome varchar2 default null,
+                c_sesso varchar2 default null,
                 err_popup varchar2 default null
             ) IS
             tot_catClienti int;
+            tot_clienti int; 
             percentagefascia1 decimal (10,2) := 0;
             c_query varchar2(200); --query di ricerca della categoria 
-            c_params varchar2(200); 
+            range_inizio date; 
+            range_fine date; 
+            c_check boolean := false; 
 
             BEGIN
                 gui.apriPagina (titolo => 'Dettagli clienti', idSessione => idSess);
@@ -2007,26 +2010,35 @@
                     return;
                 END IF;
 
+                if err_popup IS NOT NULL then 
+                    if err_popup = 'N' then 
+                        gui.aggiungiPopup (False, 'Nessuna categoria trovata'); 
+                        gui.aCapo(2); 
+                    end if; 
+                end if; 
+
                 c_query := 'SELECT COUNT(cc.FK_CLIENTE)
             FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
             WHERE 1=1'; 
+
+            SELECT COUNT(*) INTO tot_clienti FROM CLIENTI; 
             
                 if c_datainizio IS NOT NULL then 
                     c_query := c_query || ' AND cl.DataNascita >= :c_dataInizio';
-                    c_params := c_params || 'c_datainizio,';
+                    range_inizio := TO_DATE(c_datainizio, 'YYYY-MM-DD');
+                    c_check := true; 
                 end if; 
 
                 if c_datafine IS NOT NULL then 
-                    c_query := c_query || ' AND cl.DataNascita >= :c_dataFine';
-                    c_params := c_params || 'c_datafine,';
+                    c_query := c_query || ' AND cl.DataNascita <= :c_dataFine';
+                    range_fine := TO_DATE(c_datafine, 'YYYY-MM-DD');
+                    c_check := true;
                 end if; 
                 
-                if c_nome IS NOT NULL then 
-                    c_query := c_query || ' AND cl.Nome = :c_nome';
-                    c_params := c_params || 'c_nome,';
-                end if; 
-
-                c_params := RTRIM(c_params, ',');
+                if c_sesso IS NOT NULL then 
+                    c_query := c_query || ' AND cl.Sesso = :c_sesso';
+                    c_check := true;
+                end if;       
                 
         /* SELECT COUNT(cc.FK_CLIENTE) INTO tot_catClienti
             FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
@@ -2034,12 +2046,38 @@
                 AND (cl.DataNascita <= TO_DATE(c_datafine,'DD-MM-YYYY') OR c_datafine IS NULL)
                 AND (cl.Nome = c_nome OR c_nome IS NULL);*/
 
+                if c_check then   
+            
+                    if range_inizio IS NOT NULL AND range_fine IS NOT NULL AND c_sesso IS NOT NULL then 
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio, range_fine, c_sesso;
+                    end if; 
 
+                    if range_inizio IS NOT NULL AND range_fine IS NOT NULL then 
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio, range_fine;
+                    end if; 
 
-                --devo filtrare secondo i parametri immessi  
+                    if range_inizio IS NOT NULL AND c_sesso IS NOT NULL then 
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio, c_sesso;
+                    end if; 
 
-                if c_params IS NOT NULL then 
-                    EXECUTE IMMEDIATE c_query INTO tot_catClienti USING c_params; --se sono stati immessi dei dati che riguardano una categoria di clienti eseguiamo la query
+                    if range_fine IS NOT NULL AND c_sesso IS NOT NULL then 
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_fine, c_sesso;
+                    end if; 
+
+                    if range_inizio IS NOT NULL then  
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio; 
+                    end if; 
+
+                    if range_fine IS NOT NULL then  
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_fine; 
+                    end if; 
+
+                    if c_sesso IS NOT NULL then  
+                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING c_sesso; 
+                    end if; 
+
+                    else EXECUTE IMMEDIATE c_query INTO tot_catClienti;
+
                 end if; 
 
                 --fin qui ok
@@ -2052,49 +2090,84 @@
 
                 gui.APRIFORMFILTRO();
                     gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-                        gui.aggiungicampoformfiltro(nome => 'c_nome', placeholder => 'Nome');
                         gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_datainizio', placeholder => 'Data Inizio');
                         gui.aggiungicampoformfiltro(tipo => 'date', nome => 'c_datafine', placeholder => 'Data Fine');
+                        gui.apriSelectFormFiltro ('c_Sesso', 'Sesso');
+                            gui.aggiungiOpzioneSelect ('', true, '');
+                            gui.aggiungiOpzioneSelect ('M', false , 'Maschio');
+                            gui.aggiungiOpzioneSelect ('F', false , 'Femmina');
+                        gui.chiudiSelectFormFiltro;
                         gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
                     gui.ACAPO;
                 gui.CHIUDIFORMFILTRO;
 
-                if c_params IS NOT NULL then 
+                if tot_catClienti <> 0 then 
                 gui.aCapo;
-                gui.aggiungiIntestazione( testo => 'Dati sulla categoria di clienti');
+                gui.aggiungiIntestazione( testo => 'Dati sui clienti');
                     gui.aggiungiGruppoInput;
+                        gui.aCapo(2); 
                         gui.apridiv (classe => 'flex-container');
                             gui.apriDiv (classe => 'left'); 
                                 gui.aggiungiIntestazione (testo => 'Clienti che usano convenzioni', dimensione => 'h2');
                             gui.chiudiDiv; 
                             gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => '' || tot_catClienti || '', dimensione => 'h2');
+                                gui.aggiungiIntestazione (testo => '' || tot_catClienti  || '', dimensione => 'h2');
                             gui.chiudiDiv; 
+
+                            gui.acapo;
+
+                            gui.apriDiv (classe => 'left'); 
+                                gui.aggiungiIntestazione (testo => 'In percentuale', dimensione => 'h2');
+                            gui.chiudiDiv; 
+                            gui.apriDiv (classe => 'right');
+                                gui.aggiungiIntestazione (testo => '' ||  (tot_catClienti / tot_clienti) * 100.0|| '%', dimensione => 'h2');
+                            gui.chiudiDiv; 
+
+                            gui.acapo;
+
+                            gui.aggiungiIntestazione( testo => 'Top 3 clienti più attivi (per convenzioni)', dimensione => 'h2');
+                            gui.aCapo;
+
+                            gui.apriTabella (elementi => gui.StringArray('Nome', 'Percentuale', 'Numero convenzioni'));
+                            for cliente in (
+                                SELECT c.IDCliente,
+                                                c.Nome,
+                                                COUNT(ci.FK_Convenzione) AS NumeroConvenzioniUsate
+                                                FROM CLIENTI c
+                                                JOIN CONVENZIONICLIENTI ci ON c.IDCliente = ci.FK_Cliente
+                                                GROUP BY c.IDCliente, c.Nome
+                                                ORDER BY COUNT(ci.FK_Convenzione) DESC
+                                                FETCH FIRST 3 ROWS ONLY
+
+                            ) LOOP
+                            gui.AggiungiRigaTabella;
+
+                                gui.aggiungiElementoTabella (elemento => cliente.Nome);
+                                gui.aggiungiElementoTabella (elemento => ''||(cliente.NumeroConvenzioniUsate / tot_clienti) * 100.0||'%');
+                                gui.aggiungiElementoTabella (elemento => cliente.NumeroConvenzioniUsate);
+
+                            gui.chiudiRigaTabella;
+                            END LOOP; 
+                            gui.chiudiTabella; 
+
                         gui.chiudiDiv; --flex-container
                     gui.chiudiGruppoInput;
                 end if; 
-            /*
-            if tot_clientiConv <> 0 then
-                    --visualizzo i dati
-                    gui.aggiungiGruppoInput;
-                        gui.aggiungiIntestazione( testo => 'Dati sulle fasce di età', dimensione => 'h1');
-
-                        gui.aCapo(2);
-                        gui.apridiv (classe => 'flex-container');
-
-                        gui.chiudiDiv; --flex-container
-                    gui.chiudiGruppoInput;
-        end if;*/
-
+ 
                 gui.chiudiForm;
+
+                if tot_catClienti = 0 then 
+                    gui.reindirizza (u_root || '.dettagliClienti?idSess='||idSess||'&err_popup=N');
+                    return; 
+                end if; 
 
                 gui.aCapo(2);
                 gui.chiudiPagina;
 
                 EXCEPTION
                     when NO_DATA_FOUND THEN
-        gui.reindirizza (u_root || '.dettagliClienti?idSess='||idSess||'&err_popup=N');
-    END dettagliClienti;
+                        gui.reindirizza (u_root || '.dettagliClienti?idSess='||idSess||'&err_popup=N');
+            END dettagliClienti;
     
         end gruppo3;
 

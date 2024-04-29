@@ -1,5 +1,5 @@
 create or replace package Gruppo3 as
-	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/l_bindi';
+	u_user constant varchar(100) := 'http://131.114.73.203:8080/apex/g_giannessi';
 	u_root constant varchar(100) := u_user || '.gruppo3';
 
     procedure visualizzabustepaga (
@@ -153,7 +153,7 @@ create or replace package Gruppo3 as
             idSess varchar default null,
             c_datainizio varchar2 default null,
             c_datafine varchar2 default null,
-			c_nome varchar2 default null,
+			c_sesso varchar2 default null,
 			err_popup varchar2 default null
         );
 	---------------------------------------------
