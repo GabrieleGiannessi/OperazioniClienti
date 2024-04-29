@@ -1838,6 +1838,7 @@
             num_clienti int := 0;
             totale_clienti int := 0;
             percentage decimal (10,2) := 0;
+            percentage_convenzione decimal (10,2) := 0;
             BEGIN
                 gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess);
 
@@ -1963,8 +1964,9 @@
                             ) LOOP
                             gui.AggiungiRigaTabella;
 
+                                percentage_convenzione := (convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0;
                                 gui.aggiungiElementoTabella (elemento => convenzione.Nome);
-                                gui.aggiungiElementoTabella (elemento => ''||(convenzione.NumeroClientiUtilizzatori / totale_clienti) * 100.0||'%');
+                                gui.aggiungiElementoTabella (elemento => ''||percentage_convenzione||'%');
                                 gui.aggiungiElementoTabella (elemento => convenzione.NumeroClientiUtilizzatori);
 
                             gui.chiudiRigaTabella;
@@ -1985,19 +1987,18 @@
                     gui.reindirizza (u_root || '.dettagliConvenzioni?idSess='||idSess||'&err_popup=N');
                 END dettagliConvenzioni;
 
-    procedure dettagliClienti(
+    procedure dettagliCategorieClienti(
                 idSess varchar default null,
                 c_datainizio varchar2 default null,
                 c_datafine varchar2 default null,
                 c_sesso varchar2 default null,
-                err_popup varchar2 default null
+                err_popup varchar2 default null,
+                filtro varchar2 default null
             ) IS
             tot_catClienti int;
             tot_clienti int; 
-            percentagefascia1 decimal (10,2) := 0;
-            c_query varchar2(200); --query di ricerca della categoria 
-            range_inizio date; 
-            range_fine date; 
+            percentage decimal (10,2) := 0;
+            percentage_cliente decimal (10,2) := 0;
             c_check boolean := false; 
 
             BEGIN
@@ -2017,68 +2018,58 @@
                     end if; 
                 end if; 
 
-                c_query := 'SELECT COUNT(cc.FK_CLIENTE)
-            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
-            WHERE 1=1'; 
-
             SELECT COUNT(*) INTO tot_clienti FROM CLIENTI; 
             
-                if c_datainizio IS NOT NULL then 
-                    c_query := c_query || ' AND cl.DataNascita >= :c_dataInizio';
-                    range_inizio := TO_DATE(c_datainizio, 'YYYY-MM-DD');
-                    c_check := true; 
-                end if; 
-
-                if c_datafine IS NOT NULL then 
-                    c_query := c_query || ' AND cl.DataNascita <= :c_dataFine';
-                    range_fine := TO_DATE(c_datafine, 'YYYY-MM-DD');
+                if c_datainizio IS NOT NULL OR c_datafine IS NOT NULL OR c_sesso IS NOT NULL then 
                     c_check := true;
                 end if; 
+                         
                 
-                if c_sesso IS NOT NULL then 
-                    c_query := c_query || ' AND cl.Sesso = :c_sesso';
-                    c_check := true;
-                end if;       
-                
-        /* SELECT COUNT(cc.FK_CLIENTE) INTO tot_catClienti
+        /* 
+            Selezionare il numero dei clienti che sfruttano convenzioni in un certa categoria
+        
+        SELECT COUNT(cc.FK_CLIENTE) INTO tot_catClienti
             FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
             WHERE (cl.DataNascita >= TO_DATE(c_datainizio,'DD-MM-YYYY') OR c_datainizio IS NULL)
                 AND (cl.DataNascita <= TO_DATE(c_datafine,'DD-MM-YYYY') OR c_datafine IS NULL)
                 AND (cl.Nome = c_nome OR c_nome IS NULL);*/
-
                 if c_check then   
-            
-                    if range_inizio IS NOT NULL AND range_fine IS NOT NULL AND c_sesso IS NOT NULL then 
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio, range_fine, c_sesso;
+
+                    if (c_dataInizio IS NOT NULL) AND (c_dataFine IS NOT NULL) AND (c_sesso IS NOT NULL) then 
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.DataNascita >= TO_DATE(c_datainizio,'YYYY-MM-DD')  AND cl.DataNascita <= TO_DATE(c_dataFine, 'YYYY-MM-DD') AND cl.Sesso = c_sesso;
+                    elsif (c_dataInizio IS NOT NULL) AND (c_dataFine IS NOT NULL) then 
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.DataNascita >= TO_DATE(c_datainizio,'YYYY-MM-DD')  AND cl.DataNascita <= TO_DATE(c_dataFine, 'YYYY-MM-DD'); 
+                    elsif (c_dataInizio IS NOT NULL) AND (c_sesso IS NOT NULL) then 
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.DataNascita >= TO_DATE(c_datainizio,'YYYY-MM-DD') AND cl.Sesso = c_sesso;
+                    elsif (c_dataFine IS NOT NULL) AND (c_sesso IS NOT NULL) then 
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.DataNascita <= TO_DATE(c_dataFine, 'YYYY-MM-DD') AND cl.Sesso = c_sesso;
+                    elsif c_dataInizio IS NOT NULL then  
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.DataNascita >= TO_DATE(c_datainizio,'YYYY-MM-DD');
+                    elsif c_dataFine IS NOT NULL then  
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.DataNascita <= TO_DATE(c_dataFine, 'YYYY-MM-DD');
+                    elsif c_sesso IS NOT NULL then  
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
+                                AND cl.Sesso = c_sesso;
+                    elsif (c_dataInizio IS NULL) AND (c_dataFine IS NULL) AND (c_sesso IS NULL) then  
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE;
                     end if; 
+                end if;
 
-                    if range_inizio IS NOT NULL AND range_fine IS NOT NULL then 
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio, range_fine;
-                    end if; 
-
-                    if range_inizio IS NOT NULL AND c_sesso IS NOT NULL then 
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio, c_sesso;
-                    end if; 
-
-                    if range_fine IS NOT NULL AND c_sesso IS NOT NULL then 
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_fine, c_sesso;
-                    end if; 
-
-                    if range_inizio IS NOT NULL then  
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_inizio; 
-                    end if; 
-
-                    if range_fine IS NOT NULL then  
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING range_fine; 
-                    end if; 
-
-                    if c_sesso IS NOT NULL then  
-                        EXECUTE IMMEDIATE c_query INTO tot_catClienti USING c_sesso; 
-                    end if; 
-
-                    else EXECUTE IMMEDIATE c_query INTO tot_catClienti;
-
-                end if; 
+                percentage := (tot_catClienti / tot_clienti) * 100.0; 
 
                 --fin qui ok
                 gui.aggiungiForm;
@@ -2097,13 +2088,13 @@
                             gui.aggiungiOpzioneSelect ('M', false , 'Maschio');
                             gui.aggiungiOpzioneSelect ('F', false , 'Femmina');
                         gui.chiudiSelectFormFiltro;
-                        gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
+                        gui.aggiungicampoformfiltro('submit', 'filtro', 'on', 'Filtra');
                     gui.ACAPO;
                 gui.CHIUDIFORMFILTRO;
 
-                if tot_catClienti <> 0 then 
+                if tot_catClienti <> 0 AND filtro = 'on' then 
                 gui.aCapo;
-                gui.aggiungiIntestazione( testo => 'Dati sui clienti');
+                gui.aggiungiIntestazione( testo => 'Dati sulla categoria');
                     gui.aggiungiGruppoInput;
                         gui.aCapo(2); 
                         gui.apridiv (classe => 'flex-container');
@@ -2120,7 +2111,7 @@
                                 gui.aggiungiIntestazione (testo => 'In percentuale', dimensione => 'h2');
                             gui.chiudiDiv; 
                             gui.apriDiv (classe => 'right');
-                                gui.aggiungiIntestazione (testo => '' ||  (tot_catClienti / tot_clienti) * 100.0|| '%', dimensione => 'h2');
+                                gui.aggiungiIntestazione (testo => '' || percentage || '%', dimensione => 'h2');
                             gui.chiudiDiv; 
 
                             gui.acapo;
@@ -2132,7 +2123,7 @@
                             for cliente in (
                                 SELECT c.IDCliente,
                                                 c.Nome,
-                                                COUNT(ci.FK_Convenzione) AS NumeroConvenzioniUsate
+                                                COUNT(DISTINCT ci.FK_Convenzione) AS NumeroConvenzioniUsate
                                                 FROM CLIENTI c
                                                 JOIN CONVENZIONICLIENTI ci ON c.IDCliente = ci.FK_Cliente
                                                 GROUP BY c.IDCliente, c.Nome
@@ -2141,9 +2132,9 @@
 
                             ) LOOP
                             gui.AggiungiRigaTabella;
-
+                                percentage_cliente := (cliente.NumeroConvenzioniUsate / tot_clienti) * 100.0;
                                 gui.aggiungiElementoTabella (elemento => cliente.Nome);
-                                gui.aggiungiElementoTabella (elemento => ''||(cliente.NumeroConvenzioniUsate / tot_clienti) * 100.0||'%');
+                                gui.aggiungiElementoTabella (elemento => ''||percentage_cliente ||'%');
                                 gui.aggiungiElementoTabella (elemento => cliente.NumeroConvenzioniUsate);
 
                             gui.chiudiRigaTabella;
@@ -2157,7 +2148,7 @@
                 gui.chiudiForm;
 
                 if tot_catClienti = 0 then 
-                    gui.reindirizza (u_root || '.dettagliClienti?idSess='||idSess||'&err_popup=N');
+                    gui.reindirizza (u_root || '.dettagliCategorieClienti?idSess='||idSess||'&err_popup=N');
                     return; 
                 end if; 
 
@@ -2166,8 +2157,8 @@
 
                 EXCEPTION
                     when NO_DATA_FOUND THEN
-                        gui.reindirizza (u_root || '.dettagliClienti?idSess='||idSess||'&err_popup=N');
-            END dettagliClienti;
+                        gui.reindirizza (u_root || '.dettagliCategorieClienti?idSess='||idSess||'&err_popup=N');
+            END dettagliCategorieClienti;
     
         end gruppo3;
 

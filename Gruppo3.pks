@@ -149,12 +149,13 @@ create or replace package Gruppo3 as
 		err_popup varchar2 default null
 	);
 
-	procedure dettagliClienti(
+	procedure dettagliCategorieClienti(
             idSess varchar default null,
             c_datainizio varchar2 default null,
             c_datafine varchar2 default null,
 			c_sesso varchar2 default null,
-			err_popup varchar2 default null
+			err_popup varchar2 default null,
+			filtro varchar2 default null
         );
 	---------------------------------------------
 	
