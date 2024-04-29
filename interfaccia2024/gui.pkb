@@ -102,6 +102,17 @@ create or replace PACKAGE BODY gui as
 			}
 		}
 
+		window.onclick = function(event) {
+			const modals = document.getElementsByClassName("modal-wrapper");
+
+			for(modal of modals){
+				if (event.target == modal) {
+					modal.style.display = "none";
+				}
+			}
+
+		}
+
 		</script>');
 		htp.print('</body>');
 
@@ -121,12 +132,12 @@ create or replace PACKAGE BODY gui as
 		testo varchar2 default ''
 	)IS
 	BEGIN 
-		gui.apriDiv (ident => 'modal-wrapper');
-			gui.apriDiv (ident => 'modal');
+		gui.apriDiv (classe => 'modal-wrapper', ident => 'modal');
+			gui.apriDiv (classe => 'modal');
 				gui.aggiungiIntestazione (testo => 'Sei sicuro?');
 				gui.aCapo(); 
 				
-				gui.apriDiv (ident => 'modal-button');  -- Bottoni si no
+				gui.apriDiv (classe => 'modal-button');  -- Bottoni si no
 				gui.chiudiDiv;
 			gui.chiudiDiv;
 		gui.chiudiDiv;
@@ -134,11 +145,12 @@ create or replace PACKAGE BODY gui as
 	END modalPopup; 
 
 	procedure apriModalPopup (
-		testo varchar2 default ''
+		testo varchar2 default '',
+		ident varchar2 default 'modal'
 	)is
 	BEGIN 
-
-		gui.apriDiv (ident => 'modal');  
+		gui.apriDiv (classe => 'modal-wrapper', ident => ident);
+		gui.apriDiv (classe => 'modal');
 			gui.aggiungiIntestazione (testo => testo);
 			gui.aCapo();  
 		
@@ -147,8 +159,7 @@ create or replace PACKAGE BODY gui as
 	procedure chiudiModalPopup is
 	BEGIN 
 
-			gui.apriDiv (ident => 'modal-button');  -- Bottoni si no
-			gui.chiudiDiv;
+		gui.chiudiDiv;
 		gui.chiudiDiv;
 		
 	END chiudiModalPopup;
@@ -267,6 +278,20 @@ create or replace PACKAGE BODY gui as
 			proceduresNames => gui.StringArray ('Gruppo4.inserimentoRevisione?idSessione='||idSessione||'', 'Gruppo4.visualizzazioneRevisione?idSessione='||idSessione||'', 
 			'Gruppo4.statisticheRev?idSessione='||idSessione||'')); 
 
+		gui.dropdowntopbar(
+			titolo => 'Inserimento dati', 
+			names => gui.StringArray(
+				'Link', 
+				'Link',
+				'Link'
+			),
+			proceduresNames => gui.StringArray (
+				'Link',
+				'Link',
+				'Link'
+			)
+		);
+
 
 		gui.CHIUDIDIV;
 		
@@ -288,13 +313,10 @@ create or replace PACKAGE BODY gui as
 			gui.bottonePrimario(testo => username ||' | '||ruolo);
 
 			--gui.indirizzo('Link to logica logout');
-				if(ruolo = 'Cliente') then
-					gui.indirizzo(costanti.URL||'gui.LogOut?idUser='||id_user||'&ruolo=00');
-				else
-					gui.indirizzo(costanti.URL||'gui.LogOut?idUser='||id_user||'&ruolo=01');
-				end if;
-					gui.BottonePrimario(testo => 'Logout'); 
-				gui.chiudiIndirizzo;
+				
+			gui.indirizzo(costanti.URL||'gui.LogOut?idSessione='||idSessione);
+				gui.BottonePrimario(testo => 'Logout'); 
+			gui.chiudiIndirizzo;
 
 				--bottone homepage
 			gui.indirizzo (costanti.URL || 'gui.homePage?p_success=S&idSessione='||idSessione||'');
@@ -419,9 +441,9 @@ BEGIN
     </button>');
 END AggiungiPulsanteCancellazione;
 
-procedure AggiungiPulsanteGenerale(collegamento VARCHAR2 DEFAULT '', testo VARCHAR2) IS
+procedure AggiungiPulsanteGenerale(collegamento VARCHAR2 DEFAULT '', testo VARCHAR2, ident_modal varchar2 default 'modal') IS
 BEGIN
-    htp.prn('<button onclick="mostraConferma('||collegamento||')">
+    htp.prn('<button onclick="mostraConferma('||collegamento||', '||CHR(39)||ident_modal||CHR(39)||')">
     '||testo||'
     </button>');
 END AggiungiPulsanteGenerale;
@@ -460,7 +482,7 @@ END AggiungiPulsanteGenerale;
 
 	procedure AggiungiCampoFormHidden(tipo VARCHAR2 default 'text', nome VARCHAR2, value VARCHAR2 default '', ident varchar2 default '') is
 	BEGIN
-		htp.prn('<input hidden type="'||tipo||'" name="'|| nome ||'" value="'||value||'" ident="'||ident||'">');
+		htp.prn('<input hidden type="'||tipo||'" name="'|| nome ||'" value="'||value||'" id="'||ident||'">');
 	end AggiungiCampoFormHidden;
 
 	procedure ApriSelectFormFiltro(nome varchar2, placeholder VARCHAR2, firstNull boolean default True) IS
@@ -587,7 +609,8 @@ END AggiungiPulsanteGenerale;
 		ids stringArray DEFAULT emptyArray,
 		names stringArray DEFAULT emptyArray,
 		hiddenParameter VARCHAR2 DEFAULT '',
-		parametriSelezionati StringArray default gui.StringArray()
+		parametriSelezionati StringArray default gui.StringArray(),
+		ident VARCHAR2 default ''
 	) IS
 		isSelected BOOLEAN;
     BEGIN
@@ -615,12 +638,12 @@ END AggiungiPulsanteGenerale;
 					END LOOP;
 
 					gui.apriDiv(ident => 'option');
-						htp.prn('<input type="checkbox" id="' || ids(i) || '" value="' || ids(i) || '"');
+						htp.prn('<input type="checkbox" id="' || ident || ids(i) || '" value="' || ids(i) || '"');
 						IF isSelected THEN
 							htp.prn(' checked');
 						END IF;
 						htp.prn(' onchange="updateHiddenInput(' || chr(39) || hiddenParameter || chr(39) || ', this)"/>');
-						htp.prn('<label for="' || ids(i) || '">' || names(i) || '</label>');
+						htp.prn('<label for="' || ident || ids(i) || '">' || names(i) || '</label>');
 						IF isSelected THEN
 						
 							htp.prn('<script>updateHiddenInput(' || chr(39) || hiddenParameter || chr(39) || ', document.getElementById(' || chr(39) || ids(i) || chr(39) || '));</script>');
@@ -675,10 +698,10 @@ END AggiungiPulsanteGenerale;
 
 	/*Form*/
 
-	procedure aggiungiForm (classe VARCHAR2 default '', name VARCHAR2 default '', url VARCHAR2 default '') IS
+	procedure aggiungiForm (classe VARCHAR2 default '', name VARCHAR2 default '', url VARCHAR2 default '', onSubmit varchar2 default '') IS
 	BEGIN
-		htp.prn ('<form method="GET" class="'||classe||'" name="'||name||'" action="'||url||'"">'); 
-		gui.APRIDIV(classe => 'form-container'); 
+		htp.prn ('<form method="GET" class="'||classe||'" name="'||name||'" action="'||url||'"" onsubmit="'||onSubmit||'">'); 
+			gui.APRIDIV(classe => 'form-container'); 
 	END aggiungiForm;
 
 	procedure chiudiForm IS
@@ -951,9 +974,9 @@ BEGIN
 			    gui.reindirizza(costanti.URL||'gui.homePage?p_success=L');  -- errore ancora da risolvere'
 	end HomePage;
 
-	procedure LogOut(idUser int, ruolo varchar2) is
+	procedure LogOut(idSessione varchar2) is
 	begin
-		if loginlogout.terminaSessione(idUser, ruolo) THEN
+		if loginlogout.terminaSessione(idSessione) THEN
 			gui.Reindirizza(costanti.URL||'gui.homePage?p_success=LOS');
 		else
 			gui.Reindirizza(costanti.URL||'gui.homePage?p_success=LOF');
