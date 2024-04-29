@@ -1029,9 +1029,9 @@
                 gui.REINDIRIZZA(U_ROOT||'.visualizzaBustePaga?idSess='||idSess||'&r_popUp=True');
             END IF;
 
-            IF (new_Importo < 0) THEN
-                gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=True');
-            END IF;
+        IF (new_Importo < 0) THEN
+            gui.REINDIRIZZA(U_ROOT||'.modificaBustaPaga?idSess='||idSess||'&r_FkDipendente='||r_FkDipendente||'&r_Data='||r_Data||'&r_PopUp=importoNegativo');
+        END IF;
 
         ELSE
             gui.AGGIUNGIPOPUP(False,'Errore: non hai i permessi necessari per accedere a questa pagina!', costanti.URL||'gui.homepage?idsessione'||idSess);
@@ -1362,187 +1362,204 @@
         END IF;
     end bustePagaIsEmpty;
 
-    procedure dettagliStipendiPersonale(
-        idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
-        r_DataInizio in varchar2 default null,
-        r_DataFine in varchar2 default null
-    )
-    IS
-        totStipAutisti number :=0;
-        totStipOperatori number :=0;
-        totStipContabili number :=0;
-        totStipManager number := 0;
-        totStipGeneral number := 0;
-        minDate varchar2(20);
-        maxDate varchar2(20);
-        head gui.stringArray;
-    BEGIN
-        IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
-            gui.APRIPAGINA(titolo=> 'dettagliStipendiPersonale', idSessione=>idSess);
-            -- controllo che la tabella non sia vuota
-            IF(NOT bustePagaIsEmpty()) THEN
-                -- Recupero data minima e massima in buste paga
-                SELECT TO_CHAR(MIN(b.DATA), 'dd/mm/yyyy') INTO minDate
-                FROM BUSTEPAGA b;
-                SELECT TO_CHAR(MAX(b.DATA), 'dd/mm/yyyy') INTO maxDate
-                FROM BUSTEPAGA b;
-                -- Recupero somma stipendi di tutti
-                SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipGeneral
-                FROM (DIPENDENTI d JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
-                -- Recupero somma stipendi autisti
-                SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipAutisti
-                FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
-                -- Recupero somma stipendi operatori
-                SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipOperatori
-                FROM (OPERATORI o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
-                -- Recupero somma stipendi contabili
-                SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipContabili
-                FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                WHERE r.RUOLO = 1 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
-                -- Recupero somma stipendi manager
-                SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipManager
-                FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                WHERE r.RUOLO = 0 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
-                AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
-                gui.AGGIUNGIFORM();
-                gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Stipendi Personale', dimensione => 'h1');
-                gui.APRIFORMFILTRO();
-                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-                        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataInizio', placeholder => 'Data Inizio');
-                        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataFine', placeholder => 'Data Fine');
-                        gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
-                    gui.ACAPO;
-                gui.CHIUDIFORMFILTRO;
-                gui.AGGIUNGIGRUPPOINPUT;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Personale completo', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipGeneral, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Autisti', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipAutisti, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for autista IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => autista.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(autista.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.ACAPO();
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Operatori', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipOperatori, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for operatore IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (Operatori o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => operatore.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(operatore.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Contabili', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipContabili, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for contabile IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE r.RUOLO = 1
-                                    AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => contabile.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(contabile.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.ACAPO;
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Manager', dimensione => 'h2');
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
-                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipManager, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                    ELSE
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
-                    END IF;
-                    head := gui.StringArray('Identificativo','Euro netti percepiti');
-                    gui.APRITABELLA (elementi => head);
-                    for manager IN (
-                            SELECT *
-                            FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
-                                FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
-                                        ON (d.MATRICOLA = b.FK_DIPENDENTE))
-                                WHERE r.RUOLO = 0
-                                    AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                                    AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
-                                GROUP BY d.MATRICOLA
-                                ORDER BY stipTot DESC )
-                            WHERE ROWNUM <=3
-                        )
-                    LOOP
-                        gui.AGGIUNGIRIGATABELLA;
-                            gui.aggiungielementotabella(elemento => manager.MATRICOLA);
-                            gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(manager.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.ChiudiRigaTabella;
-                    end LOOP;
-                    gui.CHIUDITABELLA();
-                    gui.CHIUDIGRUPPOINPUT;
-                gui.CHIUDIFORM();
+procedure dettagliStipendiPersonale(
+    idSess in SESSIONIDIPENDENTI.IDSESSIONE%TYPE,
+    r_DataInizio in varchar2 default null,
+    r_DataFine in varchar2 default null
+)
+IS
+    totStipAutisti number :=0;
+    totStipOperatori number :=0;
+    totStipContabili number :=0;
+    totStipManager number := 0;
+    totStipGeneral number := 0;
+    minDate varchar2(20);
+    maxDate varchar2(20);
+    head gui.stringArray;
+BEGIN
+    IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
+        gui.APRIPAGINA(titolo=> 'dettagliStipendiPersonale', idSessione=>idSess);
+        -- controllo che la tabella non sia vuota
+        IF(NOT bustePagaIsEmpty()) THEN
+            -- Recupero data minima e massima in buste paga
+            SELECT TO_CHAR(MIN(b.DATA), 'dd/mm/yyyy') INTO minDate
+            FROM BUSTEPAGA b;
+            SELECT TO_CHAR(MAX(b.DATA), 'dd/mm/yyyy') INTO maxDate
+            FROM BUSTEPAGA b;
+            -- Recupero somma stipendi di tutti
+            SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipGeneral
+            FROM (DIPENDENTI d JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
+            WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+            -- Recupero somma stipendi autisti
+            SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipAutisti
+            FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
+            WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+            -- Recupero somma stipendi operatori
+            SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipOperatori
+            FROM (OPERATORI o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
+            WHERE ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+            -- Recupero somma stipendi contabili
+            SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipContabili
+            FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
+            WHERE r.RUOLO = 1 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+            -- Recupero somma stipendi manager
+            SELECT SUM(b.IMPORTO + b.BONUS) INTO totStipManager
+            FROM (RESPONSABILI r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b ON (d.MATRICOLA = b.FK_DIPENDENTE))
+            WHERE r.RUOLO = 0 AND ( b.data >= TO_DATE(r_DataInizio,'yyyy-mm-dd')  or r_DataInizio is null )
+              AND ( b.data <= TO_DATE(r_DataFine,'yyyy-mm-dd')  or r_DataFine is null );
+            -- Controllo valori restituiti
+            IF(totStipAutisti IS NULL) THEN
+                totStipAutisti := 0;
+            end if;
+            IF(totStipOperatori IS NULL) THEN
+                totStipOperatori := 0;
+            end if;
+            IF(totStipContabili IS NULL) THEN
+                totStipContabili := 0;
+            end if;
+            IF(totStipManager IS NULL) THEN
+                totStipManager := 0;
+            end if;
+            IF(totStipGeneral IS NULL) THEN
+                totStipGeneral := 0;
+            end if;
+            -- interfaccia
+            gui.AGGIUNGIFORM();
+            gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Stipendi Personale', dimensione => 'h1');
+            gui.APRIFORMFILTRO();
+                gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataInizio', placeholder => 'Data Inizio');
+                    gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataFine', placeholder => 'Data Fine');
+                    gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
+                gui.ACAPO;
+            gui.CHIUDIFORMFILTRO;
+            gui.AGGIUNGIGRUPPOINPUT;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Personale completo', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipGeneral, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Autisti', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipAutisti, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 autisti più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for autista IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (AUTISTI a JOIN DIPENDENTI d ON (a.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => autista.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(autista.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.ACAPO();
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Operatori', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipOperatori, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 operatori più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for operatore IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (Operatori o JOIN DIPENDENTI d ON (o.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => operatore.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(operatore.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.ACAPO;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Contabili', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipContabili, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 contabili più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for contabile IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE r.RUOLO = 1
+                                AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => contabile.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(contabile.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.ACAPO;
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Manager', dimensione => 'h2');
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Totale Stipendi: ', dimensione => 'h3');
+                gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totStipManager, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                ELSE
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Top 3 manager più pagati (' ||minDate||' - '||maxDate||'): ', dimensione => 'h3');
+                END IF;
+                head := gui.StringArray('Identificativo','Euro netti percepiti');
+                gui.APRITABELLA (elementi => head);
+                for manager IN (
+                        SELECT *
+                        FROM (SELECT d.MATRICOLA, SUM(b.IMPORTO + b.BONUS) AS stipTot
+                              FROM (Responsabili r JOIN DIPENDENTI d ON (r.FK_DIPENDENTE = d.MATRICOLA) JOIN BUSTEPAGA b
+                                    ON (d.MATRICOLA = b.FK_DIPENDENTE))
+                              WHERE r.RUOLO = 0
+                                AND (b.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                                AND (b.data <= TO_DATE(r_DataFine, 'yyyy-mm-dd') or r_DataFine is null)
+                              GROUP BY d.MATRICOLA
+                              ORDER BY stipTot DESC )
+                        WHERE ROWNUM <=3
+                    )
+                LOOP
+                    gui.AGGIUNGIRIGATABELLA;
+                        gui.aggiungielementotabella(elemento => manager.MATRICOLA);
+                        gui.AGGIUNGIELEMENTOTABELLA(elemento => TO_CHAR(manager.stipTot, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.ChiudiRigaTabella;
+                end LOOP;
+                gui.CHIUDITABELLA();
+                gui.CHIUDIGRUPPOINPUT;
+            gui.CHIUDIFORM();
 
                 gui.CHIUDIPAGINA();
             ELSE
@@ -1583,67 +1600,75 @@
             delta number := 0;
             head gui.stringArray;
 
-    BEGIN
-        gui.APRIPAGINA(titolo=> 'dettagliRicaricheClienti', idSessione=>idSess);
-        IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
-            -- controllo che la tabella ricariche non sia vuota
-            IF(NOT ricaricheIsEmpty()) THEN
-                -- Recupero data minima e massima in ricariche.
-                SELECT TO_CHAR(MIN(r.DATA), 'yyyy-mm-dd') INTO minDate
-                FROM RICARICHE r;
-                SELECT TO_CHAR(MAX(r.DATA), 'yyyy-mm-dd') INTO maxDate
-                FROM RICARICHE r;
-                -- Recupero il totale delle ricariche.
-                SELECT SUM(r.IMPORTO) INTO totRicariche
+BEGIN
+    gui.APRIPAGINA(titolo=> 'dettagliRicaricheClienti', idSessione=>idSess);
+    IF(sessionhandler.GETRUOLO(idSess) = 'Manager') THEN
+        -- controllo che la tabella ricariche non sia vuota
+        IF(NOT ricaricheIsEmpty()) THEN
+            -- Recupero data minima e massima in ricariche.
+            SELECT TO_CHAR(MIN(r.DATA), 'yyyy-mm-dd') INTO minDate
+            FROM RICARICHE r;
+            SELECT TO_CHAR(MAX(r.DATA), 'yyyy-mm-dd') INTO maxDate
+            FROM RICARICHE r;
+            -- Recupero il totale delle ricariche.
+            SELECT SUM(r.IMPORTO) INTO totRicariche
+            FROM RICARICHE r
+            WHERE (r.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
+                AND ((r.data <= (TO_DATE(r_DataFine, 'yyyy-mm-dd') +1)) or r_DataFine is null);
+            -- totRicaricheDataInizio e totRicaricheDataFine
+            IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                SELECT SUM(r.IMPORTO) INTO totRicaricheDataInizio
                 FROM RICARICHE r
-                WHERE (r.data >= TO_DATE(r_DataInizio, 'yyyy-mm-dd') or r_DataInizio is null)
-                    AND ((r.data <= (TO_DATE(r_DataFine, 'yyyy-mm-dd') +1)) or r_DataFine is null);
-                -- totRicaricheDataInizio e totRicaricheDataFine
-                IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                    SELECT SUM(r.IMPORTO) INTO totRicaricheDataInizio
-                    FROM RICARICHE r
-                    WHERE (trunc(r.data) = TO_DATE(r_DataInizio, 'yyyy-mm-dd'));
-                    SELECT SUM(r.IMPORTO) INTO totRicaricheDataFine
-                    FROM RICARICHE r
-                    WHERE (trunc(r.data) = TO_DATE(r_DataFine, 'yyyy-mm-dd'));
-                ELSE
-                    SELECT SUM(r.IMPORTO) INTO totRicaricheDataInizio
-                    FROM RICARICHE r
-                    WHERE (trunc(r.data) = TO_DATE(minDate, 'yyyy-mm-dd'));
-                    SELECT SUM(r.IMPORTO) INTO totRicaricheDataFine
-                    FROM RICARICHE r
-                    WHERE (trunc(r.data) = TO_DATE(maxDate, 'yyyy-mm-dd'));
-                END IF;
-                -- trend
-                delta :=  totRicaricheDataFine - totRicaricheDataInizio;
-                htp.prn(delta);
-                trendPercent := ((delta * 100) /totRicaricheDataInizio);
-                htp.prn(trendPercent);
-                -- gui
-                gui.AGGIUNGIFORM();
-                    gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Ricariche Clienti', dimensione => 'h1');
-                    gui.APRIFORMFILTRO();
-                        gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
-                            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataInizio', placeholder => 'Data Inizio');
-                            gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataFine', placeholder => 'Data Fine');
-                            gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
-                        gui.ACAPO;
-                    gui.CHIUDIFORMFILTRO;
-                    gui.AGGIUNGIGRUPPOINPUT;
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Incasso Ricariche', dimensione => 'h2');
-                        IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                        ELSE
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(minDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(maxDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                        END IF;
-                        gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totRicariche, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
-                        gui.AGGIUNGIINTESTAZIONE (testo => 'Trend percentuale', dimensione => 'h2');
-                        IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                        ELSE
-                            gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(minDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(maxDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
-                        END IF;
-                        gui.AGGIUNGIPARAGRAFO (testo => TRUNC(trendPercent, 2)||'%');
+                WHERE (trunc(r.data) = TO_DATE(r_DataInizio, 'yyyy-mm-dd'));
+                SELECT SUM(r.IMPORTO) INTO totRicaricheDataFine
+                FROM RICARICHE r
+                WHERE (trunc(r.data) = TO_DATE(r_DataFine, 'yyyy-mm-dd'));
+            ELSE
+                SELECT SUM(r.IMPORTO) INTO totRicaricheDataInizio
+                FROM RICARICHE r
+                WHERE (trunc(r.data) = TO_DATE(minDate, 'yyyy-mm-dd'));
+                SELECT SUM(r.IMPORTO) INTO totRicaricheDataFine
+                FROM RICARICHE r
+                WHERE (trunc(r.data) = TO_DATE(maxDate, 'yyyy-mm-dd'));
+            END IF;
+            -- Controlli sui valori restituiti
+            IF(totRicaricheDataInizio IS NULL) THEN
+                totRicaricheDataInizio:=1;
+            END IF;
+            IF(totRicaricheDataFine IS NULL) THEN
+                totRicaricheDataFine:=1;
+            END IF;
+            IF(totRicariche IS NULL) THEN
+                totRicariche:=0;
+            END IF;
+            -- Trend
+            delta :=  totRicaricheDataFine - totRicaricheDataInizio;
+            trendPercent := ((delta * 100) /totRicaricheDataInizio);
+            -- gui
+            gui.AGGIUNGIFORM();
+                gui.AGGIUNGIINTESTAZIONE (testo => 'Dettagli Ricariche Clienti', dimensione => 'h1');
+                gui.APRIFORMFILTRO();
+                    gui.AGGIUNGIINPUT(tipo => 'hidden', nome => 'idSess', value => idSess);
+                        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataInizio', placeholder => 'Data Inizio');
+                        gui.aggiungicampoformfiltro(tipo => 'date', nome => 'r_DataFine', placeholder => 'Data Fine');
+                        gui.aggiungicampoformfiltro('submit', '', '', 'Filtra');
+                    gui.ACAPO;
+                gui.CHIUDIFORMFILTRO;
+                gui.AGGIUNGIGRUPPOINPUT;
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Incasso Ricariche', dimensione => 'h2');
+                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale tra le date (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                    ELSE
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale tra le date (' ||TO_CHAR(TO_DATE(minDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(maxDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                    END IF;
+                    gui.AGGIUNGIPARAGRAFO (testo => TO_CHAR(totRicariche, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.'' NLS_CURRENCY=''€''')||'€');
+                    gui.AGGIUNGIINTESTAZIONE (testo => 'Trend percentuale', dimensione => 'h2');
+                    IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(r_DataInizio, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(r_DataFine, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                    ELSE
+                        gui.AGGIUNGIINTESTAZIONE (testo => 'Totale (' ||TO_CHAR(TO_DATE(minDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||' - '||TO_CHAR(TO_DATE(maxDate, 'yyyy-mm-dd'), 'dd/mm/yyyy')||'): ', dimensione => 'h3');
+                    END IF;
+                    gui.AGGIUNGIPARAGRAFO (testo => TRUNC(trendPercent, 2)||'%');
 
                         gui.AGGIUNGIINTESTAZIONE (testo => 'Clienti poco assidui', dimensione => 'h2');
                         IF(r_DataInizio IS NOT NULL AND r_DataFine IS NOT NULL) THEN
@@ -2024,15 +2049,6 @@
                     c_check := true;
                 end if; 
                          
-                
-        /* 
-            Selezionare il numero dei clienti che sfruttano convenzioni in un certa categoria
-        
-        SELECT COUNT(cc.FK_CLIENTE) INTO tot_catClienti
-            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
-            WHERE (cl.DataNascita >= TO_DATE(c_datainizio,'DD-MM-YYYY') OR c_datainizio IS NULL)
-                AND (cl.DataNascita <= TO_DATE(c_datafine,'DD-MM-YYYY') OR c_datafine IS NULL)
-                AND (cl.Nome = c_nome OR c_nome IS NULL);*/
                 if c_check then   
 
                     if (c_dataInizio IS NOT NULL) AND (c_dataFine IS NOT NULL) AND (c_sesso IS NOT NULL) then 
