@@ -356,50 +356,45 @@
                         end if;
                 end if;
 
-                if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
+                if c_dataInizio IS NOT NULL AND TO_DATE(c_dataInizio, 'YYYY-MM-DD') <> d_inizio then
                 --controlli
-                    if c_dataInizio < SYSDATE then
+                    if TO_DATE(c_dataInizio, 'YYYY-MM-DD') < SYSDATE then
                         error_check:=true;
-                    end if;
-
-                    if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
-                        if c_dataInizio > c_dataFine then
+                    elsif c_dataFine IS NOT NULL AND TO_DATE(c_dataFine, 'YYYY-MM-DD') <> d_fine then
+                        if TO_DATE(c_dataInizio, 'YYYY-MM-DD') > TO_DATE(c_dataFine, 'YYYY-MM-DD') then
                             error_check:=true;
                         end if;
-
-                        else
-                            if c_dataInizio > d_fine then
-                                error_check:=true;
-                            end if;
                     end if;
 
-                    UPDATE CONVENZIONI
-                    SET DATAINIZIO = c_dataInizio
-                    WHERE IDConvenzione = c_id;
+                    if NOT error_check then 
+                        UPDATE CONVENZIONI
+                            SET DATAINIZIO = TO_DATE(c_dataInizio, 'YYYY-MM-DD')
+                            WHERE IDConvenzione = c_id;
                     c := c+1;
 
+                    end if; 
+                    
                 end if;
 
-                if c_dataFine IS NOT NULL AND c_dataFine <> d_fine then
+                if c_dataFine IS NOT NULL AND TO_DATE(c_dataFine, 'YYYY-MM-DD') <> d_fine then
                 --controlli
-                    if c_dataFine < SYSDATE then
+                    if TO_DATE(c_dataFine, 'YYYY-MM-DD') < SYSDATE then
                         error_check:=true;
                     end if;
 
-                    if c_dataInizio IS NOT NULL AND c_dataInizio <> d_inizio then
-                        if c_dataFine < c_dataInizio then
-                            error_check:=true;
-                        end if;
-
-                        else
-                            if c_dataFine < d_inizio then
+                    if c_dataInizio IS NOT NULL AND TO_DATE(c_dataInizio, 'YYYY-MM-DD') <> d_inizio then
+                            if TO_DATE(c_dataFine, 'YYYY-MM-DD') < TO_DATE(c_dataInizio, 'YYYY-MM-DD') then
                                 error_check:=true;
                             end if;
                     end if;
 
-                UPDATE CONVENZIONI
-                    SET DATAFINE = c_dataFine
+                if NOT error_check then 
+                    UPDATE CONVENZIONI
+                    SET DATAFINE = TO_DATE(c_dataFine, 'YYYY-MM-DD')
                     WHERE IDConvenzione = c_id;
+                    c:=c+1;
+                    end if; 
+             
                 end if;
 
                 if c_Cumulabile IS NOT NULL AND c_cumulabile <> current_cumulabile then       
@@ -1867,38 +1862,6 @@ BEGIN
             BEGIN
                 gui.apriPagina (titolo => 'Dettagli convenzioni', idSessione => idSess);
 
-                /* dettagli convenzione           
-        if tot_clientiConv <> 0  then
-                --fascia 18-25
-                    SELECT COUNT(cc.FK_CLIENTE) INTO num_clientifascia1
-                    FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
-                    INNER JOIN CONVENZIONI c ON cc.FK_CONVENZIONE = c.IDCONVENZIONE
-                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, cl.DataNascita) / 12) BETWEEN 18 and 25
-                        AND c.DataInizio <= TO_DATE(cat_datainizio,'YYYY-MM-DD')
-                            AND c.DataFine >= TO_DATE(cat_datafine,'YYYY-MM-DD');
-
-                    percentagefascia1 := (num_clientifascia1 / tot_clientiConv) * 100.0;
-                --fascia 26-60
-                    SELECT COUNT(cc.FK_CLIENTE) INTO num_clientifascia2
-                    FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
-                    INNER JOIN CONVENZIONI c ON cc.FK_CONVENZIONE = c.IDCONVENZIONE
-                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, cl.DataNascita) / 12) BETWEEN 26 and 60
-                        AND c.DataInizio <= TO_DATE(cat_datainizio,'YYYY-MM-DD')
-                            AND c.DataFine >= TO_DATE(cat_datafine,'YYYY-MM-DD');
-
-                    percentagefascia2 := (num_clientifascia2 / tot_clientiConv) * 100.0;
-                --fascia over 60
-                    SELECT COUNT(cc.FK_CLIENTE) INTO num_clientifascia3
-                    FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE
-                    INNER JOIN CONVENZIONI c ON cc.FK_CONVENZIONE = c.IDCONVENZIONE
-                    WHERE  TRUNC(MONTHS_BETWEEN(SYSDATE, cl.DataNascita) / 12) > 60
-                        AND c.DataInizio <= TO_DATE(cat_datainizio,'YYYY-MM-DD')
-                            AND c.DataFine >= TO_DATE(cat_datafine,'YYYY-MM-DD');
-
-                    percentagefascia3 := (num_clientifascia3 / tot_clientiConv) * 100.0;    
-        end if;
-        */
-
                 --controllo manager
                 if ( NOT (SESSIONHANDLER.checkRuolo (idSess, 'Manager'))) THEN
                     gui.aggiungiPopup (FALSE, 'Non hai i permessi per accedere a questa pagina', costanti.URL || 'gui.homePage?idSessione='||idSess||'&p_success=S');
@@ -1932,8 +1895,10 @@ BEGIN
                 END IF;
 
                 gui.aggiungiForm;
-                    gui.aggiungiIntestazione (testo => 'Dettagli statistici');
-                    gui.aggiungiIntestazione (testo => 'convenzioni');
+                
+                        gui.aggiungiIntestazione (testo => 'Dettagli statistici');
+                        gui.aggiungiIntestazione (testo => 'convenzioni');
+                            
                     gui.aCapo();
 
                     gui.aggiungiIntestazione( testo => 'Immetti il nome di una convenzione', dimensione => 'h2');
@@ -2000,6 +1965,9 @@ BEGIN
 
                         gui.chiudiDiv; --flex-container
                     gui.chiudiGruppoInput;
+                    else 
+                        gui.aCapo(); 
+                        gui.bottoneAggiungi (testo => 'Visualizza convenzioni', url => u_root || '.visualizzaConvenzioni?idSess='||idSess||'');
                     end if;
 
                 gui.chiudiForm;
@@ -2159,6 +2127,10 @@ BEGIN
 
                         gui.chiudiDiv; --flex-container
                     gui.chiudiGruppoInput;
+                    else 
+
+                    gui.aCapo(3); 
+                    gui.bottoneAggiungi (testo => 'Visualizza clienti', url => u_root || '.visualizzaClienti?idSess='||idSess||'');
                 end if; 
  
                 gui.chiudiForm;
