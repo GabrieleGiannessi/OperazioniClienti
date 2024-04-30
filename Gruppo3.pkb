@@ -2015,6 +2015,9 @@ BEGIN
             
                 if c_datainizio IS NOT NULL OR c_datafine IS NOT NULL OR c_sesso IS NOT NULL then 
                     c_check := true;
+                    else 
+                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
+                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE;
                 end if; 
                          
                 if c_check then   
@@ -2046,10 +2049,7 @@ BEGIN
                     elsif c_sesso IS NOT NULL then  
                         SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
                             FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE WHERE 1=1
-                                AND cl.Sesso = c_sesso;
-                    elsif (c_dataInizio IS NULL) AND (c_dataFine IS NULL) AND (c_sesso IS NULL) then  
-                        SELECT COUNT(DISTINCT cc.FK_CLIENTE) INTO tot_catCLienti
-                            FROM CONVENZIONICLIENTI cc INNER JOIN CLIENTI cl ON cc.FK_CLIENTE = cl.IDCLIENTE;
+                                AND cl.Sesso = c_sesso;                    
                     end if; 
                 end if;
 
