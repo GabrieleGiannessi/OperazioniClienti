@@ -358,12 +358,19 @@
 
                 if c_dataInizio IS NOT NULL AND TO_DATE(c_dataInizio, 'YYYY-MM-DD') <> d_inizio then
                 --controlli
-                    if TO_DATE(c_dataInizio, 'YYYY-MM-DD') < SYSDATE then
+                    if TO_DATE(c_dataInizio, 'YYYY-MM-DD') < SYSDATE then 
                         error_check:=true;
+
+                    elsif c_dataFine IS NULL then 
+                        if TO_DATE(c_dataInizio, 'YYYY-MM-DD') > d_fine then
+                            error_check := true ;
+                        end if;  
+
                     elsif c_dataFine IS NOT NULL AND TO_DATE(c_dataFine, 'YYYY-MM-DD') <> d_fine then
                         if TO_DATE(c_dataInizio, 'YYYY-MM-DD') > TO_DATE(c_dataFine, 'YYYY-MM-DD') then
                             error_check:=true;
                         end if;
+                        
                     end if;
 
                     if NOT error_check then 
